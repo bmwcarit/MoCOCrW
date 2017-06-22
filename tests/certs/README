@@ -1,0 +1,6 @@
+This is the openssl workspace used to create all the testing certificates.
+It is here so that all information is available and can be picked up if
+one wants to add more certificates later.
+
+See https://jamielinux.com/docs/openssl-certificate-authority/sign-server-and-client-certificates.html
+on information how to work with it

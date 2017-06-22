@@ -1,0 +1,1 @@
+V	440812130318Z		1000	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Intermediate CA 1

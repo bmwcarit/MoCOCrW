@@ -1,0 +1,5 @@
+V	440812125156Z		1001	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Intermediate CA 2
+V	440812132556Z		1002	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Certificate directly under root
+V	440812190038Z		1003	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Intemediate CA 1
+V	19500501120000Z		1004	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Expired Certificate
+V	21500501120000Z		1005	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Future Certificate

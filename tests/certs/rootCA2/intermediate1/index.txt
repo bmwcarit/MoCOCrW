@@ -1,0 +1,1 @@
+V	440812132216Z		1000	unknown	/C=DE/ST=Bavaria/O=BMW/OU=Car IT/CN=Testing Cert 1

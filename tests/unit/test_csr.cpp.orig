@@ -1,0 +1,70 @@
+/**
+ * @file
+ * @copyright (C) 2017, BMW AG
+ * @copyright (C) 2017, BMW Car IT GmbH
+ */
+#include <gtest/gtest.h>
+
+#include <iostream>
+
+#include "csr.cpp"
+
+using namespace mococrw;
+using namespace mococrw::openssl;
+
+TEST(CSRTest, createDistinguishedName)
+{
+    auto builder = DistinguishedName::Builder();
+    builder.commonName("ImATeapot")
+            .countryName("DE")
+            .organizationName("BMW")
+            .organizationalUnitName("Linux Support")
+            .pkcs9EmailAddress("support@linux.bmwgroup.com")
+            .localityName("oben")
+            .serialNumber("ECU-UID:08E36DD501941432358AFE8256BC6EFD");
+    builder.stateOrProvinceName("nebenan");
+    auto dn = builder.build();
+
+    ASSERT_EQ(dn.commonName(), "ImATeapot");
+    ASSERT_EQ(dn.countryName(), "DE");
+    ASSERT_EQ(dn.organizationName(), "BMW");
+    ASSERT_EQ(dn.organizationalUnitName(), "Linux Support");
+    ASSERT_EQ(dn.pkcs9EmailAddress(), "support@linux.bmwgroup.com");
+    ASSERT_EQ(dn.stateOrProvinceName(), "nebenan");
+    ASSERT_EQ(dn.serialNumber(), "ECU-UID:08E36DD501941432358AFE8256BC6EFD");
+    ASSERT_EQ(dn.localityName(), "oben");
+}
+
+TEST(CSRTest, errorHandlingInDistinguishedName)
+{
+    auto builder = DistinguishedName::Builder();
+    ASSERT_NO_THROW(builder.commonName("ImATeapot"));
+    ASSERT_THROW(builder.countryName("DES"), std::runtime_error);
+    ASSERT_NO_THROW(builder.countryName("DE"));
+}
+
+TEST(CSRTest, createCSR)
+{
+    auto dn = DistinguishedName::Builder()
+                      .commonName("ImATeapot")
+                      .countryName("DE")
+                      .organizationName("BMW")
+                      .organizationalUnitName("Linux Support")
+                      .pkcs9EmailAddress("support@linux.bmwgroup.com")
+                      .localityName("oben")
+                      .stateOrProvinceName("nebenan")
+                      .serialNumber("ECU-UID:08E36DD501941432358AFE8256BC6EFD")
+                      .build();
+    CertificateSigningRequest csr{dn};
+    auto pemString = csr.toPem();
+<<<<<<< Updated upstream
+    auto keypair = csr.getKeypair();
+    // Smoke test to verify that a realistic amount of output
+    // is generated
+=======
+    std::cout << pemString << std::endl;
+>>>>>>> Stashed changes
+    ASSERT_GE(pemString.size(), 1024);
+
+    ASSERT_GE(1024, keypair.publicKeyToPem().size());
+}
