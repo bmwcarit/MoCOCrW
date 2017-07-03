@@ -248,11 +248,39 @@ void _X509_REQ_set_pubkey(X509_REQ* req, EVP_PKEY* pkey);
 void _X509_REQ_set_version(X509_REQ* req, unsigned long version);
 
 /**
+ * @result pointer to the internal X509_NAME structure.
+ *
+ * NOTE this result *MUST NOT BE FREED*.
+ */
+X509_NAME* _X509_REQ_get_subject_name(X509_REQ* req);
+
+/**
+ * Get the public key for the given X509_REQ object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+SSL_EVP_PKEY_Ptr _X509_REQ_get_public_key(X509_REQ* req);
+
+/**
+ * Verifies the given X509_REQ object against the given public key.
+ *
+ * @throw OpenSSLException if the verification fails.
+ */
+void _X509_REQ_verify(X509_REQ *req, EVP_PKEY *key);
+
+/**
  * Write the X509_REQ to PEM format into the given BIO object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
 void _PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req);
+
+/**
+ * Read the X509_REQ in PEM format from the given BIO object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio);
 
 /**
  *
@@ -555,6 +583,7 @@ X509_NAME* _X509_get_issuer_name(X509 *obj);
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
 time_point _X509_get_notBefore(X509* x);
+
 /**
  * Get not after value of the certificate as system_clock::time_point
  *

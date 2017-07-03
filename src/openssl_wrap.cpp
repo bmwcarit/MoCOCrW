@@ -202,9 +202,34 @@ void _X509_REQ_set_version(X509_REQ* req, unsigned long version)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_REQ_set_version, req, version);
 }
 
+X509_NAME* _X509_REQ_get_subject_name(X509_REQ *req)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_REQ_get_subject_name, req);
+}
+
+SSL_EVP_PKEY_Ptr _X509_REQ_get_public_key(X509_REQ *req)
+{
+    return SSL_EVP_PKEY_Ptr{
+        OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_REQ_get_pubkey, req)};
+}
+
+void _X509_REQ_verify(X509_REQ *req, EVP_PKEY *key)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_REQ_verify, req, key);
+}
+
 void _PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req)
 {
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_PEM_write_bio_X509_REQ, bio, req);
+}
+
+SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio)
+{
+    return SSL_X509_REQ_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_PEM_read_bio_X509_REQ,
+                                          bio, // the bio object to read from
+                                          nullptr, //we do not pass in an "out-argument pointer"
+                                          nullptr, // no callback for a password
+                                          nullptr)}; // no password either
 }
 
 BIO_METHOD* _BIO_s_mem() { return lib::OpenSSLLib::SSL_BIO_s_mem(); }
@@ -487,17 +512,20 @@ time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
 }
 }
 
-time_point _X509_get_notBefore(X509* x) {
+time_point _X509_get_notBefore(X509* x)
+{
     auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notBefore, x);
     return _asn1TimeToTimePoint(asn1time);
 }
 
-time_point _X509_get_notAfter(X509* x) {
+time_point _X509_get_notAfter(X509* x)
+{
     auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notAfter, x);
     return _asn1TimeToTimePoint(asn1time);
 }
 
-SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x) {
+SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x)
+{
     return SSL_EVP_PKEY_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_pubkey,x)};
 }
 

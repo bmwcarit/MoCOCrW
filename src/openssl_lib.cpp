@@ -133,9 +133,32 @@ int OpenSSLLib::SSL_X509_REQ_set_version(X509_REQ* req, unsigned long version) n
     return X509_REQ_set_version(req, version);
 }
 
+X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(X509_REQ *req) noexcept
+{
+    return X509_REQ_get_subject_name(req);
+}
+
+EVP_PKEY* OpenSSLLib::SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept
+{
+    return X509_REQ_get_pubkey(req);
+}
+
+int OpenSSLLib::SSL_X509_REQ_verify(X509_REQ *req, EVP_PKEY *r) noexcept
+{
+    return X509_REQ_verify(req, r);
+}
+
 int OpenSSLLib::SSL_PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req) noexcept
 {
     return PEM_write_bio_X509_REQ(bio, req);
+}
+
+X509_REQ* OpenSSLLib::SSL_PEM_read_bio_X509_REQ(BIO *bp,
+                                          X509_REQ **x,
+                                          pem_password_cb *cb,
+                                          void *u) noexcept
+{
+    return PEM_read_bio_X509_REQ(bp, x, cb, u);
 }
 
 BIO_METHOD* OpenSSLLib::SSL_BIO_s_mem() noexcept { return BIO_s_mem(); }

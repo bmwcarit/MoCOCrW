@@ -54,10 +54,11 @@ int main(int, char **)
                       .stateOrProvinceName("nebenan")
                       .serialNumber("ECU-UID:08E36DD501941432358AFE8256BC6EFD")
                       .build();
-    CertificateSigningRequest csr{dn};
+    auto keypair = AsymmetricKeypair::generate();
+    CertificateSigningRequest csr{dn, keypair};
     auto pemString = csr.toPem();
-    auto keypair = csr.getKeypair();
-    if (pemString.size() == 0 || keypair.publicKeyToPem().size() == 0)
+    auto publicKey = csr.getPublicKey();
+    if (pemString.size() == 0 || publicKey.publicKeyToPem().size() == 0)
     {
         std::cerr << "CSR generation seemed to have failed" << std::endl;
         std::cerr << "CSR output is\n--->\n" << pemString << "\n<---" << std::endl;

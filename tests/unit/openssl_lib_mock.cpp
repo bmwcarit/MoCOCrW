@@ -72,6 +72,21 @@ X509_REQ* OpenSSLLib::SSL_X509_REQ_new() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_new();
 }
 
+X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(X509_REQ* req) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_get_subject_name(req);
+}
+
+EVP_PKEY* OpenSSLLib::SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_get_pubkey(req);
+}
+
+int OpenSSLLib::SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_verify(a, r);
+}
+
 void OpenSSLLib::SSL_X509_REQ_free(X509_REQ* ptr) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_free(ptr);
@@ -173,6 +188,14 @@ int OpenSSLLib::SSL_X509_REQ_set_version(X509_REQ* ctx, unsigned long version) n
 int OpenSSLLib::SSL_PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_write_bio_X509_REQ(bio, req);
+}
+
+X509_REQ* OpenSSLLib::SSL_PEM_read_bio_X509_REQ(BIO *bp,
+                                         X509_REQ **x,
+                                         pem_password_cb *cb,
+                                         void *u) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_X509_REQ(bp, x, cb, u);
 }
 
 BIO_METHOD* OpenSSLLib::SSL_BIO_s_mem() noexcept

@@ -76,6 +76,10 @@ public:
     static int SSL_BIO_gets(BIO* bio, char* buf, int size) noexcept;
     static int SSL_BIO_puts(BIO* bio, char* buf) noexcept;
     static int SSL_PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req) noexcept;
+    static X509_REQ* SSL_PEM_read_bio_X509_REQ(BIO *bp,
+                                         X509_REQ **x,
+                                         pem_password_cb *cb,
+                                         void *u) noexcept;
 
     static int SSL_PEM_write_bio_PKCS8PrivateKey(BIO* bp,
                                                  EVP_PKEY* x,
@@ -95,7 +99,7 @@ public:
                                                  EVP_PKEY** pkey,
                                                  pem_password_cb* cb,
                                                  void* u) noexcept;
-    static X509* SSL_PEM_read_bio_X509(BIO* bio, X509**, pem_password_cb*, void*) noexcept;
+    static X509* SSL_PEM_read_bio_X509(BIO* bio, X509** x, pem_password_cb*, void* pwd) noexcept;
     static X509 *SSL_d2i_X509_bio(BIO* bp, X509** x509) noexcept;
     static int SSL_i2d_X509_bio(BIO* bp, X509* x) noexcept;
 
@@ -120,6 +124,9 @@ public:
     static int SSL_X509_REQ_set_subject_name(X509_REQ* req, X509_NAME* name) noexcept;
     static void SSL_X509_REQ_free(X509_REQ* ptr) noexcept;
     static X509_REQ* SSL_X509_REQ_new() noexcept;
+    static X509_NAME* SSL_X509_REQ_get_subject_name(X509_REQ* req) noexcept;
+    static EVP_PKEY* SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept;
+    static int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept;
 
     static const EVP_MD* SSL_EVP_sha256() noexcept;
     static const EVP_MD* SSL_EVP_sha512() noexcept;
