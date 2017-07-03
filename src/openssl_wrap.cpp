@@ -223,6 +223,11 @@ void _PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_PEM_write_bio_X509_REQ, bio, req);
 }
 
+void _PEM_write_bio_X509(BIO* bio, X509* x)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_PEM_write_bio_X509, bio, x);
+}
+
 SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio)
 {
     return SSL_X509_REQ_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_PEM_read_bio_X509_REQ,
@@ -443,6 +448,12 @@ STACK_OF(X509) *createOpenSSLObject<STACK_OF(X509)>()
 }
 
 template<>
+X509 *createOpenSSLObject<X509>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_new);
+}
+
+template<>
 void addObjectToStack<STACK_OF(X509), X509>(STACK_OF(X509) *stack, const X509 *obj)
 {
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_sk_X509_push, stack, obj);
@@ -527,6 +538,39 @@ time_point _X509_get_notAfter(X509* x)
 SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x)
 {
     return SSL_EVP_PKEY_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_pubkey,x)};
+}
+
+void _X509_set_subject_name(X509 *x, X509_NAME *name)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_subject_name, x, name);
+}
+
+void _X509_set_issuer_name(X509 *x, X509_NAME *name)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_issuer_name, x, name);
+}
+
+void _X509_set_pubkey(X509 *x, EVP_PKEY *key)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_pubkey, x, key);
+}
+
+void _X509_set_notBefore(X509 *x, const time_point &t)
+{
+    auto asn1time = _ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(t));
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notBefore, x, asn1time.get());
+}
+
+void _X509_set_notAfter(X509 *x, const time_point &t)
+{
+    auto asn1time = _ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(t));
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notAfter, x, asn1time.get());
+}
+
+void _X509_sign(X509 *x, EVP_PKEY *pkey, DigestTypes type)
+{
+    auto dt = _getMDPtrFromDigestType(type);
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_sign, x, pkey, dt);
 }
 
 std::vector<int> _X509_NAME_get_index_by_NID(X509_NAME* name, ASN1_NID nid)

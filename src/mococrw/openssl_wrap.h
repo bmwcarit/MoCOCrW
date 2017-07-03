@@ -276,6 +276,13 @@ void _X509_REQ_verify(X509_REQ *req, EVP_PKEY *key);
 void _PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req);
 
 /**
+ * Write the X509 to PEM format into the given BIO object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+void _PEM_write_bio_X509(BIO* bio, X509* x);
+
+/**
  * Read the X509_REQ in PEM format from the given BIO object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
@@ -602,6 +609,50 @@ time_point _X509_get_notAfter(X509* x);
  * @throw OpenSSLException if there is an error in retrieving the key
  */
 SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x);
+
+/**
+ * Set the subject-name for the given X509 object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+void _X509_set_subject_name(X509 *x, X509_NAME* name);
+
+/**
+ * Set the issuer-name for the given X509 object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+void _X509_set_issuer_name(X509 *x, X509_NAME* name);
+
+/**
+ * Set the public key for the given X509 object.
+ *
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+void _X509_set_pubkey(X509 *x, EVP_PKEY* key);
+
+/**
+ * Set not before value of the certificate as system_clock::time_point
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+void _X509_set_notBefore(X509 *x, const time_point &t);
+
+/**
+ * Set not after value of the certificate as system_clock::time_point
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+void _X509_set_notAfter(X509 *x, const time_point &t);
+
+/**
+ * Creates a new X509 certificate.
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+SSL_X509_Ptr _X509_new();
+
+void _X509_sign(X509 *x, EVP_PKEY *pkey, DigestTypes type);
 
 /**
  * Return the list of locations in the structure that contain an entry with

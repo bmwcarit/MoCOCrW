@@ -232,9 +232,36 @@ int OpenSSLLib::SSL_BIO_puts(BIO* bio, char* buf) noexcept { return BIO_puts(bio
 
 void OpenSSLLib::SSL_X509_free(X509* ptr) noexcept { X509_free(ptr); }
 
+X509* OpenSSLLib::SSL_X509_new() noexcept { return X509_new(); }
+
+int OpenSSLLib::SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) noexcept
+{
+    return X509_set_pubkey(ptr, pkey);
+}
+
+int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, ASN1_TIME *t) noexcept
+{
+    return X509_set_notBefore(x, t);
+}
+
+int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, ASN1_TIME *t) noexcept
+{
+    return X509_set_notAfter(x, t);
+}
+
+int OpenSSLLib::SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) noexcept
+{
+    return X509_sign(x, pkey, md);
+}
+
 X509* OpenSSLLib::SSL_PEM_read_bio_X509(BIO *bio, X509 **x, pem_password_cb* cb, void* pwd) noexcept
 {
     return PEM_read_bio_X509(bio, x, cb, pwd);
+}
+
+int OpenSSLLib::SSL_PEM_write_bio_X509(BIO *bp, X509 *x) noexcept
+{
+    return PEM_write_bio_X509(bp, x);
 }
 
 X509 *OpenSSLLib::SSL_d2i_X509_bio(BIO* bp, X509** x509) noexcept
@@ -261,6 +288,16 @@ X509_NAME* OpenSSLLib::SSL_X509_get_issuer_name(X509 *ptr) noexcept
 EVP_PKEY* OpenSSLLib::SSL_X509_get_pubkey(X509 *x) noexcept
 {
     return X509_get_pubkey(x);
+}
+
+int OpenSSLLib::SSL_X509_set_subject_name(X509 *x, X509_NAME *name) noexcept
+{
+    return X509_set_subject_name(x, name);
+}
+
+int OpenSSLLib::SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) noexcept
+{
+    return X509_set_issuer_name(x, name);
 }
 
 int OpenSSLLib::SSL_X509_NAME_get_index_by_NID(X509_NAME* name,

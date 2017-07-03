@@ -84,6 +84,13 @@ public:
     virtual int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) = 0;
 
     /* X509 */
+    virtual X509* SSL_X509_new() = 0;
+    virtual int SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) = 0;
+    virtual int SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) = 0;
+    virtual int SSL_X509_set_subject_name(X509 *x, X509_NAME *name) = 0;
+    virtual int SSL_X509_set_notBefore(X509 *x, ASN1_TIME* t) = 0;
+    virtual int SSL_X509_set_notAfter(X509 *x, ASN1_TIME* t) = 0;
+    virtual int SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) = 0;
     virtual void SSL_X509_free(X509* ptr) = 0;
     virtual X509_NAME* SSL_X509_get_subject_name(X509* ptr) = 0;
     virtual X509_NAME* SSL_X509_get_issuer_name(X509* ptr) = 0;
@@ -126,6 +133,7 @@ public:
                                                   pem_password_cb* cb,
                                                   void* u) = 0;
     virtual X509* SSL_PEM_read_bio_X509(BIO* bio, X509**, pem_password_cb*, void*) = 0;
+    virtual int SSL_PEM_write_bio_X509(BIO *bp, X509 *x) = 0;
     virtual X509 *SSL_d2i_X509_bio(BIO* bp, X509** x509) = 0;
     virtual int SSL_i2d_X509_bio(BIO* bp, X509* x) = 0;
 
@@ -235,9 +243,17 @@ public:
                                                       pem_password_cb *cb,
                                                       void *u));
 
+    MOCK_METHOD2(SSL_PEM_write_bio_X509, int(BIO *bp, X509 *x));
     MOCK_METHOD2(SSL_d2i_X509_bio, X509*(BIO*, X509**));
     MOCK_METHOD2(SSL_i2d_X509_bio, int(BIO*, X509*));
 
+    MOCK_METHOD0(SSL_X509_new, X509*());
+    MOCK_METHOD2(SSL_X509_set_pubkey, int(X509* ptr, EVP_PKEY* pkey));
+    MOCK_METHOD2(SSL_X509_set_issuer_name, int(X509 *x, X509_NAME *name));
+    MOCK_METHOD2(SSL_X509_set_subject_name, int(X509 *x, X509_NAME *name));
+    MOCK_METHOD2(SSL_X509_set_notBefore, int(X509 *x, ASN1_TIME* t));
+    MOCK_METHOD2(SSL_X509_set_notAfter, int(X509 *x, ASN1_TIME* t));
+    MOCK_METHOD3(SSL_X509_sign, int(X509 *x, EVP_PKEY *pkey, const EVP_MD *md));
     MOCK_METHOD1(SSL_X509_free, void(X509*));
     MOCK_METHOD4(SSL_PEM_read_bio_X509, X509*(BIO* bio, X509**, pem_password_cb*, void*));
 

@@ -20,8 +20,12 @@ public:
     static X509Certificate fromDERFile(const std::string &filename);
 
     /**
+     * Return a PEM representation of this certificate.
+     */
+    std::string toPEM() const;
+
+    /**
      * Get the distinguished name of this certificate.
-     *
      *
      * @return the distinguished name of this certifcate.
      */
@@ -29,7 +33,6 @@ public:
 
     /**
      * Get the distinguished name of the issuer of this certificate.
-     *
      *
      * @return the issuer distinguished name of this certificate.
      */
@@ -61,7 +64,7 @@ public:
     const X509 *internal() const { return _x509.get(); }
     X509 *internal() { return _x509.get(); }
 
-    /*
+    /**
      * @brief Verify the validity of a certificate
      *
      * Verifies that a certificate is valid (valdity dates) and
@@ -83,9 +86,13 @@ public:
     void verify(const std::vector<X509Certificate> &trustStore,
                 const std::vector<X509Certificate> &intermediateCAs) const;
 
+    /**
+     * Create a new X509 certificate from an existing openssl certificate.
+     * @param ptr a unique pointer to the existing openssl certificate.
+     */
+    explicit X509Certificate(openssl::SSL_X509_Ptr &&ptr) : _x509{std::move(ptr)} {}
 
 private:
-    explicit X509Certificate(openssl::SSL_X509_Ptr &&ptr) : _x509{std::move(ptr)} {}
     openssl::SSL_X509_SharedPtr _x509;
 };
 

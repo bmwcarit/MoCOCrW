@@ -300,6 +300,41 @@ int OpenSSLLib::SSL_i2d_X509_bio(BIO* bp, X509* x) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_i2d_X509_bio(bp, x);
 }
 
+X509* OpenSSLLib::SSL_X509_new() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_new();
+}
+
+int OpenSSLLib::SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_pubkey(ptr, pkey);
+}
+
+int OpenSSLLib::SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_issuer_name(x, name);
+}
+
+int OpenSSLLib::SSL_X509_set_subject_name(X509 *x, X509_NAME *name) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_subject_name(x, name);
+}
+
+int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, ASN1_TIME* t) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notBefore(x, t);
+}
+
+int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, ASN1_TIME* t) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notAfter(x, t);
+}
+
+int OpenSSLLib::SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_sign(x, pkey, md);
+}
+
 void OpenSSLLib::SSL_X509_free(X509* ptr) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_free(ptr);
@@ -308,6 +343,11 @@ void OpenSSLLib::SSL_X509_free(X509* ptr) noexcept
 X509* OpenSSLLib::SSL_PEM_read_bio_X509(BIO* bio, X509** x, pem_password_cb* cb, void* pwd) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_X509(bio, x, cb, pwd);
+}
+
+int OpenSSLLib::SSL_PEM_write_bio_X509(BIO *bp, X509 *x) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_PEM_write_bio_X509(bp, x);
 }
 
 void OpenSSLLib::SSL_ASN1_TIME_free(ASN1_TIME *x) noexcept

@@ -20,15 +20,18 @@ set(LIBRARY_SOURCES
     bio.cpp
     x509.cpp
     distinguished_name.cpp
+    ca.cpp
 )
 
 set(LIBRARY_PUBLIC_HEADERS
+    mococrw/ca.h
     mococrw/csr.h
     mococrw/distinguished_name.h
     mococrw/error.h
     mococrw/key.h
     mococrw/openssl_lib.h
     mococrw/openssl_wrap.h
+    mococrw/sign_params.h
     mococrw/util.h
     mococrw/x509.h
 )

@@ -45,6 +45,13 @@ X509Certificate X509Certificate::fromDERFile(const std::string &filename)
     return X509Certificate{std::move(cert)};
 }
 
+std::string X509Certificate::toPEM() const
+{
+    BioObject bio{BioObject::Types::MEM};
+    _PEM_write_bio_X509(bio.internal(), const_cast<X509*>(internal()));
+    return bio.flushToString();
+}
+
 void X509Certificate::verify(const std::vector<X509Certificate> &trustStore,
                 const std::vector<X509Certificate> &intermediateCAs) const
 {
