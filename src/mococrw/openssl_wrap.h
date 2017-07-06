@@ -111,6 +111,11 @@ using SSL_ASN1_TIME_Ptr =
         std::unique_ptr<ASN1_TIME, SSLDeleter<ASN1_TIME, lib::OpenSSLLib::SSL_ASN1_TIME_free>>;
 using SSL_ASN1_TIME_SharedPTr = utility::SharedPtrTypeFromUniquePtr<SSL_ASN1_TIME_Ptr>;
 
+using SSL_X509_EXTENSION_Ptr =
+        std::unique_ptr<X509_EXTENSION,
+                        SSLDeleter<X509_EXTENSION, lib::OpenSSLLib::SSL_X509_EXTENSION_free>>;
+using SSL_X509_EXTENSION_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_EXTENSION_Ptr>;
+
 
 using time_point = std::chrono::system_clock::time_point;
 
@@ -208,6 +213,15 @@ enum class ASN1_NID : int {
 enum class ASN1_Name_Entry_Type : int {
     UTF8String = MBSTRING_UTF8,
     ASCIIString = MBSTRING_ASC,
+};
+
+/**
+ * This enum contains all the NIDs of supported X509v3 extensions.
+ */
+enum class X509Extension_NID : int {
+    BasicConstraints = NID_basic_constraints,
+    KeyUsage = NID_key_usage,
+    SubjectKeyIdentifier = NID_subject_key_identifier
 };
 
 /**
@@ -693,6 +707,52 @@ std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry);
  * @throws OpenSSLException if an internal OpenSSL error is encountered
  */
 const EVP_CIPHER *_EVP_aes_256_cbc();
+
+/**
+ * Creates a new X509 extension, identified by its NID, from its string representation.
+ *
+ * @param ext_nid the NID for the extension that should be created
+ * @param ctx the context for the extension that should be created
+ * @param value the value of the extension that should be created
+ * @return a unique pointer to the created extension
+ */
+SSL_X509_EXTENSION_Ptr _X509V3_EXT_conf_nid(int ext_nid, X509V3_CTX* ctx, std::string value);
+
+/**
+ * Sets that there is no configuration database for a context.
+ * @param ctx the context which is set
+ */
+void _X509V3_set_ctx_nodb(X509V3_CTX* ctx);
+
+/**
+ * Sets the information within a context.
+ * @param ctx the context which is set.
+ * @param issuer the issuing certificate for this context
+ * @param subject the subject certificate for this context
+ */
+void _X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject);
+
+/**
+ * Adds an X509 extension to an X509 certificate.
+ *
+ * @param x the certificate
+ * @param ex the new extension
+ */
+void _X509_add_ext(X509 *x, X509_EXTENSION *ex);
+
+/**
+ * Sets the serial number of a certificate.
+ * @param x the certificate
+ * @param serial the new serial number
+ */
+void _X509_set_serialNumber(X509 *x, uint64_t serial);
+
+/**
+ * Gets the serial number of a certificate.
+ * @param x the certificate
+ * @return the serial number of the passed certificate
+ */
+uint64_t _X509_get_serialNumber(X509* x);
 
 }  //::openssl
 }  //::mococrw

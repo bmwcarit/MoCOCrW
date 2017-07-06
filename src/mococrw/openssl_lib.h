@@ -42,6 +42,20 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) noexcept;
+    static long SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) noexcept;
+    static int SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) noexcept;
+    static ASN1_INTEGER* SSL_X509_get_serialNumber(X509* x) noexcept;
+    static int SSL_X509_set_serialNumber(X509* x, ASN1_INTEGER* serial) noexcept;
+    static void SSL_X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer,
+                                   X509* subject,
+                                   X509_REQ* req,
+                                   X509_CRL* crl,
+                                   int flags) noexcept;
+    static void SSL_X509V3_set_ctx_nodb(X509V3_CTX* ctx) noexcept;
+    static void SSL_X509_EXTENSION_free(X509_EXTENSION* a) noexcept;
+    static int SSL_X509_add_ext(X509* x, X509_EXTENSION* ex, int loc) noexcept;
+    static X509_EXTENSION* SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf, X509V3_CTX* ctx, int ext_nid, char* value) noexcept;
     static const EVP_CIPHER* SSL_EVP_aes_256_cbc() noexcept;
     static int SSL_BIO_write(BIO* b, const void* buf, int len) noexcept;
     static int SSL_BIO_read(BIO* b, void* buf, int len) noexcept;

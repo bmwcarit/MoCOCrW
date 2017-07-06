@@ -113,6 +113,12 @@ std::chrono::system_clock::time_point X509Certificate::getNotAfter() const
     return _X509_get_notAfter(const_cast<X509*>(internal()));
 }
 
+uint64_t X509Certificate::getSerialNumber() const
+{
+    return _X509_get_serialNumber(const_cast<X509*>(internal()));
+}
+
+
 namespace util {
 
 std::vector<X509Certificate> loadPEMChain(const std::string &pemChain)

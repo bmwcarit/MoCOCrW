@@ -493,6 +493,52 @@ const EVP_CIPHER* OpenSSLLib::SSL_EVP_aes_256_cbc() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_aes_256_cbc();
 }
+X509_EXTENSION* OpenSSLLib::SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf,
+                                                    X509V3_CTX* ctx,
+                                                    int ext_nid,
+                                                    char* value) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509V3_EXT_conf_nid(conf,
+                                                                             ctx,
+                                                                             ext_nid,
+                                                                             value);
+}
+int OpenSSLLib::SSL_X509_add_ext(X509* x, X509_EXTENSION* ex, int loc) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_add_ext(x, ex, loc);
+}
+void OpenSSLLib::SSL_X509_EXTENSION_free(X509_EXTENSION* a) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_X509_EXTENSION_free(a);
+}
+void OpenSSLLib::SSL_X509V3_set_ctx_nodb(X509V3_CTX* ctx) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_X509V3_set_ctx_nodb(ctx);
+}
+void OpenSSLLib::SSL_X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject, X509_REQ* req, X509_CRL* crl, int flags) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_X509V3_set_ctx(ctx, issuer, subject, req, crl, flags);
+}
+int OpenSSLLib::SSL_X509_set_serialNumber(X509* x, ASN1_INTEGER* serial) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_serialNumber(x, serial);
+}
+ASN1_INTEGER* OpenSSLLib::SSL_X509_get_serialNumber(X509* x) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_get_serialNumber(x);
+}
+int OpenSSLLib::SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_set(a, value);
+}
+long OpenSSLLib::SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_get(a);
+}
+int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_cmp(x, y);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

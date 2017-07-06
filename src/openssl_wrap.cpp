@@ -609,6 +609,64 @@ const EVP_CIPHER *_EVP_aes_256_cbc() {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_aes_256_cbc);
 }
 
+SSL_X509_EXTENSION_Ptr _X509V3_EXT_conf_nid(int ext_nid, X509V3_CTX* ctx, std::string value)
+{
+    return SSL_X509_EXTENSION_Ptr(OpensslCallPtr::callChecked(
+                                      lib::OpenSSLLib::SSL_X509V3_EXT_conf_nid,
+                                      nullptr,
+                                      ctx,
+                                      ext_nid,
+                                      const_cast<char*>(value.c_str())));
+}
+
+void _X509V3_set_ctx(X509V3_CTX* ctx,
+                    X509* issuer,
+                    X509* subject)
+{
+    lib::OpenSSLLib::SSL_X509V3_set_ctx(ctx, issuer, subject, nullptr, nullptr, 0);
+}
+
+void _X509V3_set_ctx_nodb(X509V3_CTX* ctx)
+{
+    lib::OpenSSLLib::SSL_X509V3_set_ctx_nodb(ctx);
+}
+
+void _X509_add_ext(X509 *x, X509_EXTENSION *ex)
+{
+    //Location -1 means "add after the last extension"
+    int locationInExtensions = -1;
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_add_ext, x, ex, locationInExtensions);
+}
+
+uint64_t _X509_get_serialNumber(X509 *x)
+{
+    auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
+    ASN1_INTEGER maxLong{};
+    ASN1_INTEGER zero{};
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &zero, 0);
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &maxLong,
+                                  std::numeric_limits<long>::max());
+
+
+    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, &maxLong) < 0
+        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, &zero) > 0) {
+        throw OpenSSLException{"Serial Number is out of the accepted range."};
+    }
+
+    return static_cast<uint64_t>(lib::OpenSSLLib::SSL_ASN1_INTEGER_get(serialNumber));
+}
+
+void _X509_set_serialNumber(X509 *x, uint64_t serial)
+{
+    if (serial > std::numeric_limits<long>::max()) {
+        throw OpenSSLException("Serial number is out of the accepted range.");
+    }
+
+    //This call triggers zero initialization, which is required by openssl
+    ASN1_INTEGER asn1Serial{};
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &asn1Serial, serial);
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_set_serialNumber, x, &asn1Serial);
+}
 
 }  // ::openssl
 }  //:: mococrw

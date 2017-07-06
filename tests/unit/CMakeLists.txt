@@ -20,7 +20,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_executable(x509tests test_x509.cpp "${SRC_DIR}/key.cpp" "${SRC_DIR}/csr.cpp" ${REAL_SOURCES})
     add_executable(dntests test_distinguished_name.cpp ${REAL_SOURCES})
     add_executable(catests test_ca.cpp "${SRC_DIR}/key.cpp" "${SRC_DIR}/csr.cpp"
-                           "${SRC_DIR}/ca.cpp" "${SRC_DIR}/x509.cpp" ${REAL_SOURCES})
+                           "${SRC_DIR}/ca.cpp" "${SRC_DIR}/x509.cpp" "${SRC_DIR}/key_usage.cpp"
+                           "${SRC_DIR}/basic_constraints.cpp" ${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     target_link_libraries(keytests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})

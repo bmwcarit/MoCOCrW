@@ -21,17 +21,24 @@ set(LIBRARY_SOURCES
     x509.cpp
     distinguished_name.cpp
     ca.cpp
+    basic_constraints.cpp
+    key_usage.cpp
+    subject_key_identifier.cpp
 )
 
 set(LIBRARY_PUBLIC_HEADERS
+    mococrw/basic_constraints.h
     mococrw/ca.h
     mococrw/csr.h
     mococrw/distinguished_name.h
     mococrw/error.h
+    mococrw/extension.h
     mococrw/key.h
+    mococrw/key_usage.h
     mococrw/openssl_lib.h
     mococrw/openssl_wrap.h
     mococrw/sign_params.h
+    mococrw/subject_key_identifier.h
     mococrw/util.h
     mococrw/x509.h
 )

@@ -22,11 +22,14 @@ public:
     /**
      * Creates a new CA.
      * @param defaultParams the default parameters for signing certificates.
+     * @param nextSerialNumber the serial number which this CA should its first generated
+     *                         certificate.
      * @param rootCertificate the certificate of the CA.
      * @param privateKey the certificate's private key.
      * @throw MoCOCrWException if the key doesn't match the certificate.
      */
     CertificateAuthority(CertificateSigningParameters defaultParams,
+                         uint64_t nextSerialNumber,
                          X509Certificate rootCertificate,
                          AsymmetricKeypair privateKey);
 
@@ -35,11 +38,13 @@ public:
      * @param privateKey the key that should be used for signing the certificate. The public part
      *                   of the key will become the certificate's public key.
      * @param dn the distinguished name of the new certificate.
+     * @params serialNumber the serial number of the new certificate.
      * @param signParams the signing parameters for signing the new certificate.
      * @return a new root certificate.
      */
     static X509Certificate createRootCertificate(const AsymmetricKeypair &privateKey,
                                                  const DistinguishedName &dn,
+                                                 uint64_t serialNumber,
                                                  const CertificateSigningParameters &signParams);
 
     /**
@@ -49,7 +54,7 @@ public:
      * @return a new Certificate with the CSR's issuer name and public key that was signed by this
      *         CA's root certificate.
      */
-    inline X509Certificate signCSR(const CertificateSigningRequest &request) const
+    inline X509Certificate signCSR(const CertificateSigningRequest &request)
     {
         return signCSR(request, _defaultSignParams);
     }
@@ -64,6 +69,11 @@ public:
      */
     CertificateSigningParameters getSignParams() const;
 
+    /**
+     * @return the serial number which this CA will assign to the next generated certificate.
+     */
+    uint64_t getNextSerialNumber() const;
+
 private:
 
     /**
@@ -74,7 +84,7 @@ private:
      *         CA's root certificate.
      */
     X509Certificate signCSR(const CertificateSigningRequest &request,
-                            const CertificateSigningParameters &signParams) const;
+                            const CertificateSigningParameters &signParams);
 
     /// Signs a certificate with a private key using the given signing parameters.
     static void signCertificate(X509* certificate,
@@ -84,11 +94,18 @@ private:
     /// The default signing parameters.
     CertificateSigningParameters _defaultSignParams;
 
+    /// The serial number that the next generated certificate will receive.
+    uint64_t _nextSerialNumber;
+
     /// The CA certificate.
     X509Certificate _rootCert;
 
     /// The CA certificate's corresponding private key.
     AsymmetricKeypair _privateKey;
+
+    /// The version of created certificates.
+    /// This is zero-based, so 2 = X509v3 certificates
+    static constexpr int certificateVersion = 2;
 };
 
 } //::mococrw

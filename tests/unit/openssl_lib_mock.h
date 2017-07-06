@@ -22,6 +22,19 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) = 0;
+    virtual long SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) = 0;
+    virtual int SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) = 0;
+    virtual ASN1_INTEGER* SSL_X509_get_serialNumber(X509* x) = 0;
+    virtual int SSL_X509_set_serialNumber(X509* x, ASN1_INTEGER* serial) = 0;
+    virtual void SSL_X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject, X509_REQ* req, X509_CRL* crl, int flags) = 0;
+    virtual void SSL_X509V3_set_ctx_nodb(X509V3_CTX* ctx) = 0;
+    virtual void SSL_X509_EXTENSION_free(X509_EXTENSION* a) = 0;
+    virtual int SSL_X509_add_ext(X509* x, X509_EXTENSION* ex, int loc) = 0;
+    virtual X509_EXTENSION* SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf,
+                                                    X509V3_CTX* ctx,
+                                                    int ext_nid,
+                                                    char* value) = 0;
     virtual const EVP_CIPHER* SSL_EVP_aes_256_cbc() = 0;
     virtual int SSL_BIO_write(BIO* b, const void* buf, int len) = 0;
     virtual int SSL_BIO_read(BIO* b, void* buf, int len) = 0;
@@ -175,6 +188,19 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD2(SSL_ASN1_INTEGER_cmp, int(const ASN1_INTEGER*, const ASN1_INTEGER*));
+    MOCK_METHOD1(SSL_ASN1_INTEGER_get, long(const ASN1_INTEGER*));
+    MOCK_METHOD2(SSL_ASN1_INTEGER_set, int(ASN1_INTEGER*, long));
+    MOCK_METHOD1(SSL_X509_get_serialNumber, ASN1_INTEGER*(X509*));
+    MOCK_METHOD2(SSL_X509_set_serialNumber, int(X509*, ASN1_INTEGER*));
+    MOCK_METHOD6(SSL_X509V3_set_ctx, void(X509V3_CTX*, X509*, X509*, X509_REQ*, X509_CRL*, int));
+    MOCK_METHOD1(SSL_X509V3_set_ctx_nodb, void(X509V3_CTX*));
+    MOCK_METHOD1(SSL_X509_EXTENSION_free, void(X509_EXTENSION*));
+    MOCK_METHOD3(SSL_X509_add_ext, int(X509*, X509_EXTENSION*, int));
+    MOCK_METHOD4(SSL_X509V3_EXT_conf_nid, X509_EXTENSION*(lhash_st_CONF_VALUE*,
+                                                          X509V3_CTX*,
+                                                          int,
+                                                          char*));
     MOCK_METHOD0(SSL_EVP_aes_256_cbc, const EVP_CIPHER*());
     MOCK_METHOD3(SSL_BIO_write, int(BIO*, const void*, int));
     MOCK_METHOD3(SSL_BIO_read, int(BIO*, void*, int));

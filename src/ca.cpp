@@ -9,15 +9,20 @@
 
 #include "mococrw/error.h"
 
+#include "mococrw/basic_constraints.h"
+
 namespace mococrw
 {
 
 using namespace openssl;
 
 CertificateAuthority::CertificateAuthority(CertificateSigningParameters defaultParams,
+                                           uint64_t nextSerialNumber,
                                            X509Certificate rootCertificate,
                                            AsymmetricKeypair privateKey)
-    : _defaultSignParams{std::move(defaultParams)}, _rootCert{std::move(rootCertificate)},
+    : _defaultSignParams{std::move(defaultParams)},
+      _nextSerialNumber{nextSerialNumber},
+      _rootCert{std::move(rootCertificate)},
       _privateKey{std::move(privateKey)}
 {
     if (_privateKey != _rootCert.getPublicKey()) {
@@ -27,8 +32,13 @@ CertificateAuthority::CertificateAuthority(CertificateSigningParameters defaultP
 
 X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeypair &privateKey,
                                           const DistinguishedName &dn,
+                                          uint64_t serialNumber,
                                           const CertificateSigningParameters &signParams)
 {
+    auto basicConstraints = signParams.extension<BasicConstraintsExtension>();
+    if (!basicConstraints->isCA()) {
+        throw MoCOCrWException("Signing parameters are not set for CA certificates");
+    }
     auto cert = createManagedOpenSSLObject<SSL_X509_Ptr>();
 
     auto internalName = _X509_NAME_new();
@@ -36,13 +46,16 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
     _X509_set_issuer_name(cert.get(), internalName.get());
     _X509_set_subject_name(cert.get(), internalName.get());
     _X509_set_pubkey(cert.get(), const_cast<EVP_PKEY*>(privateKey.internal()));
+    _X509_set_serialNumber(cert.get(), serialNumber);
+
+    X509_set_version(cert.get(), certificateVersion);
 
     signCertificate(cert.get(), privateKey, signParams);
     return X509Certificate{std::move(cert)};
 }
 
 X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &csr,
-                            const CertificateSigningParameters &signParams) const
+                            const CertificateSigningParameters &signParams)
 {
     auto subjectName = _X509_NAME_new();
     csr.getSubjectName().populateX509Name(subjectName);
@@ -56,8 +69,22 @@ X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &c
     _rootCert.getSubjectDistinguishedName().populateX509Name(rootCertName);
     _X509_set_issuer_name(newCertificate.get(), rootCertName.get());
 
+    _X509_set_serialNumber(newCertificate.get(), _nextSerialNumber);
+
+    X509_set_version(newCertificate.get(), certificateVersion);
+
     signCertificate(newCertificate.get(), _privateKey, signParams);
-    return X509Certificate{std::move(newCertificate)};
+
+    //Sanity check: certificate must be verifiable now
+    try {
+        auto cert = X509Certificate{std::move(newCertificate)};
+        cert.verify({_rootCert}, {});
+        _nextSerialNumber++;
+        return cert;
+    } catch (const MoCOCrWException &) {
+        throw MoCOCrWException(
+                    "Certificate creation failed: the generated certificate is invalid.");
+    }
 
 }
 
@@ -66,11 +93,18 @@ void CertificateAuthority::signCertificate(X509* cert,
                          const CertificateSigningParameters &signParams)
 {
     _X509_set_notBefore(cert, std::chrono::system_clock::now());
-    _X509_set_notAfter(cert,
-                       std::chrono::system_clock::now() + signParams.certificateValidity());
-    _X509_sign(cert,
-               const_cast<EVP_PKEY*>(privateKey.internal()),
-               signParams.digestType());
+    _X509_set_notAfter(cert, std::chrono::system_clock::now() + signParams.certificateValidity());
+
+    X509V3_CTX ctx;
+    _X509V3_set_ctx_nodb(&ctx);
+    _X509V3_set_ctx(&ctx, nullptr, cert);
+
+    for (auto &it : signParams.extensionMap()) {
+        auto extension = it.second.get()->buildExtension(&ctx);
+        _X509_add_ext(cert, extension.get());
+    }
+
+    _X509_sign(cert, const_cast<EVP_PKEY*>(privateKey.internal()), signParams.digestType());
 }
 
 X509Certificate CertificateAuthority::getRootCertificate() const
@@ -82,4 +116,10 @@ CertificateSigningParameters CertificateAuthority::getSignParams() const
 {
     return _defaultSignParams;
 }
+
+uint64_t CertificateAuthority::getNextSerialNumber() const
+{
+    return _nextSerialNumber;
+}
+
 } //::mococrw

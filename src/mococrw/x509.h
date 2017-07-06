@@ -52,6 +52,13 @@ public:
      */
     std::chrono::system_clock::time_point getNotAfter() const;
 
+    /**
+     * @brief Get the serial number of this certificate
+     *
+     * @return serial number as uint64_t
+     */
+    uint64_t getSerialNumber() const;
+
     AsymmetricPublicKey getPublicKey() const;
 
     /**
