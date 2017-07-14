@@ -31,6 +31,17 @@ add_compile_options(
 # CMake modules provided by the project
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
 
+# Code coverage flags
+if(CMAKE_BUILD_TYPE STREQUAL Coverage)
+    option(BUILD_TESTING "Build tests for all components" ON)
+
+    set(COVERAGE_BASE_DIRS
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
+    )
+
+    find_package(Coverage REQUIRED)
+endif()
+
 option(BUILD_DOCUMENTATION "Build documentation" ON)
 
 find_package(PkgConfig)
