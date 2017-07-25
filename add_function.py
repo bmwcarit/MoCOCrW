@@ -74,10 +74,9 @@ def injectLines(fileName, matchers, toBeInserted, insertAfter=True):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('returnType', metavar='return type', type=str,
-                                help='the return type of the function')
-    parser.add_argument("functionName", metavar="function name", type=str, help="the name of the openssl function")
-    parser.add_argument("arguments", metavar="arguments", nargs="*", type=str, help="the parameter types and names")
+    parser.add_argument('returnType', type=str, help='the return type of the function')
+    parser.add_argument("functionName", type=str, help="the name of the openssl function")
+    parser.add_argument("arguments", nargs="*", type=str, help="the parameter types and names")
     args = parser.parse_args()
 
     func = Function(args.returnType, args.functionName, *[(args.arguments[i], args.arguments[i+1]) for i in range(0, len(args.arguments) - 1, 2)])
