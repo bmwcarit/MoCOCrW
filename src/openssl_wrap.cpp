@@ -135,8 +135,7 @@ SSL_EVP_PKEY_Ptr _EVP_PKEY_keygen(EVP_PKEY_CTX* ctx)
         throw e;
     }
 
-    SSL_EVP_PKEY_Ptr rv{ptr};
-    return std::move(rv);
+    return SSL_EVP_PKEY_Ptr{ptr};
 }
 
 void _EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx)
