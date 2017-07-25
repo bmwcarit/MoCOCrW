@@ -484,6 +484,22 @@ int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* 
 {
     return ASN1_INTEGER_cmp(x, y);
 }
+BIGNUM* OpenSSLLib::SSL_ASN1_INTEGER_to_BN(const ASN1_INTEGER* ai, BIGNUM* bn) noexcept
+{
+    return ASN1_INTEGER_to_BN(ai, bn);
+}
+void OpenSSLLib::SSL_BN_free(BIGNUM* a) noexcept
+{
+    BN_free(a);
+}
+char* OpenSSLLib::SSL_BN_bn2dec(const BIGNUM* a) noexcept
+{
+    return BN_bn2dec(a);
+}
+void OpenSSLLib::SSL_OPENSSL_free(void* addr) noexcept
+{
+    OPENSSL_free(addr);
+}
 void OpenSSLLib::SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) noexcept
 {
     ASN1_INTEGER_free(a);

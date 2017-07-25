@@ -78,6 +78,8 @@ public:
     void SetUp() override;
 protected:
     static const std::string _pemString;
+    static const std::string _shortSerialPemString;
+    static const std::string _negativeSerialPemString;
     static const std::string _pemChainOfThree;
     std::string _pemChainNoNewlines;
     static const std::string _pemChainInvalid;
@@ -158,6 +160,39 @@ const std::string X509Test::_pemString{
         "b4Jv7NXsn4pBx6ObGfYWNlxD1zwt71pdjVdwUQqJIEVihh0Bwv4wSmqFJ/iWJdpY\n"
         "0v1OLbCDbbOXPLx/fWyf0TN3bt/Fr1OlGY4UCnKxi+sjTRzWHcmQ2Ox6DgI9MOMZ\n"
         "o7k8jBD0+ZUfE2t9tXJuTKSldE7TuK9ff3NFc433s3FVNPqSE59qs+pJW5joLA==\n"
+        "-----END CERTIFICATE-----\n"};
+
+const std::string X509Test::_shortSerialPemString{
+        "-----BEGIN CERTIFICATE-----\n"
+        "MIICOTCCAeOgAwIBAgIBDDANBgkqhkiG9w0BAQsFADB8MQswCQYDVQQGEwJERTEb\n"
+        "MBkGA1UECAwSQmFkZW4tV3VlcnR0ZW1iZXJnMQwwCgYDVQQHDANVbG0xGDAWBgNV\n"
+        "BAoMD0JNVyBDYXIgSVQgR21iSDENMAsGA1UECwwESkMtNzEZMBcGA1UEAwwQVGVz\n"
+        "dCBDZXJ0aWZpY2F0ZTAeFw0xNzA3MjUxMjAyNTJaFw0xODA3MjUxMjAyNTJaMHwx\n"
+        "CzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcxDDAKBgNV\n"
+        "BAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQLDARKQy03\n"
+        "MRkwFwYDVQQDDBBUZXN0IENlcnRpZmljYXRlMFwwDQYJKoZIhvcNAQEBBQADSwAw\n"
+        "SAJBAPBv9TuHRI+t28ONKkKspleukIcGmHx/zDBpoPYRUU5VzT3nNPLbxD2MOxfI\n"
+        "Tv6r+8ielFOrnabK/6LcLadin20CAwEAAaNQME4wHQYDVR0OBBYEFBBwzzzDSMfC\n"
+        "uuL/aoaa9HwgPUefMB8GA1UdIwQYMBaAFBBwzzzDSMfCuuL/aoaa9HwgPUefMAwG\n"
+        "A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADQQBFBuE9h4TrimeKhqbCPEmkUlX0\n"
+        "cS0ri/kzH2BN2lM1Jt+NdPeMTGnkIiLwPoIaPSFeTZjz5Ka0mpq2wClzk2Ci\n"
+        "-----END CERTIFICATE-----\n"};
+
+const std::string X509Test::_negativeSerialPemString{
+        "-----BEGIN CERTIFICATE-----\n"
+        "MIICQzCCAe2gAwIBAgIB1jANBgkqhkiG9w0BAQsFADCBgDELMAkGA1UEBhMCREUx\n"
+        "GzAZBgNVBAgMEkJhZGVuLVd1ZXJ0dGVtYmVyZzEMMAoGA1UEBwwDVWxtMRgwFgYD\n"
+        "VQQKDA9CTVcgQ2FyIElUIEdtYkgxDTALBgNVBAsMBEpDLTcxHTAbBgNVBAMMFE5l\n"
+        "Z2F0aXZlIFNlcmlhbCBUZXN0MB4XDTE3MDcyNTEyMTE1NVoXDTE4MDcyNTEyMTE1\n"
+        "NVowgYAxCzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcx\n"
+        "DDAKBgNVBAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQL\n"
+        "DARKQy03MR0wGwYDVQQDDBROZWdhdGl2ZSBTZXJpYWwgVGVzdDBcMA0GCSqGSIb3\n"
+        "DQEBAQUAA0sAMEgCQQDXKboXa5QW0I7JknewmLQqRTOp0QcDsrck3THEeaSBRNyb\n"
+        "04uQFZGftdsuC2b9jr1k8NCiuy3Su81tn4ku1dIPAgMBAAGjUDBOMB0GA1UdDgQW\n"
+        "BBRu6KAISE1V4jhYuiyb3iEZTf2ijDAfBgNVHSMEGDAWgBRu6KAISE1V4jhYuiyb\n"
+        "3iEZTf2ijDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA0EAENPsu/If+1Ir\n"
+        "YMjWHTmu7K7pwJxYg8QBdfhVbnc5qHK+sZk1zHh+ng7bW1QZIvitKhW8hnUiwz3O\n"
+        "wvM4cGGE+Q==\n"
         "-----END CERTIFICATE-----\n"};
 
 // This is root1, root1.int1, root1.int1.cert1
@@ -647,4 +682,21 @@ TEST_F(X509Test, testChainLoadFailsWithEmptyCert)
     EXPECT_THROW({
         auto pemChain = util::loadPEMChain(cert);
     }, MoCOCrWException);
+}
+
+TEST_F(X509Test, testGetSerialNumber)
+{
+    EXPECT_THROW(_cert.getSerialNumber(), OpenSSLException)
+        << "X509Certificate::getSerialNumber() should have thrown for serial numbers > sizeof(long)";
+    EXPECT_EQ("14658124556383521362", _cert.getSerialNumberDecimal())
+        << "X509Certificate::getSerialNumberDecimal() did not return expected value";
+
+    auto shortSerialCert = X509Certificate::fromPEM(_shortSerialPemString);
+    EXPECT_EQ(12, shortSerialCert.getSerialNumber());
+    EXPECT_EQ("12", shortSerialCert.getSerialNumberDecimal());
+
+    auto negativeSerialCert = X509Certificate::fromPEM(_negativeSerialPemString);
+    EXPECT_THROW(negativeSerialCert.getSerialNumber(), OpenSSLException)
+        << "X509Certificate::getSerialNumber() should have thrown for serial numbers < 0";
+    EXPECT_EQ("-42", negativeSerialCert.getSerialNumberDecimal());
 }

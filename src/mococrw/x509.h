@@ -59,6 +59,16 @@ public:
      */
     uint64_t getSerialNumber() const;
 
+    /**
+     * @brief Get the serial number of this certificate in ASCII decimal as a string
+     *
+     * Return an ASCII represenation of the serial number as decimal numbers with arbitrary
+     * precision.
+     *
+     * @return The serial number as string
+     */
+    std::string getSerialNumberDecimal() const;
+
     AsymmetricPublicKey getPublicKey() const;
 
     /**

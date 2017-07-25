@@ -118,6 +118,12 @@ uint64_t X509Certificate::getSerialNumber() const
     return _X509_get_serialNumber(const_cast<X509*>(internal()));
 }
 
+std::string X509Certificate::getSerialNumberDecimal() const
+{
+    /* OpenSSL's const-correctness is totally broken. */
+    return _X509_get_serialNumber_dec(const_cast<X509*>(internal()));
+}
+
 
 namespace util {
 

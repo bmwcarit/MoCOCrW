@@ -23,9 +23,10 @@ namespace openssl
  * into a functor so that a std::unique_ptr
  * can use them.
  */
-template <class T, void(Func)(T*)>
+template <class P, void(Func)(P*)>
 struct SSLDeleter
 {
+    template<class T>
     void operator()(T* ptr) const noexcept
     {
         if (ptr) {
@@ -119,6 +120,12 @@ using SSL_X509_EXTENSION_Ptr =
         std::unique_ptr<X509_EXTENSION,
                         SSLDeleter<X509_EXTENSION, lib::OpenSSLLib::SSL_X509_EXTENSION_free>>;
 using SSL_X509_EXTENSION_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_EXTENSION_Ptr>;
+
+using SSL_BIGNUM_Ptr = std::unique_ptr<BIGNUM, SSLDeleter<BIGNUM, lib::OpenSSLLib::SSL_BN_free>>;
+using SSL_BIGNUM_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_BIGNUM_Ptr>;
+
+using SSL_char_Ptr = std::unique_ptr<char, SSLDeleter<void, lib::OpenSSLLib::SSL_OPENSSL_free>>;
+using SSL_char_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_char_Ptr>;
 
 
 using time_point = std::chrono::system_clock::time_point;
@@ -757,6 +764,15 @@ void _X509_set_serialNumber(X509 *x, uint64_t serial);
  * @return the serial number of the passed certificate
  */
 uint64_t _X509_get_serialNumber(X509* x);
+
+/**
+ * Gets the serial number of a certificate with arbitrary precision as a decimal representation in
+ * ASCII.
+ *
+ * @param x the certificate
+ * @return the decimal string representation of the serial number
+ */
+std::string _X509_get_serialNumber_dec(X509* x);
 
 }  //::openssl
 }  //::mococrw

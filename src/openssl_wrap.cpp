@@ -672,5 +672,18 @@ void _X509_set_serialNumber(X509 *x, uint64_t serial)
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_set_serialNumber, x, asn1Serial.get());
 }
 
+std::string _X509_get_serialNumber_dec(X509* x)
+{
+    auto asn1SerialNumber = OpensslCallPtr::callChecked(
+                                lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
+    auto bnSerialNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
+                                            asn1SerialNumber, nullptr)};
+    auto strSerialNumber = SSL_char_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_BN_bn2dec, bnSerialNumber.get())};
+    // automatically convert into a string and free resources
+    return strSerialNumber.get();
+}
+
 }  // ::openssl
 }  //:: mococrw
