@@ -652,8 +652,8 @@ uint64_t _X509_get_serialNumber(X509 *x)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, maxLong.get(),
                                   std::numeric_limits<long>::max());
 
-    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, maxLong.get()) < 0
-        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, zero.get()) > 0) {
+    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, maxLong.get()) > 0
+        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, zero.get()) < 0) {
         throw OpenSSLException{"Serial Number is out of the accepted range."};
     }
 
