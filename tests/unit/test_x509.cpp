@@ -52,7 +52,7 @@ template<class Res, Res(Func)(const std::string&)>
 auto openSSLObjectFromFile(const std::string &filename)
 {
     auto buffer = bytesFromFile<char>(filename);
-    return Func(buffer.data());
+    return Func({buffer.data(), buffer.size()});
 }
 
 X509Certificate loadCertFromFile(const std::string &filename)
