@@ -76,7 +76,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('returnType', type=str, help='the return type of the function')
     parser.add_argument("functionName", type=str, help="the name of the openssl function")
-    parser.add_argument("arguments", nargs="*", type=str, help="the parameter types and names")
+    parser.add_argument("arguments", metavar="paramType paramName", nargs="*", type=str,
+                        help="the parameter types and names where each odd parameter is a "
+                             "parameter type and each even parameter is a parameter name")
     args = parser.parse_args()
 
     func = Function(args.returnType, args.functionName, *[(args.arguments[i], args.arguments[i+1]) for i in range(0, len(args.arguments) - 1, 2)])
