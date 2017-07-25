@@ -429,6 +429,12 @@ void _X509_verify_cert(X509_STORE_CTX *ctx) {
 }
 
 template<>
+ASN1_INTEGER *createOpenSSLObject<ASN1_INTEGER>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_new);
+}
+
+template<>
 X509_STORE *createOpenSSLObject<X509_STORE>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_STORE_new);
@@ -640,15 +646,14 @@ void _X509_add_ext(X509 *x, X509_EXTENSION *ex)
 uint64_t _X509_get_serialNumber(X509 *x)
 {
     auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
-    ASN1_INTEGER maxLong{};
-    ASN1_INTEGER zero{};
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &zero, 0);
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &maxLong,
+    auto maxLong = createManagedOpenSSLObject<SSL_ASN1_INTEGER_Ptr>();
+    auto zero = createManagedOpenSSLObject<SSL_ASN1_INTEGER_Ptr>();
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, zero.get(), 0);
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, maxLong.get(),
                                   std::numeric_limits<long>::max());
 
-
-    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, &maxLong) < 0
-        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, &zero) > 0) {
+    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, maxLong.get()) < 0
+        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, zero.get()) > 0) {
         throw OpenSSLException{"Serial Number is out of the accepted range."};
     }
 
@@ -662,9 +667,9 @@ void _X509_set_serialNumber(X509 *x, uint64_t serial)
     }
 
     //This call triggers zero initialization, which is required by openssl
-    ASN1_INTEGER asn1Serial{};
-    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, &asn1Serial, serial);
-    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_set_serialNumber, x, &asn1Serial);
+    auto asn1Serial = createManagedOpenSSLObject<SSL_ASN1_INTEGER_Ptr>();
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, asn1Serial.get(), serial);
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_set_serialNumber, x, asn1Serial.get());
 }
 
 }  // ::openssl

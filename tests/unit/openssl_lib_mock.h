@@ -22,6 +22,8 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual ASN1_INTEGER* SSL_ASN1_INTEGER_new() = 0;
+    virtual void SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) = 0;
     virtual int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) = 0;
     virtual long SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) = 0;
     virtual int SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) = 0;
@@ -188,6 +190,8 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD0(SSL_ASN1_INTEGER_new, ASN1_INTEGER*());
+    MOCK_METHOD1(SSL_ASN1_INTEGER_free, void(ASN1_INTEGER*));
     MOCK_METHOD2(SSL_ASN1_INTEGER_cmp, int(const ASN1_INTEGER*, const ASN1_INTEGER*));
     MOCK_METHOD1(SSL_ASN1_INTEGER_get, long(const ASN1_INTEGER*));
     MOCK_METHOD2(SSL_ASN1_INTEGER_set, int(ASN1_INTEGER*, long));

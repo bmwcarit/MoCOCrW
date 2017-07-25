@@ -42,6 +42,8 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static ASN1_INTEGER* SSL_ASN1_INTEGER_new() noexcept;
+    static void SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) noexcept;
     static int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) noexcept;
     static long SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) noexcept;
     static int SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) noexcept;

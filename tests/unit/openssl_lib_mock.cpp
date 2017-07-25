@@ -539,6 +539,14 @@ int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* 
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_cmp(x, y);
 }
+void OpenSSLLib::SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_free(a);
+}
+ASN1_INTEGER* OpenSSLLib::SSL_ASN1_INTEGER_new() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_new();
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

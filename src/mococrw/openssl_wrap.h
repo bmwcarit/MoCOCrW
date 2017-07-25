@@ -111,6 +111,10 @@ using SSL_ASN1_TIME_Ptr =
         std::unique_ptr<ASN1_TIME, SSLDeleter<ASN1_TIME, lib::OpenSSLLib::SSL_ASN1_TIME_free>>;
 using SSL_ASN1_TIME_SharedPTr = utility::SharedPtrTypeFromUniquePtr<SSL_ASN1_TIME_Ptr>;
 
+using SSL_ASN1_INTEGER_Ptr =
+        std::unique_ptr<ASN1_INTEGER, SSLDeleter<ASN1_INTEGER, lib::OpenSSLLib::SSL_ASN1_INTEGER_free>>;
+using SSL_ASN1_INTEGER_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ASN1_INTEGER_Ptr>;
+
 using SSL_X509_EXTENSION_Ptr =
         std::unique_ptr<X509_EXTENSION,
                         SSLDeleter<X509_EXTENSION, lib::OpenSSLLib::SSL_X509_EXTENSION_free>>;
