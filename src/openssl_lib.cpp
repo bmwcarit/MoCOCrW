@@ -26,7 +26,7 @@ namespace openssl
  *
  * The methods here are needed to set up various openssl routines
  */
-static bool initialized = [] {
+[[gnu::unused]] static bool initialized = [] {
     lib::OpenSSLLib::SSL_CRYPTO_malloc_init();
     lib::OpenSSLLib::SSL_ERR_load_crypto_strings();
     lib::OpenSSLLib::SSL_SSL_load_error_strings();
