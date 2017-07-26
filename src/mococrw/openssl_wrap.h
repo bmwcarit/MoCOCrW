@@ -774,5 +774,13 @@ uint64_t _X509_get_serialNumber(X509* x);
  */
 std::string _X509_get_serialNumber_dec(X509* x);
 
+/**
+ * Gets the serial number of a certificate with arbitrary precision as a binary representation.
+ *
+ * @param x the certificate
+ * @return the binary representation of the serial number
+ */
+std::vector<uint8_t> _X509_get_serialNumber_bin(X509* x);
+
 }  //::openssl
 }  //::mococrw

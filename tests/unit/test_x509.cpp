@@ -690,13 +690,18 @@ TEST_F(X509Test, testGetSerialNumber)
         << "X509Certificate::getSerialNumber() should have thrown for serial numbers > sizeof(long)";
     EXPECT_EQ("14658124556383521362", _cert.getSerialNumberDecimal())
         << "X509Certificate::getSerialNumberDecimal() did not return expected value";
+    EXPECT_EQ((std::vector<uint8_t>{0xcb, 0x6c, 0x1e, 0x9f, 0x38, 0xab, 0x8a, 0x52}),
+              _cert.getSerialNumberBinary())
+        << "X509Certificate::getSerialNumberBinary() did not return expected value";
 
     auto shortSerialCert = X509Certificate::fromPEM(_shortSerialPemString);
     EXPECT_EQ(12, shortSerialCert.getSerialNumber());
     EXPECT_EQ("12", shortSerialCert.getSerialNumberDecimal());
+    EXPECT_EQ(std::vector<uint8_t>{0x0c}, shortSerialCert.getSerialNumberBinary());
 
     auto negativeSerialCert = X509Certificate::fromPEM(_negativeSerialPemString);
     EXPECT_THROW(negativeSerialCert.getSerialNumber(), OpenSSLException)
         << "X509Certificate::getSerialNumber() should have thrown for serial numbers < 0";
     EXPECT_EQ("-42", negativeSerialCert.getSerialNumberDecimal());
+    EXPECT_EQ(std::vector<uint8_t>{0x2a}, negativeSerialCert.getSerialNumberBinary());
 }

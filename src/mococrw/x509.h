@@ -69,6 +69,15 @@ public:
      */
     std::string getSerialNumberDecimal() const;
 
+    /**
+     * @brief Get the serial number of this certificate as big endian binary representation.
+     *
+     * Return a big endian binary representation of the serial number with arbitrary precision.
+     *
+     * @return The serial number as binary
+     */
+    std::vector<uint8_t> getSerialNumberBinary() const;
+
     AsymmetricPublicKey getPublicKey() const;
 
     /**

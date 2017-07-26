@@ -563,6 +563,14 @@ ASN1_INTEGER* OpenSSLLib::SSL_ASN1_INTEGER_new() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_new();
 }
+int OpenSSLLib::SSL_BN_bn2bin(const BIGNUM* a, unsigned char* to) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_BN_bn2bin(a, to);
+}
+int OpenSSLLib::SSL_BN_num_bytes(const BIGNUM* a) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_BN_num_bytes(a);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

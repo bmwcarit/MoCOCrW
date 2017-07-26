@@ -685,5 +685,24 @@ std::string _X509_get_serialNumber_dec(X509* x)
     return strSerialNumber.get();
 }
 
+std::vector<uint8_t> _X509_get_serialNumber_bin(X509* x)
+{
+    std::vector<uint8_t> serialNumber;
+    auto asn1SerialNumber = OpensslCallPtr::callChecked(
+                                lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
+    auto bnSerialNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
+                                            asn1SerialNumber, nullptr)};
+    // The second parameter of BN_bn2bin must point to BN_num_bytes(a) bytes of memory.
+    serialNumber.resize(OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_num_bytes,
+                                                           bnSerialNumber.get()));
+    int size = OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_bn2bin,
+                                                  bnSerialNumber.get(),
+                                                  serialNumber.data());
+    // Just in case fewer bytes were used, truncate the std::vector.
+    serialNumber.resize(size);
+    return serialNumber;
+}
+
 }  // ::openssl
 }  //:: mococrw
