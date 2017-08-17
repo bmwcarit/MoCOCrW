@@ -624,6 +624,20 @@ time_point _X509_get_notBefore(X509* x);
 time_point _X509_get_notAfter(X509* x);
 
 /**
+ * Get not before value of the certificate as ASN1_TIME
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+ASN1_TIME* _X509_get_notBefore_ASN1(X509* x);
+
+/**
+ * Get not after value of the certificate as ASN1_TIME
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+ASN1_TIME* _X509_get_notAfter_ASN1(X509* x);
+
+/**
  * Get a pointer to the EVP_PKEY in a certificate.
  *
  * Using this call increments the OpenSSL internal reference count of

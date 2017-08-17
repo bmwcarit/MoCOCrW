@@ -103,6 +103,11 @@ protected:
     std::unique_ptr<X509Certificate> _root2_int1;
     std::unique_ptr<X509Certificate> _root2_int1_cert1;
 
+    std::unique_ptr<X509Certificate> _year1970;
+    std::unique_ptr<X509Certificate> _year2049;
+    std::unique_ptr<X509Certificate> _year2050;
+    std::unique_ptr<X509Certificate> _year9999;
+
     std::unique_ptr<AsymmetricPublicKey> _root1_pubkey;
 };
 
@@ -129,6 +134,11 @@ void X509Test::SetUp()
     _root2 = std::make_unique<X509Certificate>(loadCertFromFile("root2.pem"));
     _root2_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
     _root2_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
+
+    _year1970 = std::make_unique<X509Certificate>(loadCertFromFile("year1970.pem"));
+    _year2049 = std::make_unique<X509Certificate>(loadCertFromFile("year2049.pem"));
+    _year2050 = std::make_unique<X509Certificate>(loadCertFromFile("year2050.pem"));
+    _year9999 = std::make_unique<X509Certificate>(loadCertFromFile("year9999.pem"));
 
     _root1_pubkey = std::make_unique<AsymmetricPublicKey>(loadPubkeyFromFile("root1.pubkey.pem"));
 
@@ -600,6 +610,92 @@ TEST_F(X509Test, testNotAfterWorking)
     auto notAfterRoot1_Int1 = _root1_int1->getNotAfter();
     EXPECT_TRUE(std::chrono::system_clock::to_time_t(notAfterRoot1_Int1) == 2354641238);
     EXPECT_TRUE(notAfterRoot1_Int1 == std::chrono::system_clock::from_time_t(2354641238));
+}
+
+TEST_F(X509Test, test1970EdgeCaseAsn1DateShort)
+{
+    // Not Before: Jan  1 00:01:00 1970 GMT
+    // Not After : May 16 00:01:00 9952 GMT
+
+
+    auto notBeforeAsn1 = _year1970->getNotBeforeAsn1();
+    auto notAfterAsn1 = _year1970->getNotAfterAsn1();
+
+    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
+    std::string asn1dateBeforeExpected("700101000100Z");
+
+    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
+    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
+
+    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
+    std::string asn1dateAfterExpected("99520516000100Z");
+
+    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
+    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+}
+
+TEST_F(X509Test, test2049EdgeCaseAsn1DateShort)
+{
+    // Not Before: Dec 31 23:59:00 2049 GMT
+    // Not After : Sep 20 23:59:00 2079 GMT
+
+    auto notBeforeAsn1 = _year2049->getNotBeforeAsn1();
+    auto notAfterAsn1 = _year2049->getNotAfterAsn1();
+
+    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
+    std::string asn1dateBeforeExpected("491231235900Z");
+
+    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
+    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
+
+    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
+    std::string asn1dateAfterExpected("20790920235900Z");
+
+    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
+    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+}
+
+TEST_F(X509Test, test2050EdgeCaseAsn1DateLong)
+{
+    // Not Before: Jan  1 00:01:00 2050 GMT
+    // Not After : Sep 21 00:01:00 2079 GMT
+
+
+    auto notBeforeAsn1 = _year2050->getNotBeforeAsn1();
+    auto notAfterAsn1 = _year2050->getNotAfterAsn1();
+
+    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
+    std::string asn1dateBeforeExpected("20500101000100Z");
+
+    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notBeforeAsn1->type);
+    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
+
+    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
+    std::string asn1dateAfterExpected("20790921000100Z");
+
+    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
+    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+}
+
+TEST_F(X509Test, test9999EdgeCaseAsn1DateLong)
+{
+    // Not Before: Aug 17 23:59:27 2017 GMT
+    // Not After : Dec 31 23:59:27 9999 GMT
+
+    auto notBeforeAsn1 = _year9999->getNotBeforeAsn1();
+    auto notAfterAsn1 = _year9999->getNotAfterAsn1();
+
+    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
+    std::string asn1dateBeforeExpected("170816235900Z");
+
+    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
+    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
+
+    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
+    std::string asn1dateAfterExpected("99991231235900Z");
+
+    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
+    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
 }
 
 TEST_F(X509Test, testIfPubkeyIsCorrectlyExtractedFromCertificate)

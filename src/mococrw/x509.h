@@ -53,6 +53,20 @@ public:
     std::chrono::system_clock::time_point getNotAfter() const;
 
     /**
+     * Get the start point of the certificate's validity
+     *
+     * @return A ASN1_TIME of the start point of validity
+     */
+    ASN1_TIME* getNotBeforeAsn1() const;
+
+    /**
+     * Get the end point of the certificate's validity
+     *
+     * @return A ASN1_TIME of the end point of validity
+     */
+    ASN1_TIME* getNotAfterAsn1() const;
+
+    /**
      * @brief Get the serial number of this certificate
      *
      * @return serial number as uint64_t

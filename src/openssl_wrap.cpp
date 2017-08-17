@@ -530,14 +530,26 @@ time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
 
 time_point _X509_get_notBefore(X509* x)
 {
-    auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notBefore, x);
+    auto asn1time = _X509_get_notBefore_ASN1(x);
     return _asn1TimeToTimePoint(asn1time);
 }
 
 time_point _X509_get_notAfter(X509* x)
 {
-    auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notAfter, x);
+    auto asn1time = _X509_get_notAfter_ASN1(x);
     return _asn1TimeToTimePoint(asn1time);
+}
+
+ASN1_TIME* _X509_get_notBefore_ASN1(X509* x)
+{
+    auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notBefore, x);
+    return asn1time;
+}
+
+ASN1_TIME* _X509_get_notAfter_ASN1(X509* x)
+{
+    auto asn1time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_notAfter, x);
+    return asn1time;
 }
 
 SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x)
