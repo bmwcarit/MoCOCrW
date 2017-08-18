@@ -122,10 +122,10 @@ void testValiditySpan(const X509Certificate &cert,
                       std::chrono::system_clock::time_point certificationTime)
 {
     // Check that (notAfter - notBefore = validitySpan) and (notBefore = certificationTime),
-    // the last one with allowances for 1 second accuracy
-    EXPECT_EQ(cert.getNotAfter() - cert.getNotBefore(), validitySpan);
-    EXPECT_LT(certificationTime - cert.getNotBefore(), std::chrono::seconds(1));
-    EXPECT_LT(cert.getNotBefore() - certificationTime, std::chrono::seconds(1));
+    // the last one with allowances for 2 second accuracy
+    EXPECT_LT((cert.getNotAfter() - cert.getNotBefore()) - validitySpan, std::chrono::seconds(2));
+    EXPECT_LT(certificationTime - cert.getNotBefore(), std::chrono::seconds(2));
+    EXPECT_LT(cert.getNotBefore() - certificationTime, std::chrono::seconds(2));
 }
 
 TEST_F(CATest, testAddExtensionWithSharedPointer)

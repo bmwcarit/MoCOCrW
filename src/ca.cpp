@@ -81,9 +81,10 @@ X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &c
         cert.verify({_rootCert}, {});
         _nextSerialNumber++;
         return cert;
-    } catch (const MoCOCrWException &) {
+    } catch (const MoCOCrWException &e) {
         throw MoCOCrWException(
-                    "Certificate creation failed: the generated certificate is invalid.");
+                std::string("Certificate creation failed: the generated certificate is invalid: ") + e.what()
+                );
     }
 
 }
@@ -92,7 +93,10 @@ void CertificateAuthority::signCertificate(X509* cert,
                          const AsymmetricKeypair &privateKey,
                          const CertificateSigningParameters &signParams)
 {
-    _X509_set_notBefore(cert, std::chrono::system_clock::now());
+    // Since we verify the certificate directly after signing it, sometimes the verification fails
+    // because the cert is not yet valid. Due to this, we substract a second from the current time for
+    // the notBefore date.
+    _X509_set_notBefore(cert, std::chrono::system_clock::now() - std::chrono::seconds{1});
     _X509_set_notAfter(cert, std::chrono::system_clock::now() + signParams.certificateValidity());
 
     X509V3_CTX ctx;
