@@ -516,6 +516,10 @@ int OpenSSLLib::SSL_BN_num_bytes(const BIGNUM* a) noexcept
 {
     return BN_num_bytes(a);
 }
+int OpenSSLLib::SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) noexcept
+{
+    return ASN1_TIME_set_string(s, str);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

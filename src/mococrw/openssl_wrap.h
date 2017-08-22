@@ -501,7 +501,6 @@ SSL_EVP_PKEY_Ptr _PEM_read_bio_PUBKEY(BIO* bio);
  */
 SSL_X509_Ptr _PEM_read_bio_X509(BIO*);
 
-
 /**
  * Let OpenSSL compute the time difference between two ASN1_TIMEs
  *
@@ -512,7 +511,7 @@ SSL_X509_Ptr _PEM_read_bio_X509(BIO*);
  *           psec will be written with a negative value (or 0).
  * @throw OpenSSLException when an error occurs (e.g., wrong ASN1_TIME formats)
  */
-void _ASN1_TIME_diff(int *pday, int *psec,
+int _ASN1_TIME_diff(int *pday, int *psec,
                               const ASN1_TIME *from, const ASN1_TIME *to);
 
 /**
@@ -521,6 +520,11 @@ void _ASN1_TIME_diff(int *pday, int *psec,
  * @throw OpenSSLException if an error occurs creating the object
  */
 SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t);
+
+/**
+ * Set the time from a textual representation to an ASN.1 time
+ */
+int _ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
 
 /**
  * Add an X509 certificate to an X509 store

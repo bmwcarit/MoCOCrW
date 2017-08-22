@@ -679,8 +679,8 @@ TEST_F(X509Test, test2050EdgeCaseAsn1DateLong)
 
 TEST_F(X509Test, test9999EdgeCaseAsn1DateLong)
 {
-    // Not Before: Aug 17 23:59:27 2017 GMT
-    // Not After : Dec 31 23:59:27 9999 GMT
+    // Not Before: Aug 16 23:59:00 2017 GMT
+    // Not After : Dec 31 23:59:00 9999 GMT
 
     auto notBeforeAsn1 = _year9999->getNotBeforeAsn1();
     auto notAfterAsn1 = _year9999->getNotAfterAsn1();

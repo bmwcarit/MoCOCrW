@@ -476,16 +476,21 @@ X509_NAME* _X509_get_issuer_name(X509 *ptr)
                                         ptr);
 }
 
-void _ASN1_TIME_diff(int *pday, int *psec,
+int _ASN1_TIME_diff(int *pday, int *psec,
                               const ASN1_TIME *from, const ASN1_TIME *to)
 {
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_diff, pday, psec, from, to);
+    return lib::OpenSSLLib::SSL_ASN1_TIME_diff(pday, psec, from, to);
 }
 
 SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t)
 {
     return SSL_ASN1_TIME_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_set,
                             nullptr, t)};
+}
+
+int _ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
+{
+    return lib::OpenSSLLib::SSL_ASN1_TIME_set_string(s, str);
 }
 
 namespace {
