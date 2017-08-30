@@ -110,7 +110,7 @@ using SSL_STACK_X509_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_STACK_X
 
 using SSL_ASN1_TIME_Ptr =
         std::unique_ptr<ASN1_TIME, SSLDeleter<ASN1_TIME, lib::OpenSSLLib::SSL_ASN1_TIME_free>>;
-using SSL_ASN1_TIME_SharedPTr = utility::SharedPtrTypeFromUniquePtr<SSL_ASN1_TIME_Ptr>;
+using SSL_ASN1_TIME_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ASN1_TIME_Ptr>;
 
 using SSL_ASN1_INTEGER_Ptr =
         std::unique_ptr<ASN1_INTEGER, SSLDeleter<ASN1_INTEGER, lib::OpenSSLLib::SSL_ASN1_INTEGER_free>>;
@@ -524,7 +524,7 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t);
 /**
  * Set the time from a textual representation to an ASN.1 time
  */
-int _ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
+void _ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
 
 /**
  * Add an X509 certificate to an X509 store
@@ -799,6 +799,24 @@ std::string _X509_get_serialNumber_dec(X509* x);
  * @return the binary representation of the serial number
  */
 std::vector<uint8_t> _X509_get_serialNumber_bin(X509* x);
+
+/**
+ * Creates a new (empty) ASN1_TIME object.
+ *
+ * Unfortunately, openssl ASN1 objects are borked and many are just typedefs for ASN1_STRING.
+ * Hence, we cannot use the template function to create them but need to create separate function.
+ */
+SSL_ASN1_TIME_Ptr _ASN1_TIME_new();
+
+/**
+ * Create a copy of a raw openssl ASN1_TIME objec
+ */
+SSL_ASN1_TIME_Ptr _ASN1_TIME_copy(const ASN1_TIME* t);
+
+/**
+ * Convert an ASN1_TIME object to a C++ time_point
+ */
+time_point _asn1TimeToTimePoint(const ASN1_TIME *time);
 
 }  //::openssl
 }  //::mococrw

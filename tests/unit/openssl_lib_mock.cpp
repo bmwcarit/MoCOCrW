@@ -575,6 +575,14 @@ int OpenSSLLib::SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_set_string(s, str);
 }
+ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_new() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_new();
+}
+ASN1_STRING* OpenSSLLib::SSL_ASN1_STRING_dup(const ASN1_STRING* str) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_STRING_dup(str);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

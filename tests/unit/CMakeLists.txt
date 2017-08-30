@@ -14,16 +14,21 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     find_package(Threads)
 
     add_executable(openssltest test_opensslwrapper.cpp ${MOCK_SOURCES})
+
+    add_executable(asn1timetests test_asn1time.cpp ${REAL_SOURCES})
     add_executable(keytests test_key.cpp ${REAL_SOURCES})
     add_executable(csrtests test_csr.cpp "${SRC_DIR}/key.cpp" ${REAL_SOURCES})
     add_executable(biotests test_bio.cpp ${REAL_SOURCES})
-    add_executable(x509tests test_x509.cpp "${SRC_DIR}/key.cpp" "${SRC_DIR}/csr.cpp" ${REAL_SOURCES})
+    add_executable(x509tests test_x509.cpp "${SRC_DIR}/key.cpp" "${SRC_DIR}/csr.cpp" "${SRC_DIR}/asn1time.cpp" ${REAL_SOURCES})
     add_executable(dntests test_distinguished_name.cpp ${REAL_SOURCES})
     add_executable(catests test_ca.cpp "${SRC_DIR}/key.cpp" "${SRC_DIR}/csr.cpp"
                            "${SRC_DIR}/ca.cpp" "${SRC_DIR}/x509.cpp" "${SRC_DIR}/key_usage.cpp"
+                           "${SRC_DIR}/asn1time.cpp"
                            "${SRC_DIR}/basic_constraints.cpp" ${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+
+    target_link_libraries(asn1timetests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(keytests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(csrtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(biotests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
@@ -32,6 +37,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(catests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 
     add_test(OpenSSLTest openssltest)
+
+    add_test(Asn1TimeTests asn1timetests)
     add_test(KeyTest keytests)
     add_test(CsrTests csrtests)
     add_test(

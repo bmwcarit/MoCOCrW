@@ -42,6 +42,8 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static ASN1_STRING* SSL_ASN1_STRING_dup(const ASN1_STRING* str) noexcept;
+    static ASN1_TIME* SSL_ASN1_TIME_new() noexcept;
     static int SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) noexcept;
     static int SSL_BN_num_bytes(const BIGNUM* a) noexcept;
     static int SSL_BN_bn2bin(const BIGNUM* a, unsigned char* to) noexcept;

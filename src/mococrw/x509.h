@@ -5,6 +5,7 @@
  */
 #pragma once
 
+#include "asn1time.h"
 #include "distinguished_name.h"
 #include "key.h"
 #include "openssl_wrap.h"
@@ -55,16 +56,16 @@ public:
     /**
      * Get the start point of the certificate's validity
      *
-     * @return A ASN1_TIME of the start point of validity
+     * @return An Asn1Time of the starting poing of validity
      */
-    ASN1_TIME* getNotBeforeAsn1() const;
+    Asn1Time getNotBeforeAsn1() const;
 
     /**
      * Get the end point of the certificate's validity
      *
-     * @return A ASN1_TIME of the end point of validity
+     * @return An Asn1Time of the end point of validity
      */
-    ASN1_TIME* getNotAfterAsn1() const;
+    Asn1Time getNotAfterAsn1() const;
 
     /**
      * @brief Get the serial number of this certificate

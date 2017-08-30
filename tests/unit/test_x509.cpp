@@ -621,17 +621,11 @@ TEST_F(X509Test, test1970EdgeCaseAsn1DateShort)
     auto notBeforeAsn1 = _year1970->getNotBeforeAsn1();
     auto notAfterAsn1 = _year1970->getNotAfterAsn1();
 
-    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
-    std::string asn1dateBeforeExpected("700101000100Z");
+    auto expectedNotBeforeAsn1 = Asn1Time::fromString("700101000100Z");
+    EXPECT_EQ(notBeforeAsn1, expectedNotBeforeAsn1);
 
-    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
-    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
-
-    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
-    std::string asn1dateAfterExpected("99520516000100Z");
-
-    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
-    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+    auto expectedDateAfterAsn1 = Asn1Time::fromString("99520516000100Z");
+    EXPECT_EQ(notAfterAsn1, expectedDateAfterAsn1);
 }
 
 TEST_F(X509Test, test2049EdgeCaseAsn1DateShort)
@@ -642,17 +636,11 @@ TEST_F(X509Test, test2049EdgeCaseAsn1DateShort)
     auto notBeforeAsn1 = _year2049->getNotBeforeAsn1();
     auto notAfterAsn1 = _year2049->getNotAfterAsn1();
 
-    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
-    std::string asn1dateBeforeExpected("491231235900Z");
+    auto expectedNotBeforeAsn1 = Asn1Time::fromString("491231235900Z");
+    EXPECT_EQ(notBeforeAsn1, expectedNotBeforeAsn1);
 
-    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
-    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
-
-    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
-    std::string asn1dateAfterExpected("20790920235900Z");
-
-    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
-    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+    auto expectedDateAfterAsn1 = Asn1Time::fromString("20790920235900Z");
+    EXPECT_EQ(notAfterAsn1, expectedDateAfterAsn1);
 }
 
 TEST_F(X509Test, test2050EdgeCaseAsn1DateLong)
@@ -660,21 +648,14 @@ TEST_F(X509Test, test2050EdgeCaseAsn1DateLong)
     // Not Before: Jan  1 00:01:00 2050 GMT
     // Not After : Sep 21 00:01:00 2079 GMT
 
-
     auto notBeforeAsn1 = _year2050->getNotBeforeAsn1();
     auto notAfterAsn1 = _year2050->getNotAfterAsn1();
 
-    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
-    std::string asn1dateBeforeExpected("20500101000100Z");
+    auto expectedNotBeforeAsn1 = Asn1Time::fromString("20500101000100Z");
+    EXPECT_EQ(notBeforeAsn1, expectedNotBeforeAsn1);
 
-    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notBeforeAsn1->type);
-    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
-
-    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
-    std::string asn1dateAfterExpected("20790921000100Z");
-
-    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
-    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+    auto expectedDateAfterAsn1 = Asn1Time::fromString("20790921000100Z");
+    EXPECT_EQ(notAfterAsn1, expectedDateAfterAsn1);
 }
 
 TEST_F(X509Test, test9999EdgeCaseAsn1DateLong)
@@ -685,17 +666,11 @@ TEST_F(X509Test, test9999EdgeCaseAsn1DateLong)
     auto notBeforeAsn1 = _year9999->getNotBeforeAsn1();
     auto notAfterAsn1 = _year9999->getNotAfterAsn1();
 
-    std::string asn1dateBefore(reinterpret_cast<char*>(notBeforeAsn1->data));
-    std::string asn1dateBeforeExpected("170816235900Z");
+    auto expectedNotBeforeAsn1 = Asn1Time::fromString("170816235900Z");
+    EXPECT_EQ(notBeforeAsn1, expectedNotBeforeAsn1);
 
-    EXPECT_EQ(V_ASN1_UTCTIME, notBeforeAsn1->type);
-    EXPECT_EQ(asn1dateBeforeExpected, asn1dateBefore);
-
-    std::string asn1dateAfter(reinterpret_cast<char*>(notAfterAsn1->data));
-    std::string asn1dateAfterExpected("99991231235900Z");
-
-    EXPECT_EQ(V_ASN1_GENERALIZEDTIME, notAfterAsn1->type);
-    EXPECT_EQ(asn1dateAfterExpected, asn1dateAfter);
+    auto expectedDateAfterAsn1 = Asn1Time::fromString("99991231235900Z");
+    EXPECT_EQ(notAfterAsn1, expectedDateAfterAsn1);
 }
 
 TEST_F(X509Test, testIfPubkeyIsCorrectlyExtractedFromCertificate)

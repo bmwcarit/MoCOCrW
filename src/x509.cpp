@@ -113,16 +113,16 @@ std::chrono::system_clock::time_point X509Certificate::getNotAfter() const
     return _X509_get_notAfter(const_cast<X509*>(internal()));
 }
 
-ASN1_TIME* X509Certificate::getNotBeforeAsn1() const
+Asn1Time X509Certificate::getNotBeforeAsn1() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_notBefore_ASN1(const_cast<X509*>(internal()));
+    return Asn1Time{_X509_get_notBefore_ASN1(const_cast<X509*>(internal()))};
 }
 
-ASN1_TIME* X509Certificate::getNotAfterAsn1() const
+Asn1Time X509Certificate::getNotAfterAsn1() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_notAfter_ASN1(const_cast<X509*>(internal()));
+    return Asn1Time{_X509_get_notAfter_ASN1(const_cast<X509*>(internal()))};
 }
 
 uint64_t X509Certificate::getSerialNumber() const

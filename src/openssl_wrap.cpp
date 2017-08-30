@@ -488,12 +488,25 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t)
                             nullptr, t)};
 }
 
-int _ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
+SSL_ASN1_TIME_Ptr _ASN1_TIME_new()
 {
-    return lib::OpenSSLLib::SSL_ASN1_TIME_set_string(s, str);
+    return SSL_ASN1_TIME_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_new)};
 }
 
-namespace {
+SSL_ASN1_TIME_Ptr _ASN1_TIME_copy(const ASN1_TIME* t)
+{
+    ASN1_STRING *s = lib::OpenSSLLib::SSL_ASN1_STRING_dup(static_cast<const ASN1_STRING*>(t));
+    if (s == nullptr) {
+        throw OpenSSLException();
+    }
+    return SSL_ASN1_TIME_Ptr{static_cast<ASN1_TIME*>(s)};
+}
+
+void _ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_set_string, s, str);
+}
+
 /**
  * @brief Convert an ASN1_TIME instance to a std::chrono::system_clock::time_point
  * @param [in] time An ASN1 encoded time object
@@ -513,15 +526,31 @@ time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
      * (3) Convert the days + seconds offset into a std::system_clock::time_point
      *
      */
+    using std::chrono::system_clock;
 
-    const auto epoch = std::chrono::system_clock::from_time_t(0);
+    const auto epoch = system_clock::from_time_t(0);
 
-    auto asn1Now = _ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(epoch));
+    auto asn1Now = _ASN1_TIME_from_time_t(system_clock::to_time_t(epoch));
+    auto maxTimePoint = system_clock::time_point::max();
+    auto maxAsn1TimePoint = _ASN1_TIME_from_time_t(system_clock::to_time_t(maxTimePoint));
+    auto minTimePoint = system_clock::time_point::min();
+    auto minAsn1TimePoint = _ASN1_TIME_from_time_t(system_clock::to_time_t(minTimePoint));
+
+    // first we check if the ASN1_TIME fits into the time point.
+    int days, seconds;
+    _ASN1_TIME_diff(&days, &seconds, minAsn1TimePoint.get(), time);
+    if (days < 0 || seconds < 0) {
+        throw OpenSSLException("ASN1_TIME does not fit into time_point");
+    }
+    _ASN1_TIME_diff(&days, &seconds, time, maxAsn1TimePoint.get());
+    if (days < 0 || seconds < 0) {
+        throw OpenSSLException("ASN1_TIME does not fit into time_point");
+    }
+
 
     //compute the offset between "time" and "asn1Now" in days and seconds.
     //both values (days and seconds) are negative, if asn1Now is later than givenTime.
     //otherwise, they are both positive
-    int days, seconds;
     _ASN1_TIME_diff(&days, &seconds, asn1Now.get(), time);
     //double check that openssl keeps its promise that the signs are identical
     //if at least one of "days" or "seconds" is 0, then nothing needs to be checked
@@ -531,7 +560,7 @@ time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
     }
     return epoch + (24h * days) + (1s * seconds);
 }
-}
+
 
 time_point _X509_get_notBefore(X509* x)
 {
