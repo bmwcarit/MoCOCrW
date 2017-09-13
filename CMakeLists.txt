@@ -13,10 +13,13 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Note that '-pie' needs to be specified as a linker flag to every executable
 # individually, to ensure it has ASLR enabled on .text, .data, etc.
+if(CMAKE_EXECUTABLE_FORMAT STREQUAL "ELF")
+# Enable relro and BIND_NOW only if we gnerate ELF binaries
 set(CMAKE_EXE_LINKER_FLAGS
     # Enforce non-executable stack and read only relocations
     "${CMAKE_EXE_LINKER_FLAGS} -z noexecstack -z relro -z now"
 )
+endif()
 
 # Default compiler flags
 set(CMAKE_CXX_STANDARD 14)
@@ -47,9 +50,9 @@ option(BUILD_DOCUMENTATION "Build documentation" ON)
 find_package(PkgConfig)
 
 # Search OpenSSL
-pkg_search_module(OPENSSL REQUIRED openssl)
+find_package(OpenSSL)
 if( OPENSSL_FOUND )
-    include_directories(${OPENSSL_INCLUDE_DIRS})
+    include_directories(${OPENSSL_INCLUDE_DIR})
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
