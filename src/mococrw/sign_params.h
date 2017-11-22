@@ -28,11 +28,24 @@ public:
     class Builder;
 
     /**
-     * @return the duration how long a signed certificate should be valid.
+     * @return the duration how long a signed certificate should be valid, from the starting point.
      */
     const std::chrono::system_clock::duration& certificateValidity() const
     {
         return _certificateValidity;
+    }
+
+    /**
+     * @return the timestamp from when a signed certificate should be valid. Defaults to now.
+     */
+    std::chrono::system_clock::time_point notBefore() const
+    {
+        if (_notBefore.is_initialized()) {
+            return _notBefore.get();
+        } else {
+            // Default start time is now (minus one second)
+            return std::chrono::system_clock::now() - std::chrono::seconds(1);
+        }
     }
 
     /**
@@ -80,7 +93,7 @@ public:
 private:
     auto  _makeTuple() const
     {
-        return std::tie(_certificateValidity, _digestType, _extensions);
+        return std::tie(_certificateValidity, _notBefore, _digestType, _extensions);
     }
 
 public:
@@ -95,6 +108,7 @@ public:
     }
 
 private:
+    boost::optional<std::chrono::system_clock::time_point> _notBefore;
     std::chrono::system_clock::duration _certificateValidity;
     openssl::DigestTypes _digestType;
     //There is no more than one extension of the same type, so every extension type
@@ -110,6 +124,13 @@ public:
     Builder& certificateValidity(T&& validity)
     {
         _sp._certificateValidity = std::forward<T>(validity);
+        return *this;
+    }
+
+    template<class T>
+    Builder& notBefore(T&& notBefore)
+    {
+        _sp._notBefore = std::forward<T>(notBefore);
         return *this;
     }
 

@@ -93,11 +93,8 @@ void CertificateAuthority::signCertificate(X509* cert,
                          const AsymmetricKeypair &privateKey,
                          const CertificateSigningParameters &signParams)
 {
-    // Since we verify the certificate directly after signing it, sometimes the verification fails
-    // because the cert is not yet valid. Due to this, we substract a second from the current time for
-    // the notBefore date.
-    _X509_set_notBefore(cert, std::chrono::system_clock::now() - std::chrono::seconds{1});
-    _X509_set_notAfter(cert, std::chrono::system_clock::now() + signParams.certificateValidity());
+    _X509_set_notBefore(cert, signParams.notBefore());
+    _X509_set_notAfter(cert, signParams.notBefore() + signParams.certificateValidity());
 
     X509V3_CTX ctx;
     _X509V3_set_ctx_nodb(&ctx);

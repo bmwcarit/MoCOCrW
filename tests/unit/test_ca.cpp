@@ -80,6 +80,7 @@ void CATest::SetUp()
 
     _signParams = CertificateSigningParameters::Builder{}
             .certificateValidity(std::chrono::seconds(120))
+            .notBefore(std::chrono::system_clock::now())
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
@@ -87,6 +88,7 @@ void CATest::SetUp()
 
     _caSignParams = CertificateSigningParameters::Builder{}
             .certificateValidity(std::chrono::seconds(120))
+            .notBefore(std::chrono::system_clock::now())
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(caConstraint)
             .addExtension(*_exampleUsage)
@@ -135,6 +137,7 @@ TEST_F(CATest, testAddExtensionWithSharedPointer)
 
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(std::chrono::seconds(120))
+                .notBefore(std::chrono::system_clock::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(extensionPtr)
                 .build());
@@ -145,6 +148,7 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
     //one extension
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(std::chrono::seconds(120))
+                .notBefore(std::chrono::system_clock::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .build());
@@ -152,6 +156,7 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
     //Two extensions
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(std::chrono::seconds(120))
+                .notBefore(std::chrono::system_clock::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .addExtension(*_exampleUsage)
@@ -162,6 +167,7 @@ TEST_F(CATest, testRequestNotExistingExtension)
 {
     CertificateSigningParameters cert = CertificateSigningParameters::Builder{}
                     .certificateValidity(std::chrono::seconds(120))
+                    .notBefore(std::chrono::system_clock::now())
                     .digestType(openssl::DigestTypes::SHA256)
                     .addExtension(*_exampleConstraints)
                     .build();
@@ -175,6 +181,7 @@ TEST_F(CATest, testBuildSignParamsOneExtensionTwice)
     //an existing extension is overwritten and not added twice
     CertificateSigningParameters params = CertificateSigningParameters::Builder{}
             .certificateValidity(std::chrono::seconds(120))
+            .notBefore(std::chrono::system_clock::now())
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
