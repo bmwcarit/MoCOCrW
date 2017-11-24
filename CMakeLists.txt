@@ -50,9 +50,14 @@ option(BUILD_DOCUMENTATION "Build documentation" ON)
 find_package(PkgConfig)
 
 # Search OpenSSL
-find_package(OpenSSL)
-if( OPENSSL_FOUND )
-    include_directories(${OPENSSL_INCLUDE_DIR})
+if(APPLE)
+    find_package(OpenSSL REQUIRED)
+else()
+    pkg_search_module(OPENSSL REQUIRED openssl)
+endif()
+
+if(OPENSSL_FOUND)
+    include_directories(${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
