@@ -441,6 +441,12 @@ X509_STORE *createOpenSSLObject<X509_STORE>()
 }
 
 template<>
+STACK_OF(X509_CRL) *createOpenSSLObject<STACK_OF(X509_CRL)>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_sk_X509_CRL_new_null);
+}
+
+template<>
 X509_STORE_CTX *createOpenSSLObject<X509_STORE_CTX>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_STORE_CTX_new);
@@ -459,9 +465,21 @@ X509 *createOpenSSLObject<X509>()
 }
 
 template<>
+X509_CRL *createOpenSSLObject<X509_CRL>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_new);
+}
+
+template<>
 void addObjectToStack<STACK_OF(X509), X509>(STACK_OF(X509) *stack, const X509 *obj)
 {
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_sk_X509_push, stack, obj);
+}
+
+template<>
+void addObjectToStack<STACK_OF(X509_CRL), X509_CRL>(STACK_OF(X509_CRL) *stack, const X509_CRL *obj)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_sk_X509_CRL_push, stack, obj);
 }
 
 X509_NAME* _X509_get_subject_name(X509 *ptr)
@@ -689,21 +707,54 @@ void _X509_add_ext(X509 *x, X509_EXTENSION *ex)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_add_ext, x, ex, locationInExtensions);
 }
 
-uint64_t _X509_get_serialNumber(X509 *x)
+uint64_t Asn1IntegerToInt64(ASN1_INTEGER *number)
 {
-    auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
     auto maxLong = createManagedOpenSSLObject<SSL_ASN1_INTEGER_Ptr>();
     auto zero = createManagedOpenSSLObject<SSL_ASN1_INTEGER_Ptr>();
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, zero.get(), 0);
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_set, maxLong.get(),
                                   std::numeric_limits<long>::max());
 
-    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, maxLong.get()) > 0
-        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(serialNumber, zero.get()) < 0) {
-        throw OpenSSLException{"Serial Number is out of the accepted range."};
+    if (lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(number, maxLong.get()) > 0
+        || lib::OpenSSLLib::SSL_ASN1_INTEGER_cmp(number, zero.get()) < 0) {
+        throw OpenSSLException{"Number is out of the accepted range."};
     }
 
-    return static_cast<uint64_t>(lib::OpenSSLLib::SSL_ASN1_INTEGER_get(serialNumber));
+    return static_cast<uint64_t>(lib::OpenSSLLib::SSL_ASN1_INTEGER_get(number));
+}
+
+std::string Asn1IntegerToString(ASN1_INTEGER *number)
+{
+    auto bnNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
+                                            number, nullptr)};
+    auto strNumber = SSL_char_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_BN_bn2dec, bnNumber.get())};
+    // automatically convert into a string and free resources
+    return strNumber.get();
+}
+
+std::vector<uint8_t> Asn1IntegerToBinary(ASN1_INTEGER *number)
+{
+    std::vector<uint8_t> serialNumber;
+    auto bnNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
+                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
+                                            number, nullptr)};
+    // The second parameter of BN_bn2bin must point to BN_num_bytes(a) bytes of memory.
+    serialNumber.resize(OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_num_bytes,
+                                                           bnNumber.get()));
+    int size = OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_bn2bin,
+                                                  bnNumber.get(),
+                                                  serialNumber.data());
+    // Just in case fewer bytes were used, truncate the std::vector.
+    serialNumber.resize(size);
+    return serialNumber;
+}
+
+uint64_t _X509_get_serialNumber(X509 *x)
+{
+    auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
+    return Asn1IntegerToInt64(serialNumber);
 }
 
 void _X509_set_serialNumber(X509 *x, uint64_t serial)
@@ -722,32 +773,58 @@ std::string _X509_get_serialNumber_dec(X509* x)
 {
     auto asn1SerialNumber = OpensslCallPtr::callChecked(
                                 lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
-    auto bnSerialNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
-                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
-                                            asn1SerialNumber, nullptr)};
-    auto strSerialNumber = SSL_char_Ptr{OpensslCallPtr::callChecked(
-                                            lib::OpenSSLLib::SSL_BN_bn2dec, bnSerialNumber.get())};
-    // automatically convert into a string and free resources
-    return strSerialNumber.get();
+    return Asn1IntegerToString(asn1SerialNumber);
 }
 
 std::vector<uint8_t> _X509_get_serialNumber_bin(X509* x)
 {
-    std::vector<uint8_t> serialNumber;
     auto asn1SerialNumber = OpensslCallPtr::callChecked(
                                 lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
-    auto bnSerialNumber = SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(
-                                            lib::OpenSSLLib::SSL_ASN1_INTEGER_to_BN,
-                                            asn1SerialNumber, nullptr)};
-    // The second parameter of BN_bn2bin must point to BN_num_bytes(a) bytes of memory.
-    serialNumber.resize(OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_num_bytes,
-                                                           bnSerialNumber.get()));
-    int size = OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_bn2bin,
-                                                  bnSerialNumber.get(),
-                                                  serialNumber.data());
-    // Just in case fewer bytes were used, truncate the std::vector.
-    serialNumber.resize(size);
-    return serialNumber;
+    return Asn1IntegerToBinary(asn1SerialNumber);
+}
+
+SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO* bp)
+{
+    return SSL_X509_CRL_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_d2i_X509_CRL_bio, bp, nullptr)};
+}
+
+SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO* bp)
+{
+    return SSL_X509_CRL_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_PEM_read_bio_X509_CRL,
+                                                        bp,
+                                                        nullptr, // No "output pointer"
+                                                        nullptr, // No password callback
+                                                        nullptr)}; // No password
+}
+
+void _PEM_write_bio_X509_CRL(BIO* bio, X509_CRL* crl)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_PEM_write_bio_X509_CRL, bio, crl);
+}
+
+X509_NAME* _X509_CRL_get_issuer(const X509_CRL* crl)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_get_issuer, crl);
+}
+
+void _X509_CRL_verify(X509_CRL *crl, EVP_PKEY *key)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_CRL_verify, crl, key);
+}
+
+ASN1_TIME* _X509_CRL_get_lastUpdate(const X509_CRL* crl)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_get_lastUpdate, crl);
+}
+
+ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_get_nextUpdate, crl);
+}
+
+void _X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls)
+{
+    lib::OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(ctx, crls);
 }
 
 }  // ::openssl

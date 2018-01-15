@@ -127,6 +127,14 @@ using SSL_BIGNUM_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_BIGNUM_Ptr>
 using SSL_char_Ptr = std::unique_ptr<char, SSLDeleter<void, lib::OpenSSLLib::SSL_OPENSSL_free>>;
 using SSL_char_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_char_Ptr>;
 
+using SSL_X509_CRL_Ptr =
+        std::unique_ptr<X509_CRL, SSLDeleter<X509_CRL, lib::OpenSSLLib::SSL_X509_CRL_free>>;
+using SSL_X509_CRL_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_CRL_Ptr>;
+
+using SSL_STACK_X509_CRL_Ptr =
+        std::unique_ptr<STACK_OF(X509_CRL),
+                        SSLDeleter<STACK_OF(X509_CRL), lib::OpenSSLLib::SSL_sk_X509_CRL_free>>;
+using SSL_STACK_X509_CRL_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_STACK_X509_CRL_Ptr>;
 
 using time_point = std::chrono::system_clock::time_point;
 
@@ -558,6 +566,8 @@ X509_VERIFY_PARAM* _X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
 class X509VerificationFlags {
 public:
     static constexpr unsigned long PARTIAL_CHAIN = X509_V_FLAG_PARTIAL_CHAIN;
+    static constexpr unsigned long CRL_CHECK_ALL = X509_V_FLAG_CRL_CHECK_ALL;
+    static constexpr unsigned long CRL_CHECK = X509_V_FLAG_CRL_CHECK;
 };
 
 /**
@@ -817,6 +827,46 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_copy(const ASN1_TIME* t);
  * Convert an ASN1_TIME object to a C++ time_point
  */
 time_point _asn1TimeToTimePoint(const ASN1_TIME *time);
+
+/**
+ * Gets the time for the next, planned update for a CRL.
+ */
+ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl);
+
+/**
+ * Gets the time for the creation of a CRL.
+ */
+ASN1_TIME* _X509_CRL_get_lastUpdate(const X509_CRL* crl);
+
+/**
+ * Verifies the signature of a crl with a given public key.
+ */
+void _X509_CRL_verify(X509_CRL *crl, EVP_PKEY *key);
+
+/**
+ * Gets the issuer (the issuer name of the CA certificate) of a CRL.
+ */
+X509_NAME* _X509_CRL_get_issuer(const X509_CRL* crl);
+
+/**
+ * Writes a CRL as PEM encoded to a BIO object.
+ */
+void _PEM_write_bio_X509_CRL(BIO* bio, X509_CRL* crl);
+
+/**
+ * Reads a PEM encoded CRL from a BIO object.
+ */
+SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO* bp);
+
+/**
+ * Reads a DER encoded CRL from a BIO object.
+ */
+SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO* bp);
+
+/**
+ * Sets a list of CRLs for a verification context.
+ */
+void _X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls);
 
 }  //::openssl
 }  //::mococrw

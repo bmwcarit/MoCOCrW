@@ -41,6 +41,19 @@ protected:
     std::unique_ptr<X509Certificate> _root2_int1;
     std::unique_ptr<X509Certificate> _root2_int1_cert1;
 
+    std::unique_ptr<CertificateRevocationList> _root3_crl;
+    std::unique_ptr<CertificateRevocationList> _root3_invalidCrl;
+    std::unique_ptr<CertificateRevocationList> _root3_emptycrl;
+    std::unique_ptr<CertificateRevocationList> _root3_expiredcrl;
+    std::unique_ptr<X509Certificate> _root3;
+    std::unique_ptr<CertificateRevocationList> _root3_int1_crl;
+    std::unique_ptr<CertificateRevocationList> _root3_int1_emptycrl;
+    std::unique_ptr<CertificateRevocationList> _root3_int1_otherEntryCrl;
+    std::unique_ptr<X509Certificate> _root3_int1;
+    std::unique_ptr<X509Certificate> _root3_int1_int11;
+    std::unique_ptr<CertificateRevocationList> _root3_int1_int11_emptycrl;
+    std::unique_ptr<X509Certificate> _root3_int1_cert12;
+
 };
 
 void VerificationTest::SetUp()
@@ -64,6 +77,19 @@ void VerificationTest::SetUp()
     _root2 = std::make_unique<X509Certificate>(loadCertFromFile("root2.pem"));
     _root2_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
     _root2_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
+
+    _root3 = std::make_unique<X509Certificate>(loadCertFromFile("root3.pem"));
+    _root3_crl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl.pem"));
+    _root3_invalidCrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl_invalidsignature.pem"));
+    _root3_emptycrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl_empty.pem"));
+    _root3_expiredcrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl_expired.pem"));
+    _root3_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.pem"));
+    _root3_int1_crl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.int1.crl.pem"));
+    _root3_int1_emptycrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.int1.crl_empty.pem"));
+    _root3_int1_otherEntryCrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.int1.crl_otherentry.pem"));
+    _root3_int1_int11 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.int11.pem"));
+    _root3_int1_int11_emptycrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.int1.int11.crl_empty.pem"));
+    _root3_int1_cert12 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.cert12.pem"));
 }
 
 TEST_F(VerificationTest, testSimpleCertValidation)
@@ -224,4 +250,277 @@ TEST_F(VerificationTest, testVerificationWorksWithBothRootsInTrustStoreComplexCh
 
     (_root1_int1_cert1->verify(trustStore, intermediateCAs));
     ASSERT_NO_THROW(_root2_int1_cert1->verify(trustStore, intermediateCAs));
+}
+
+using VerificationContext = mococrw::X509Certificate::VerificationContext;
+
+TEST_F(VerificationTest, testVerificationFailsWithNonSelfSignedRootAndFlag)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1_int1.get())
+       .enforceSelfSignedRootCertificate();
+
+    ASSERT_THROW(_root1_int1_cert1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testSimpleVerificationOfRevokedCertificateFails)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get());
+
+    ASSERT_NO_THROW(_root3_int1->verify(ctx));
+
+    ctx.addCertificateRevocationList(*_root3_crl.get());
+    ASSERT_THROW(_root3_int1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithEmptyCrlSucceeds)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get());
+    ASSERT_NO_THROW(_root3_int1->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationWithInvalidCrlFails)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_invalidCrl.get());
+    ASSERT_THROW(_root3_int1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithRevokedEndCertificateFails)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_int1_crl.get());
+    ASSERT_THROW(_root3_int1_int11->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithoutRootCACrlSucceeds)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get());
+    ASSERT_NO_THROW(_root3_int1_int11->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationWithRevokedIntermediateCertificateSucceedsWithoutFlag)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_crl.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get());
+    ASSERT_NO_THROW(_root3_int1_int11->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationWithRevokedIntermediateCertificateFailsWithSetFlag)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_crl.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+    ASSERT_THROW(_root3_int1_int11->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithCrlWithOtherEntrySucceeds)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get())
+       .addCertificateRevocationList(*_root3_int1_otherEntryCrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+    ASSERT_NO_THROW(_root3_int1_int11->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationWithMissingCrlFails)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+    ASSERT_THROW(_root3_int1_int11->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithExpiredCrlFails)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_expiredcrl.get());
+    ASSERT_THROW(_root3_int1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithAdditionalCertificatesSucceeds)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificates({*_root3.get(), *_root2.get()})
+       .addIntermediateCertificates({*_root3_int1.get(), *_root1_int1.get()})
+       .addCertificateRevocationList(*_root3_emptycrl.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+    ASSERT_NO_THROW(_root3_int1_int11->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationWithAdditionalCrlSucceeds)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3_int1.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get())
+       .addCertificateRevocationList(*_root3_int1_emptycrl.get())
+       .addCertificateRevocationList(*_root3_int1_int11_emptycrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+    ASSERT_NO_THROW(_root3_int1_cert12->verify(ctx));
+}
+
+MATCHER(PemEq, "") {
+  return std::get<0>(arg).toPEM() == std::get<1>(arg).toPEM();
+}
+
+TEST_F(VerificationTest, testThatLValueVectorsAreCopiedToContext)
+{
+    std::vector<X509Certificate> certs{*_root3.get(), *_root1.get()};
+    std::vector<X509Certificate> expectedCerts = certs;
+
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(certs);
+    EXPECT_THAT(certs, testing::Pointwise(PemEq(), expectedCerts));
+
+    EXPECT_NO_THROW(_root3->verify(ctx));
+    EXPECT_NO_THROW(_root1->verify(ctx));
+}
+
+TEST_F(VerificationTest, testThatLValueInitializerListsAreCopiedToContext)
+{
+    std::initializer_list<X509Certificate> certs{*_root3.get(), *_root1.get()};
+    std::initializer_list<X509Certificate> expectedCerts = certs;
+
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(certs);
+    EXPECT_THAT(certs, testing::Pointwise(PemEq(), expectedCerts));
+
+    EXPECT_NO_THROW(_root3->verify(ctx));
+    EXPECT_NO_THROW(_root1->verify(ctx));
+}
+
+void putCertsInContext(std::initializer_list<X509Certificate>& certs)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(certs);
+}
+
+TEST_F(VerificationTest, testThatLValueInitializerListsAreCopiedToContextAndDontExpireWithIt)
+{
+    std::initializer_list<X509Certificate> certs{*_root3.get(), *_root1.get()};
+    std::initializer_list<X509Certificate> expectedCerts{*_root3.get(), *_root1.get()};
+
+    putCertsInContext(certs);
+
+    EXPECT_THAT(certs, testing::Pointwise(PemEq(), expectedCerts));
+
+    {
+        VerificationContext ctx;
+        ctx.addTrustedCertificates(certs);
+    }
+
+    EXPECT_THAT(certs, testing::Pointwise(PemEq(), expectedCerts));
+}
+
+TEST_F(VerificationTest, testThatRvalueVectorIsPassedToContext)
+{
+    std::vector<X509Certificate> certs{*_root3.get(), *_root1.get()};
+
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(std::move(certs));
+
+    EXPECT_NO_THROW(_root3->verify(ctx));
+    EXPECT_NO_THROW(_root1->verify(ctx));
+}
+
+TEST_F(VerificationTest, testThatRvalueInitializerListIsPassedToContext)
+{
+    std::initializer_list<X509Certificate> certs{*_root3.get(), *_root1.get()};
+
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(std::move(certs));
+
+    EXPECT_NO_THROW(_root3->verify(ctx));
+    EXPECT_NO_THROW(_root1->verify(ctx));
+}
+
+TEST_F(VerificationTest, testVerificationContextWithCrlsIsValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get());
+
+    EXPECT_NO_THROW(ctx.validityCheck());
+}
+
+TEST_F(VerificationTest, testVerificationContextWithSelfSignedRootIsValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .enforceSelfSignedRootCertificate();
+
+    EXPECT_NO_THROW(ctx.validityCheck());
+}
+
+TEST_F(VerificationTest, testVerificationContextWithCrlCheckAllAndSelfSignedRootAndCrlsIsValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+
+    EXPECT_NO_THROW(ctx.validityCheck());
+}
+
+TEST_F(VerificationTest, testVerificationContextWithCrlCheckAllWithoutSelfSignedRootIsNotValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .addCertificateRevocationList(*_root3_emptycrl.get())
+       .enforceCrlsForAllCAs();
+
+    EXPECT_THROW(ctx.validityCheck(), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationContextWithCrlCheckAllWithoutCrlsIsNotValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .enforceCrlsForAllCAs()
+       .enforceSelfSignedRootCertificate();
+
+    EXPECT_THROW(ctx.validityCheck(), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationContextWithCrlCheckAllWithoutSelfSignedRootOrCrlsIsNotValid)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root3.get())
+       .addIntermediateCertificate(*_root3.get())
+       .enforceCrlsForAllCAs();
+
+    EXPECT_THROW(ctx.validityCheck(), MoCOCrWException);
 }

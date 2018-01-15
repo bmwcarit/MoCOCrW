@@ -23,12 +23,21 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/csr.cpp"
                             "${SRC_DIR}/asn1time.cpp"
+                            "${SRC_DIR}/crl.cpp"
+                             ${REAL_SOURCES})
+    add_executable(crltests test_crl.cpp
+                            "${SRC_DIR}/key.cpp"
+                            "${SRC_DIR}/csr.cpp"
+                            "${SRC_DIR}/asn1time.cpp"
+                            "${SRC_DIR}/x509.cpp"
+                            "${SRC_DIR}/crl.cpp"
                              ${REAL_SOURCES})
     add_executable(verificationtests test_verification.cpp
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/csr.cpp"
                             "${SRC_DIR}/asn1time.cpp"
                             "${SRC_DIR}/x509.cpp"
+                            "${SRC_DIR}/crl.cpp"
                              ${REAL_SOURCES})
     add_executable(dntests test_distinguished_name.cpp ${REAL_SOURCES})
     add_executable(catests   test_ca.cpp
@@ -39,6 +48,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/key_usage.cpp"
                             "${SRC_DIR}/asn1time.cpp"
                             "${SRC_DIR}/basic_constraints.cpp"
+                            "${SRC_DIR}/crl.cpp"
                              ${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
@@ -48,6 +58,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(csrtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(biotests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(x509tests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
+    target_link_libraries(crltests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(verificationtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(dntests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(catests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
@@ -66,6 +77,11 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_test(
         NAME X509Tests
         COMMAND x509tests
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
+    )
+    add_test(
+        NAME CRLTests
+        COMMAND crltests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
     )
     add_test(

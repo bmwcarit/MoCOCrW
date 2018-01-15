@@ -528,6 +528,58 @@ ASN1_STRING* OpenSSLLib::SSL_ASN1_STRING_dup(const ASN1_STRING* str) noexcept
 {
     return ASN1_STRING_dup(str);
 }
+X509_NAME* OpenSSLLib::SSL_X509_CRL_get_issuer(const X509_CRL* crl) noexcept
+{
+    return X509_CRL_get_issuer(crl);
+}
+int OpenSSLLib::SSL_X509_CRL_verify(X509_CRL* a, EVP_PKEY* r) noexcept
+{
+    return X509_CRL_verify(a, r);
+}
+ASN1_TIME* OpenSSLLib::SSL_X509_CRL_get_nextUpdate(const X509_CRL* x) noexcept
+{
+    return X509_CRL_get_nextUpdate(x);
+}
+ASN1_TIME* OpenSSLLib::SSL_X509_CRL_get_lastUpdate(const X509_CRL* x) noexcept
+{
+    return X509_CRL_get_lastUpdate(x);
+}
+X509_CRL* OpenSSLLib::SSL_PEM_read_bio_X509_CRL(BIO* bp, X509_CRL** x, pem_password_cb* cb, void* u) noexcept
+{
+    return PEM_read_bio_X509_CRL(bp, x, cb, u);
+}
+int OpenSSLLib::SSL_PEM_write_bio_X509_CRL(BIO* bp, X509_CRL* x) noexcept
+{
+    return PEM_write_bio_X509_CRL(bp, x);
+}
+X509_CRL* OpenSSLLib::SSL_d2i_X509_CRL_bio(BIO* bp, X509_CRL** crl) noexcept
+{
+    return d2i_X509_CRL_bio(bp, crl);
+}
+void OpenSSLLib::SSL_X509_CRL_free(X509_CRL* a) noexcept
+{
+    X509_CRL_free(a);
+}
+X509_CRL* OpenSSLLib::SSL_X509_CRL_new() noexcept
+{
+    return X509_CRL_new();
+}
+void OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls) noexcept
+{
+    X509_STORE_CTX_set0_crls(ctx, crls);
+}
+void OpenSSLLib::SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) noexcept
+{
+    sk_X509_CRL_free(stack);
+}
+STACK_OF(X509_CRL)* OpenSSLLib::SSL_sk_X509_CRL_new_null() noexcept
+{
+    return sk_X509_CRL_new_null();
+}
+int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept
+{
+    return sk_X509_CRL_push(stack, crl);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

@@ -9,6 +9,8 @@
 #include "mococrw/error.h"
 #include "mococrw/stack_utils.h"
 
+#include "format_utils.h"
+
 using namespace std::string_literals;
 
 namespace mococrw
@@ -52,30 +54,80 @@ std::string X509Certificate::toPEM() const
     return bio.flushToString();
 }
 
+void X509Certificate::VerificationContext::validityCheck() const
+{
+    if (_enforceCrlForWholeChain && !_enforceSelfSignedRootCertificate) {
+        throw MoCOCrWException("OpenSSL doesn't support CRL check for all CAs when the trusted"
+                               "certificate isn't self signed");
+    }
+
+    if (_enforceCrlForWholeChain && _crls.empty()) {
+        throw MoCOCrWException("CRL check for all certificates requested, but no CRLs present");
+    }
+}
+
 void X509Certificate::verify(const std::vector<X509Certificate> &trustStore,
                 const std::vector<X509Certificate> &intermediateCAs) const
 {
+    VerificationContext ctx;
+    ctx.addTrustedCertificates(trustStore)
+       .addIntermediateCertificates(intermediateCAs);
+    verify(ctx);
+}
+
+void X509Certificate::verify(const X509Certificate::VerificationContext &ctx) const
+{
+    ctx.validityCheck();
+
     auto caStore = createManagedOpenSSLObject<SSL_X509_STORE_Ptr>();
-    for (auto &cert : trustStore) {
+    for (auto &cert : ctx._trustedCerts) {
         _X509_STORE_add_cert(caStore.get(), const_cast<X509*>(cert.internal()));
     }
-    auto intermediateStack = utility::buildStackFromContainer<SSL_STACK_X509_Ptr>(intermediateCAs);
+    auto intermediateStack = utility::buildStackFromContainer<SSL_STACK_X509_Ptr>(
+                ctx._intermediateCerts);
 
     auto verifyCtx = createManagedOpenSSLObject<SSL_X509_STORE_CTX_Ptr>();
     // we need to cast the internal ptr to non-const because openssl const correctness is
     // just broken
-    _X509_STORE_CTX_init(verifyCtx.get(), caStore.get(), const_cast<X509*>(internal()),
+    _X509_STORE_CTX_init(verifyCtx.get(),
+                         caStore.get(),
+                         const_cast<X509*>(internal()),
                          intermediateStack.get());
 
-    // set to partial chain verification, otherwise openssl does not accept CAs in the trust store
-    // that are not self-signed.
     auto param = _X509_STORE_CTX_get0_param(verifyCtx.get());
-    _X509_VERIFY_PARAM_set_flags(param, X509VerificationFlags::PARTIAL_CHAIN);
+
+    unsigned long flags = 0;
+
+    if (!ctx._enforceSelfSignedRootCertificate) {
+        flags |= X509VerificationFlags::PARTIAL_CHAIN;
+    }
+
+    // We enable CRL checking if a CRL has been specified or the user requested a full CRL check.
+    if (!ctx._crls.empty() || ctx._enforceCrlForWholeChain) {
+        flags |= X509VerificationFlags::CRL_CHECK;
+    }
+
+    if (ctx._enforceCrlForWholeChain) {
+        flags |= X509VerificationFlags::CRL_CHECK_ALL;
+    }
+
+    _X509_VERIFY_PARAM_set_flags(param, flags);
+
+    // This variable must be out of the if scope since it must not be destroyed
+    // until after the verification.
+    SSL_STACK_X509_CRL_Ptr crlStack;
+
+    if (!ctx._crls.empty()) {
+
+        crlStack = utility::buildStackFromContainer<SSL_STACK_X509_CRL_Ptr>(ctx._crls);
+
+        _X509_STORE_CTX_set0_crls(verifyCtx.get(),
+                                  crlStack.get());
+    }
 
     try {
         _X509_verify_cert(verifyCtx.get());
-    }
-    catch (const OpenSSLException &error) {
+    } catch (const OpenSSLException &error) {
         throw MoCOCrWException(error.what());
     }
 }
@@ -150,56 +202,14 @@ std::vector<X509Certificate> loadPEMChain(const std::string &pemChain)
     const auto beginMarker = "-----BEGIN CERTIFICATE-----"s;
     const auto endMarker = "-----END CERTIFICATE-----"s;
 
-    std::string::size_type pos = 0;
-    std::size_t index = 0;
+    auto pemList = splitPEMChain(pemChain, beginMarker, endMarker);
+
     std::vector<X509Certificate> certChain;
+    std::transform(pemList.begin(), pemList.end(), std::back_inserter(certChain),
+                   X509Certificate::fromPEM);
 
-    while (true) {
-        auto nextBeginPos = pemChain.find(beginMarker, pos);
-        if (nextBeginPos == std::string::npos) {
-            return certChain;
-        }
-        if (nextBeginPos != pos) {
-            // verify that only white spaces are in between. Otherwise the format is broken
-            if (pemChain.substr(pos, nextBeginPos - pos).find_first_not_of(" \r\n\t") !=
-                std::string::npos) {
-                auto formatter =
-                     boost::format("PEM Chain invalid. Invalid characters before certificate %d");
-                formatter % index;
-                throw MoCOCrWException(formatter.str());
-            }
-        }
-        auto encodedPemBeginPos = pemChain.find_first_not_of(" \r\n\t",
-                                                             nextBeginPos + beginMarker.size());
-
-        auto nextEndPos = pemChain.find(endMarker, encodedPemBeginPos);
-        if (nextEndPos == std::string::npos) {
-            auto formatter = boost::format("PEM chain invalid. Certificate %d has no end marker");
-            formatter % index;
-            throw MoCOCrWException(formatter.str());
-        }
-        auto encodedPem = pemChain.substr(encodedPemBeginPos, nextEndPos - encodedPemBeginPos);
-        auto lastNonWhitespace = encodedPem.find_last_not_of(" \r\n\t");
-        if (lastNonWhitespace == std::string::npos) {
-            auto formatter = boost::format("PEM chain invalid. Certificate %d appears to be empty");
-            formatter % index;
-            throw MoCOCrWException(formatter.str());
-        }
-        // remove trailing whitespaces from PEM content
-        encodedPem.erase(lastNonWhitespace+1);
-        // OpenSSL expects a newline after BEGIN CERTIFICATE and before END CERTIFICATE
-        // so we make sure that there is one...
-        auto certificatePem = boost::str(boost::format("%1%\n%2%\n%3%")
-                                         % beginMarker
-                                         % encodedPem
-                                         % endMarker);
-
-        certChain.emplace_back(X509Certificate::fromPEM(certificatePem));
-        pos = nextEndPos + endMarker.size();
-        index++;
-    }
+    return certChain;
 }
-
 
 }
 

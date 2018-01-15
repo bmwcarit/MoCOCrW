@@ -42,6 +42,19 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept;
+    static STACK_OF(X509_CRL)* SSL_sk_X509_CRL_new_null() noexcept;
+    static void SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) noexcept;
+    static void SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls) noexcept;
+    static X509_CRL* SSL_X509_CRL_new() noexcept;
+    static void SSL_X509_CRL_free(X509_CRL* a) noexcept;
+    static X509_CRL* SSL_d2i_X509_CRL_bio(BIO* bp, X509_CRL** crl) noexcept;
+    static int SSL_PEM_write_bio_X509_CRL(BIO* bp, X509_CRL* x) noexcept;
+    static X509_CRL* SSL_PEM_read_bio_X509_CRL(BIO* bp, X509_CRL** x, pem_password_cb* cb, void* u) noexcept;
+    static ASN1_TIME* SSL_X509_CRL_get_lastUpdate(const X509_CRL* x) noexcept;
+    static ASN1_TIME* SSL_X509_CRL_get_nextUpdate(const X509_CRL* x) noexcept;
+    static int SSL_X509_CRL_verify(X509_CRL* a, EVP_PKEY* r) noexcept;
+    static X509_NAME* SSL_X509_CRL_get_issuer(const X509_CRL* crl) noexcept;
     static ASN1_STRING* SSL_ASN1_STRING_dup(const ASN1_STRING* str) noexcept;
     static ASN1_TIME* SSL_ASN1_TIME_new() noexcept;
     static int SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) noexcept;

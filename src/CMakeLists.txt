@@ -14,23 +14,25 @@ set(MOCOCRW_INSTALL_INCLUDEDIR
 # Before you add anything here:
 set(LIBRARY_SOURCES
     asn1time.cpp
+    basic_constraints.cpp
+    bio.cpp
+    ca.cpp
+    crl.cpp
+    csr.cpp
+    distinguished_name.cpp
+    key.cpp
+    key_usage.cpp
     openssl_wrap.cpp
     openssl_lib.cpp
-    key.cpp
-    csr.cpp
-    bio.cpp
-    x509.cpp
-    distinguished_name.cpp
-    ca.cpp
-    basic_constraints.cpp
-    key_usage.cpp
     subject_key_identifier.cpp
+    x509.cpp
 )
 
 set(LIBRARY_PUBLIC_HEADERS
     mococrw/asn1time.h
     mococrw/basic_constraints.h
     mococrw/ca.h
+    mococrw/crl.h
     mococrw/csr.h
     mococrw/distinguished_name.h
     mococrw/error.h

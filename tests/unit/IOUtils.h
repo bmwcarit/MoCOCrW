@@ -50,6 +50,12 @@ mococrw::X509Certificate loadCertFromDERFile(const std::string &filename)
     return mococrw::X509Certificate::fromDER(buffer);
 }
 
+mococrw::CertificateRevocationList loadCrlFromFile(const std::string &filename)
+{
+    return openSSLObjectFromFile<mococrw::CertificateRevocationList,
+        mococrw::CertificateRevocationList::fromPEM>(filename);
+}
+
 mococrw::AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
 {
     return openSSLObjectFromFile<mococrw::AsymmetricPublicKey,

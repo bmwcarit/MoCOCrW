@@ -5,13 +5,17 @@
  */
 #pragma once
 
+#include <type_traits>
+
 #include "asn1time.h"
 #include "distinguished_name.h"
 #include "key.h"
 #include "openssl_wrap.h"
+#include "crl.h"
 
 namespace mococrw
 {
+
 class X509Certificate
 {
 public:
@@ -106,6 +110,135 @@ public:
     X509 *internal() { return _x509.get(); }
 
     /**
+     * This helper class represents a context of an X509 certificate in which it might be valid
+     * or not.
+     * Such a context typically contains at least one trusted certificate (typically root CAs,
+     * but this is not a requirement), a number of intermediate certificates
+     * (non self-signed CAs that are (possibly indrectly) signed by a trusted certificate)
+     * and optionally a number of CRLs for these certificates.
+     */
+    class VerificationContext
+    {
+    public:
+        VerificationContext()
+            : _trustedCerts{}
+            , _intermediateCerts{}
+            , _crls{}
+            , _enforceSelfSignedRootCertificate{false}
+            , _enforceCrlForWholeChain{false}
+        {}
+
+        /**
+         * Adds a number of trusted certificates to this VerificationContext.
+         */
+        template<typename Container = std::initializer_list<X509Certificate>>
+        VerificationContext& addTrustedCertificates(Container&& trustedCerts)
+        {
+            _addAll(_trustedCerts, std::forward<Container>(trustedCerts));
+            return *this;
+        }
+
+        /**
+         * Adds a single trusted certificate to this context.
+         */
+        VerificationContext& addTrustedCertificate(X509Certificate trustedCert)
+        {
+            _trustedCerts.emplace_back(std::move(trustedCert));
+            return *this;
+        }
+
+        /**
+         * Adds a number of intermediate certificates to this VerificationContext.
+         */
+        template<typename Container = std::initializer_list<X509Certificate>>
+        VerificationContext& addIntermediateCertificates(Container&& intermediateCerts)
+        {
+            _addAll(_intermediateCerts, std::forward<Container>(intermediateCerts));
+            return *this;
+        }
+
+        /**
+         * Adds a single intermediate certificate to this VerificationContext.
+         */
+        VerificationContext& addIntermediateCertificate(X509Certificate intermediateCert)
+        {
+            _intermediateCerts.emplace_back(std::move(intermediateCert));
+            return *this;
+        }
+
+        /**
+         * Adds a number of CRLs to this VerificationContext.
+         * Unless the given container contains no elements, this activates CRL checking.
+         */
+        template<typename Container = std::initializer_list<CertificateRevocationList>>
+        VerificationContext& addCertificateRevocationLists(Container&& revocationLists)
+        {
+            _addAll(_crls, std::forward<Container>(revocationLists));
+            return *this;
+        }
+
+        /**
+         * Adds a single CRL to this VerificationContext.
+         * This activates CRL checking.
+         */
+        VerificationContext& addCertificateRevocationList(CertificateRevocationList revocationList)
+        {
+            _crls.emplace_back(std::move(revocationList));
+            return *this;
+        }
+
+        /**
+         * Sets a flag that the root certificate should be self signed.
+         */
+        VerificationContext& enforceSelfSignedRootCertificate()
+        {
+            _enforceSelfSignedRootCertificate = true;
+            return *this;
+        }
+
+        /**
+         * Sets a flag that CRLs must exist for all CAs that are in a verification chain.
+         * This also requires setting enforceSelfSignedRootCertificate since OpenSSL doesn't support
+         * checking CRLs for all CAs without having a self signed root certificate present.
+         */
+        VerificationContext& enforceCrlsForAllCAs()
+        {
+            _enforceCrlForWholeChain = true;
+            return *this;
+        }
+
+        /**
+         * Does a check to see if the current context is in a good state to verify certificates.
+         * Invalid states are:
+         *  - enforceCrlsForAllCAs is set, but enforceSelfSignedRootCertificate isn't
+         *  - enforceCrlsForAllCAs is set, but no CRLs are present
+         *
+         * @throw MoCOCrWException if the context is in an invalid state.
+         */
+        void validityCheck() const;
+
+    private:
+        friend X509Certificate;
+        std::vector<X509Certificate> _trustedCerts;
+        std::vector<X509Certificate> _intermediateCerts;
+        std::vector<CertificateRevocationList> _crls;
+        bool _enforceSelfSignedRootCertificate;
+        bool _enforceCrlForWholeChain;
+
+        template<typename Container1, typename Container2>
+        void _addAll(Container1& addTo, Container2&& addThese)
+        {
+            using Iterator = typename std::conditional<std::is_rvalue_reference<Container2&&>::value,
+                decltype(std::make_move_iterator(addThese.begin())),
+                decltype(addThese.begin())>::type;
+
+             addTo.insert(addTo.end(),
+                          Iterator(addThese.begin()),
+                          Iterator(addThese.end()));
+        }
+    };
+
+    /**
      * @brief Verify the validity of a certificate
      *
      * Verifies that a certificate is valid (valdity dates) and
@@ -113,6 +246,9 @@ public:
      * optionally use a set of intermediate certificates that
      * may be used to create trust chain to one of the CA certificates
      * in the trust store.
+     *
+     * This is an abbreviation of creating a VerificationContext from the trusted and intermediate
+     * certificates and calling verify(VerificationContext).
      *
      * @param trustStore A vector that contains all trusted root CAs The validation will
      *                   require that the certificate is either directly issued
@@ -126,6 +262,35 @@ public:
      */
     void verify(const std::vector<X509Certificate> &trustStore,
                 const std::vector<X509Certificate> &intermediateCAs) const;
+
+    /**
+     * @brief Verify the validity of a certificate
+     *
+     * Verifies that a certificate is considered valid by a given verification context.
+     *
+     * This is the case if and only if all of the following are true:
+     *
+     *  - The given context is valid (see VerificationContext::validityCheck)
+     *  - There is a certificate chain where each certificate is signed by its predecessor
+     *    that extends from a trusted certificate via any number of intermediate certificates
+     *    (possibly zero) to the certificate that is verified.
+     *  - If enforceSelfSignedRootCertificate is set, the trusted certificate in the chain must
+     *    be self signed.
+     *  - All certificates in this chain are valid (valid signature, not expired, ...)
+     *  - The certificate chain as a whole is valid (requirements set by key usage,
+     *    CA path length, ... of the certificates are fulfilled)
+     *  - If at least one CRL is part of this context,
+     *    a CRL exists for the CA that issued the checked certificate.
+     *  - If enforceCrlsForAllCAs was set, a CRL exists for all CAs in the certificate chain.
+     *  - All the CRLs that must exist are valid (valid signature, not expired, ...)
+     *  - None of the certificates in the chain are part of their predecessor's CRLs.
+     *
+     * @param verificationCtx A verification context that describes the environment
+     *                        (trusted CAs, intermediate CAs, CRLs,...) in which the certificate
+     *                        should be verified.
+     * @throw MoCOCrWException if the validation fails.
+     */
+    void verify(const VerificationContext& ctx) const;
 
     /**
      * Create a new X509 certificate from an existing openssl certificate.

@@ -22,6 +22,19 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) = 0;
+    virtual STACK_OF(X509_CRL)* SSL_sk_X509_CRL_new_null() = 0;
+    virtual void SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) = 0;
+    virtual void SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls) = 0;
+    virtual X509_CRL* SSL_X509_CRL_new() = 0;
+    virtual void SSL_X509_CRL_free(X509_CRL* a) = 0;
+    virtual X509_CRL* SSL_d2i_X509_CRL_bio(BIO* bp, X509_CRL** crl) = 0;
+    virtual int SSL_PEM_write_bio_X509_CRL(BIO* bp, X509_CRL* x) = 0;
+    virtual X509_CRL* SSL_PEM_read_bio_X509_CRL(BIO* bp, X509_CRL** x, pem_password_cb* cb, void* u) = 0;
+    virtual ASN1_TIME* SSL_X509_CRL_get_lastUpdate(const X509_CRL* x) = 0;
+    virtual ASN1_TIME* SSL_X509_CRL_get_nextUpdate(const X509_CRL* x) = 0;
+    virtual int SSL_X509_CRL_verify(X509_CRL* a, EVP_PKEY* r) = 0;
+    virtual X509_NAME* SSL_X509_CRL_get_issuer(const X509_CRL* crl) = 0;
     virtual ASN1_STRING* SSL_ASN1_STRING_dup(const ASN1_STRING* str) = 0;
     virtual ASN1_TIME* SSL_ASN1_TIME_new() = 0;
     virtual int SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) = 0;
@@ -199,6 +212,22 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD2(SSL_sk_X509_CRL_push, int(STACK_OF(X509_CRL)*, const X509_CRL*));
+    MOCK_METHOD0(SSL_sk_X509_CRL_new_null, STACK_OF(X509_CRL)*());
+    MOCK_METHOD1(SSL_sk_X509_CRL_free, void(STACK_OF(X509_CRL)*));
+    MOCK_METHOD2(SSL_X509_STORE_CTX_set0_crls, void(X509_STORE_CTX*, STACK_OF(X509_CRL)*));
+    MOCK_METHOD1(SSL_sk_X509_REVOKED_num, int(STACK_OF(X509_REVOKED)*));
+    MOCK_METHOD2(SSL_sk_X509_REVOKED_value, X509_REVOKED*(STACK_OF(X509_REVOKED)*, int));
+    MOCK_METHOD0(SSL_X509_CRL_new, X509_CRL*());
+    MOCK_METHOD1(SSL_X509_CRL_free, void(X509_CRL*));
+    MOCK_METHOD2(SSL_d2i_X509_CRL_bio, X509_CRL*(BIO*, X509_CRL**));
+    MOCK_METHOD2(SSL_PEM_write_bio_X509_CRL, int(BIO*, X509_CRL*));
+    MOCK_METHOD4(SSL_PEM_read_bio_X509_CRL, X509_CRL*(BIO*, X509_CRL**, pem_password_cb*, void*));
+    MOCK_METHOD1(SSL_X509_CRL_get_REVOKED, STACK_OF(X509_REVOKED)*(X509_CRL*));
+    MOCK_METHOD1(SSL_X509_CRL_get_lastUpdate, ASN1_TIME*(const X509_CRL*));
+    MOCK_METHOD1(SSL_X509_CRL_get_nextUpdate, ASN1_TIME*(const X509_CRL*));
+    MOCK_METHOD2(SSL_X509_CRL_verify, int(X509_CRL*, EVP_PKEY*));
+    MOCK_METHOD1(SSL_X509_CRL_get_issuer, X509_NAME*(const X509_CRL*));
     MOCK_METHOD1(SSL_ASN1_STRING_dup, ASN1_STRING*(const ASN1_STRING*));
     MOCK_METHOD0(SSL_ASN1_TIME_new, ASN1_TIME*());
     MOCK_METHOD2(SSL_ASN1_TIME_set_string, int(ASN1_TIME*, const char*));
