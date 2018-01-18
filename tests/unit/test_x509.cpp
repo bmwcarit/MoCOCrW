@@ -9,6 +9,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "IOUtils.h"
+
 #include "x509.cpp"
 
 using namespace std::string_literals;
@@ -26,52 +28,6 @@ std::string corruptPEM(const std::string &pem)
     return std::string{tokenBytes.cbegin(), tokenBytes.cend()};
 }
 
-template<class T>
-std::vector<T> bytesFromFile(const std::string &filename)
-{
-    static_assert(sizeof(T) == sizeof(char), "bytesFromFile only works with 1 byte data types");
-
-    std::ifstream file{filename};
-    if (!file.good()) {
-        std::string errorMsg{"Cannot load certificate from file "};
-        errorMsg = errorMsg + filename;
-        throw std::runtime_error(errorMsg);
-    }
-
-    file.seekg(0, std::ios::end);
-    auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<T> buffer;
-    buffer.resize(size);
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
-    return buffer;
-}
-
-template<class Res, Res(Func)(const std::string&)>
-auto openSSLObjectFromFile(const std::string &filename)
-{
-    auto buffer = bytesFromFile<char>(filename);
-    return Func({buffer.data(), buffer.size()});
-}
-
-X509Certificate loadCertFromFile(const std::string &filename)
-{
-    return openSSLObjectFromFile<X509Certificate, X509Certificate::fromPEM>(filename);
-}
-
-X509Certificate loadCertFromDERFile(const std::string &filename)
-{
-    auto buffer = bytesFromFile<uint8_t>(filename);
-    return X509Certificate::fromDER(buffer);
-}
-
-AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
-{
-    return openSSLObjectFromFile<AsymmetricPublicKey,
-        AsymmetricPublicKey::readPublicKeyFromPEM>(filename);
-}
-
 class X509Test : public ::testing::Test
 {
 public:
@@ -87,21 +43,12 @@ protected:
     X509Certificate _cert = X509Certificate::fromPEM(_pemString);
 
     std::unique_ptr<X509Certificate> _root1;
-    std::unique_ptr<X509Certificate> _root1_cert1;
     std::unique_ptr<X509Certificate> _root1_future;
     std::unique_ptr<X509Certificate> _root1_expired;
     std::unique_ptr<X509Certificate> _root1_int1;
     std::unique_ptr<X509Certificate> _root1_int1_cert1;
-    std::unique_ptr<X509Certificate> _root1_int1_int11;
-    std::unique_ptr<X509Certificate> _root1_int1_int11_cert1;
-    std::unique_ptr<X509Certificate> _root1_int1_int11_cert2;
-    std::unique_ptr<X509Certificate> _root1_int2;
-    std::unique_ptr<X509Certificate> _root1_int2_int21;
-    std::unique_ptr<X509Certificate> _root1_int2_int21_cert1;
 
     std::unique_ptr<X509Certificate> _root2;
-    std::unique_ptr<X509Certificate> _root2_int1;
-    std::unique_ptr<X509Certificate> _root2_int1_cert1;
 
     std::unique_ptr<X509Certificate> _year1970;
     std::unique_ptr<X509Certificate> _year2049;
@@ -116,24 +63,12 @@ void X509Test::SetUp()
     _cert = X509Certificate::fromPEM(_pemString);
 
     _root1 = std::make_unique<X509Certificate>(loadCertFromFile("root1.pem"));
-    _root1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root1.cert1.pem"));
     _root1_future = std::make_unique<X509Certificate>(loadCertFromFile("root1.future.pem"));
     _root1_expired = std::make_unique<X509Certificate>(loadCertFromFile("root1.expired.pem"));
     _root1_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.pem"));
     _root1_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.cert1.pem"));
-    _root1_int1_int11 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.int11.pem"));
-    _root1_int1_int11_cert1 =
-        std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.int11.cert1.pem"));
-    _root1_int1_int11_cert2 =
-        std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.int11.cert2.pem"));
-    _root1_int2 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int2.pem"));
-    _root1_int2_int21 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int2.int21.pem"));
-    _root1_int2_int21_cert1 =
-        std::make_unique<X509Certificate>(loadCertFromFile("root1.int2.int21.cert1.pem"));
 
     _root2 = std::make_unique<X509Certificate>(loadCertFromFile("root2.pem"));
-    _root2_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
-    _root2_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
 
     _year1970 = std::make_unique<X509Certificate>(loadCertFromFile("year1970.pem"));
     _year2049 = std::make_unique<X509Certificate>(loadCertFromFile("year2049.pem"));
@@ -404,166 +339,6 @@ TEST_F(X509Test, testLoadDERCertFromFileDirectly)
         auto cert = X509Certificate::fromDERFile("root1.der");
         ASSERT_THAT(cert.internal(), NotNull());
     });
-}
-
-TEST_F(X509Test, testSimpleCertValidation)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_NO_THROW(_root1_cert1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testExpiredCertValidationFails)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_THROW(_root1_expired->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testFutureCertValidationFails)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_THROW(_root1_future->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testSimpleCertValidationWorksForSubCA)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_NO_THROW(_root1_int1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testVerificationsFailsWithEmptyTrustRoot)
-{
-    std::vector<X509Certificate> trustStore{};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_THROW(_root1_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testVerificationWorksWithIntermediateInTruststore)
-{
-    std::vector<X509Certificate> trustStore{*_root1_int1.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_NO_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testChainVerificationLen1Works)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1.get()};
-
-    ASSERT_NO_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testChainVerificationFailsWithWrongIntermediate)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int2.get()};
-
-    ASSERT_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testVerficationsFailsWithEmptyTruststoreButRootAsIntermediate)
-{
-    std::vector<X509Certificate> trustStore{};
-    std::vector<X509Certificate> intermediateCAs{*_root1.get()};
-
-    ASSERT_THROW(_root1_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testVerificationFailsForTheRootCAWhenTruststoreIsEmpty)
-{
-    std::vector<X509Certificate> trustStore{};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_THROW(_root1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testChainVerificationLen2Works)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1.get(), *_root1_int1_int11.get()};
-
-    ASSERT_NO_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs));
-    ASSERT_NO_THROW(_root1_int1_int11_cert2->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testChainVerificationLen2WorksWithOtherOrderForIntermediates)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1_int11.get(), *_root1_int1.get()};
-
-    ASSERT_NO_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs));
-}
-
-/* We want to see that the verifcation respects the path len constraint in CA certificates
- * Towards this purpose we wake _root1_int2 which has a pathlen of 0.
- * This means that it can issue certificates but these certificates can
- * not be used to sign themselves again.
- * For testing purposes, _root1_int2_int21 is a certificate with CA flag. We used it to sign
- * _root1_int2_int21_cert1. However, this cert violates the path len constraint of root1_int2.
- * Consequently, verification should fail here.
- */
-TEST_F(X509Test, testIfCAPathLenIsRespected)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int2.get(), *_root1_int2_int21.get()};
-
-    ASSERT_THROW(_root1_int2_int21_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testCompleteChainVerificationFailsWithWrongRoot)
-{
-    std::vector<X509Certificate> trustStore{*_root2.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1.get(), *_root1_int1.get(), *_root1_int1_int11.get()};
-
-    ASSERT_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
-}
-
-TEST_F(X509Test, testOpenSSLPartialVerificationWithIntermediateInTruststoreWorks)
-{
-    std::vector<X509Certificate> trustStore{*_root1_int1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1_int11.get()};
-
-    ASSERT_NO_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testVerificationWorksWithUnusedElementsInChainParam)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1_int11.get(), *_root1_int1.get(),
-                                                 *_root1_int2.get()};
-
-    ASSERT_NO_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs));
-}
-
-TEST_F(X509Test, testVerificationWorksWithBothRootsInTruststore)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get(), *_root2.get()};
-    std::vector<X509Certificate> intermediateCAs{};
-
-    ASSERT_NO_THROW(_root1_int1->verify(trustStore, intermediateCAs));
-    ASSERT_NO_THROW(_root2_int1->verify(trustStore, intermediateCAs));
-}
-
-/*
- * We want to see if we can use verification for two roots and different chains
- * if we put all the necessary information in truststore and intermediates.
- */
-TEST_F(X509Test, testVerificationWorksWithBothRootsInTrustStoreComplexChains)
-{
-    std::vector<X509Certificate> trustStore{*_root1.get(), *_root2.get()};
-    std::vector<X509Certificate> intermediateCAs{*_root1_int1.get(), *_root2_int1.get()};
-
-    ASSERT_NO_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs));
-    ASSERT_NO_THROW(_root2_int1_cert1->verify(trustStore, intermediateCAs));
 }
 
 TEST_F(X509Test, testNotBeforeWorking)
