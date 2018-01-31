@@ -36,6 +36,9 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
                                           const CertificateSigningParameters &signParams)
 {
     auto basicConstraints = signParams.extension<BasicConstraintsExtension>();
+    if (basicConstraints == nullptr) {
+        throw MoCOCrWException("Signing parameters for a CA must include X509v3 basic extension");
+    }
     if (!basicConstraints->isCA()) {
         throw MoCOCrWException("Signing parameters are not set for CA certificates");
     }
