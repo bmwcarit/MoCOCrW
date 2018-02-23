@@ -53,11 +53,11 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
 
     X509_set_version(cert.get(), certificateVersion);
 
-    signCertificate(cert.get(), privateKey, signParams);
+    _signCertificate(cert.get(), privateKey, signParams);
     return X509Certificate{std::move(cert)};
 }
 
-X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &csr,
+X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &csr,
                             const CertificateSigningParameters &signParams)
 {
     auto subjectName = _X509_NAME_new();
@@ -76,7 +76,7 @@ X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &c
 
     X509_set_version(newCertificate.get(), certificateVersion);
 
-    signCertificate(newCertificate.get(), _privateKey, signParams);
+    _signCertificate(newCertificate.get(), _privateKey, signParams);
 
     //Sanity check: certificate must be verifiable now
     try {
@@ -92,12 +92,14 @@ X509Certificate CertificateAuthority::signCSR(const CertificateSigningRequest &c
 
 }
 
-void CertificateAuthority::signCertificate(X509* cert,
+void CertificateAuthority::_signCertificate(X509* cert,
                          const AsymmetricKeypair &privateKey,
                          const CertificateSigningParameters &signParams)
 {
-    _X509_set_notBefore(cert, signParams.notBefore());
-    _X509_set_notAfter(cert, signParams.notBefore() + signParams.certificateValidity());
+    auto notBefore = signParams.notBeforeAsn1();
+    auto notAfter = notBefore + signParams.certificateValidity();
+    _X509_set_notBefore_ASN1(cert, notBefore.internal());
+    _X509_set_notAfter_ASN1(cert, notAfter.internal());
 
     X509V3_CTX ctx;
     _X509V3_set_ctx_nodb(&ctx);

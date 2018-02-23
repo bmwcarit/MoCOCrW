@@ -148,8 +148,8 @@ public:
     static int SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) noexcept;
     static int SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) noexcept;
     static int SSL_X509_set_subject_name(X509 *x, X509_NAME *name) noexcept;
-    static int SSL_X509_set_notBefore(X509 *x, ASN1_TIME* t) noexcept;
-    static int SSL_X509_set_notAfter(X509 *x, ASN1_TIME* t) noexcept;
+    static int SSL_X509_set_notBefore(X509 *x, const ASN1_TIME* t) noexcept;
+    static int SSL_X509_set_notAfter(X509 *x, const ASN1_TIME* t) noexcept;
     static int SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) noexcept;
     static void SSL_X509_free(X509* ptr) noexcept;
     static X509_NAME* SSL_X509_get_subject_name(X509* ptr) noexcept;

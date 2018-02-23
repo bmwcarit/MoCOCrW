@@ -126,8 +126,8 @@ public:
     virtual int SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) = 0;
     virtual int SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) = 0;
     virtual int SSL_X509_set_subject_name(X509 *x, X509_NAME *name) = 0;
-    virtual int SSL_X509_set_notBefore(X509 *x, ASN1_TIME* t) = 0;
-    virtual int SSL_X509_set_notAfter(X509 *x, ASN1_TIME* t) = 0;
+    virtual int SSL_X509_set_notBefore(X509 *x, const ASN1_TIME* t) = 0;
+    virtual int SSL_X509_set_notAfter(X509 *x, const ASN1_TIME* t) = 0;
     virtual int SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) = 0;
     virtual void SSL_X509_free(X509* ptr) = 0;
     virtual X509_NAME* SSL_X509_get_subject_name(X509* ptr) = 0;
@@ -330,8 +330,8 @@ public:
     MOCK_METHOD2(SSL_X509_set_pubkey, int(X509* ptr, EVP_PKEY* pkey));
     MOCK_METHOD2(SSL_X509_set_issuer_name, int(X509 *x, X509_NAME *name));
     MOCK_METHOD2(SSL_X509_set_subject_name, int(X509 *x, X509_NAME *name));
-    MOCK_METHOD2(SSL_X509_set_notBefore, int(X509 *x, ASN1_TIME* t));
-    MOCK_METHOD2(SSL_X509_set_notAfter, int(X509 *x, ASN1_TIME* t));
+    MOCK_METHOD2(SSL_X509_set_notBefore, int(X509 *x, const ASN1_TIME* t));
+    MOCK_METHOD2(SSL_X509_set_notAfter, int(X509 *x, const ASN1_TIME* t));
     MOCK_METHOD3(SSL_X509_sign, int(X509 *x, EVP_PKEY *pkey, const EVP_MD *md));
     MOCK_METHOD1(SSL_X509_free, void(X509*));
     MOCK_METHOD4(SSL_PEM_read_bio_X509, X509*(BIO* bio, X509**, pem_password_cb*, void*));

@@ -320,12 +320,12 @@ int OpenSSLLib::SSL_X509_set_subject_name(X509 *x, X509_NAME *name) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_subject_name(x, name);
 }
 
-int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, ASN1_TIME* t) noexcept
+int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, const ASN1_TIME* t) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notBefore(x, t);
 }
 
-int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, ASN1_TIME* t) noexcept
+int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, const ASN1_TIME* t) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notAfter(x, t);
 }

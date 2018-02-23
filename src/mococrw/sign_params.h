@@ -11,6 +11,7 @@
 
 #include "openssl_wrap.h"
 
+#include "asn1time.h"
 #include "error.h"
 #include "extension.h"
 
@@ -30,21 +31,22 @@ public:
     /**
      * @return the duration how long a signed certificate should be valid, from the starting point.
      */
-    const std::chrono::system_clock::duration& certificateValidity() const
+    Asn1Time::Seconds certificateValidity() const
     {
         return _certificateValidity;
     }
 
     /**
-     * @return the timestamp from when a signed certificate should be valid. Defaults to now.
+     * @return an Asn1Time from when a signed certificate should be valid.
+     *         Defaults to 1 second before now.
      */
-    std::chrono::system_clock::time_point notBefore() const
+    Asn1Time notBeforeAsn1() const
     {
         if (_notBefore.is_initialized()) {
             return _notBefore.get();
         } else {
             // Default start time is now (minus one second)
-            return std::chrono::system_clock::now() - std::chrono::seconds(1);
+            return Asn1Time::now() - std::chrono::seconds(1);
         }
     }
 
@@ -108,8 +110,8 @@ public:
     }
 
 private:
-    boost::optional<std::chrono::system_clock::time_point> _notBefore;
-    std::chrono::system_clock::duration _certificateValidity;
+    boost::optional<Asn1Time> _notBefore;
+    Asn1Time::Seconds _certificateValidity;
     openssl::DigestTypes _digestType;
     //There is no more than one extension of the same type, so every extension type
     //is unique in the extension map.
@@ -128,7 +130,7 @@ public:
     }
 
     template<class T>
-    Builder& notBefore(T&& notBefore)
+    Builder& notBeforeAsn1(T&& notBefore)
     {
         _sp._notBefore = std::forward<T>(notBefore);
         return *this;

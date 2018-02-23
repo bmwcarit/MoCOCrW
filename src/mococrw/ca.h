@@ -56,7 +56,7 @@ public:
      */
     inline X509Certificate signCSR(const CertificateSigningRequest &request)
     {
-        return signCSR(request, _defaultSignParams);
+        return _signCSR(request, _defaultSignParams);
     }
 
     /**
@@ -83,11 +83,11 @@ private:
      * @return a new Certificate with the CSR's issuer name and public key that was signed by this
      *         CA's root certificate.
      */
-    X509Certificate signCSR(const CertificateSigningRequest &request,
+    X509Certificate _signCSR(const CertificateSigningRequest &request,
                             const CertificateSigningParameters &signParams);
 
     /// Signs a certificate with a private key using the given signing parameters.
-    static void signCertificate(X509* certificate,
+    static void _signCertificate(X509* certificate,
                                 const AsymmetricKeypair &privateKey,
                                 const CertificateSigningParameters &signParams);
 

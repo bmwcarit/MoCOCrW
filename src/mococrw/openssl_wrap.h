@@ -699,6 +699,20 @@ void _X509_set_notBefore(X509 *x, const time_point &t);
 void _X509_set_notAfter(X509 *x, const time_point &t);
 
 /**
+ * Set not before value of the certificate as ASN1_TIME
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+void _X509_set_notBefore_ASN1(X509 *x, const ASN1_TIME* t);
+
+/**
+ * Set not after value of the certificate as ASN1_TIME
+ *
+ * @throw OpenSSLException if an internal OpenSSL error is encountered
+ */
+void _X509_set_notAfter_ASN1(X509 *x, const ASN1_TIME* t);
+
+/**
  * Creates a new X509 certificate.
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered

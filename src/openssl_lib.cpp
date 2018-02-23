@@ -239,12 +239,12 @@ int OpenSSLLib::SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) noexcept
     return X509_set_pubkey(ptr, pkey);
 }
 
-int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, ASN1_TIME *t) noexcept
+int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, const ASN1_TIME *t) noexcept
 {
     return X509_set_notBefore(x, t);
 }
 
-int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, ASN1_TIME *t) noexcept
+int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, const ASN1_TIME *t) noexcept
 {
     return X509_set_notAfter(x, t);
 }

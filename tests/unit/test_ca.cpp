@@ -41,7 +41,7 @@ protected:
 
     std::unique_ptr<CertificateAuthority> _ca;
 
-    std::chrono::system_clock::time_point _rootCertSignPoint;
+    Asn1Time _rootCertSignPoint = Asn1Time::fromTimeT(0);
 
 };
 
@@ -79,16 +79,15 @@ void CATest::SetUp()
     BasicConstraintsExtension caConstraint{true, 1};
 
     _signParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(std::chrono::seconds(120))
-            .notBefore(std::chrono::system_clock::now())
+            .certificateValidity(Asn1Time::Seconds(120))
+            .notBeforeAsn1(Asn1Time::now())
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
             .build();
 
     _caSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(std::chrono::seconds(120))
-            .notBefore(std::chrono::system_clock::now())
+            .certificateValidity(Asn1Time::Seconds(120))
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(caConstraint)
             .addExtension(*_exampleUsage)
@@ -99,7 +98,7 @@ void CATest::SetUp()
                                                       *_rootCertDetails,
                                                       0,
                                                       _caSignParams));
-    _rootCertSignPoint = std::chrono::system_clock::now();
+    _rootCertSignPoint = Asn1Time::now();
 
     _ca = std::make_unique<CertificateAuthority>(_signParams, 1, *_rootCert, *_rootKey);
 }
@@ -120,14 +119,14 @@ std::string exec(const char* cmd) {
 }
 
 void testValiditySpan(const X509Certificate &cert,
-                      std::chrono::system_clock::duration validitySpan,
-                      std::chrono::system_clock::time_point certificationTime)
+                      Asn1Time::Seconds validitySpan,
+                      Asn1Time certificationTime)
 {
     // Check that (notAfter - notBefore = validitySpan) and (notBefore = certificationTime),
     // the last one with allowances for 2 second accuracy
-    EXPECT_LT((cert.getNotAfter() - cert.getNotBefore()) - validitySpan, std::chrono::seconds(2));
-    EXPECT_LT(certificationTime - cert.getNotBefore(), std::chrono::seconds(2));
-    EXPECT_LT(cert.getNotBefore() - certificationTime, std::chrono::seconds(2));
+    EXPECT_EQ(cert.getNotAfterAsn1() - cert.getNotBeforeAsn1(), validitySpan);
+    EXPECT_LT(certificationTime - cert.getNotBeforeAsn1(), Asn1Time::Seconds(2));
+    EXPECT_LT(cert.getNotBeforeAsn1() - certificationTime, Asn1Time::Seconds(2));
 }
 
 TEST_F(CATest, testAddExtensionWithSharedPointer)
@@ -136,8 +135,8 @@ TEST_F(CATest, testAddExtensionWithSharedPointer)
             std::make_shared<BasicConstraintsExtension>(true, 1);
 
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(std::chrono::seconds(120))
-                .notBefore(std::chrono::system_clock::now())
+                .certificateValidity(Asn1Time::Seconds(120))
+                .notBeforeAsn1(Asn1Time::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(extensionPtr)
                 .build());
@@ -147,16 +146,16 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
 {
     //one extension
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(std::chrono::seconds(120))
-                .notBefore(std::chrono::system_clock::now())
+                .certificateValidity(Asn1Time::Seconds(120))
+                .notBeforeAsn1(Asn1Time::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .build());
 
     //Two extensions
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(std::chrono::seconds(120))
-                .notBefore(std::chrono::system_clock::now())
+                .certificateValidity(Asn1Time::Seconds(120))
+                .notBeforeAsn1(Asn1Time::now())
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .addExtension(*_exampleUsage)
@@ -166,8 +165,8 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
 TEST_F(CATest, testRequestNotExistingExtension)
 {
     CertificateSigningParameters cert = CertificateSigningParameters::Builder{}
-                    .certificateValidity(std::chrono::seconds(120))
-                    .notBefore(std::chrono::system_clock::now())
+                    .certificateValidity(Asn1Time::Seconds(120))
+                    .notBeforeAsn1(Asn1Time::now())
                     .digestType(openssl::DigestTypes::SHA256)
                     .addExtension(*_exampleConstraints)
                     .build();
@@ -180,8 +179,8 @@ TEST_F(CATest, testBuildSignParamsOneExtensionTwice)
     BasicConstraintsExtension constraint{true, 1};
     //an existing extension is overwritten and not added twice
     CertificateSigningParameters params = CertificateSigningParameters::Builder{}
-            .certificateValidity(std::chrono::seconds(120))
-            .notBefore(std::chrono::system_clock::now())
+            .certificateValidity(Asn1Time::Seconds(120))
+            .notBeforeAsn1(Asn1Time::now())
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
@@ -228,7 +227,7 @@ TEST_F(CATest, testSignedCSRHasCorrectFields)
 {
     CertificateSigningRequest csr{*_certDetails, AsymmetricKeypair::generate()};
     X509Certificate cert = _ca->signCSR(csr);
-    testValiditySpan(cert, _signParams.certificateValidity(), std::chrono::system_clock::now());
+    testValiditySpan(cert, _signParams.certificateValidity(), Asn1Time::now());
     EXPECT_EQ(csr.getPublicKey(), cert.getPublicKey());
     EXPECT_EQ(*_certDetails, cert.getSubjectDistinguishedName());
     EXPECT_EQ(_rootCert->getSubjectDistinguishedName(), cert.getIssuerDistinguishedName());
@@ -291,4 +290,48 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
     EXPECT_NE(output.find("CA:FALSE"), std::string::npos);
 
     remove("cert.pem");
+}
+
+TEST_F(CATest, testIssueLongLivedCertificate)
+{
+    // Certificate shall be valid for 1000 years
+    Asn1Time::Seconds validityTime(60l * 60 * 24 * 365 * 1000);
+    _signParams = CertificateSigningParameters::Builder{}
+            .certificateValidity(validityTime)
+            .notBeforeAsn1(Asn1Time::now())
+            .digestType(openssl::DigestTypes::SHA256)
+            .addExtension(*_exampleConstraints)
+            .addExtension(*_exampleUsage)
+            .build();
+
+    _ca = std::make_unique<CertificateAuthority>(_signParams, 0, *_rootCert, *_rootKey);
+
+    X509Certificate cert = _ca->signCSR(CertificateSigningRequest{*_certDetails,
+                                                       AsymmetricKeypair::generate()});
+
+    testValiditySpan(cert, validityTime, Asn1Time::now());
+
+}
+
+// This test requires the ability to set the time for which a certificate is verified.
+TEST_F(CATest, DISABLED_testIssueCertificateInFarFuture)
+{
+    // Certificate shall be valid in 1000 years
+    Asn1Time validFrom = Asn1Time::now() + Asn1Time::Seconds(60l * 60 * 24 * 365 * 1000);
+    Asn1Time::Seconds validityTime(120);
+    _signParams = CertificateSigningParameters::Builder{}
+            .certificateValidity(validityTime)
+            .notBeforeAsn1(validFrom)
+            .digestType(openssl::DigestTypes::SHA256)
+            .addExtension(*_exampleConstraints)
+            .addExtension(*_exampleUsage)
+            .build();
+
+    _ca = std::make_unique<CertificateAuthority>(_signParams, 0, *_rootCert, *_rootKey);
+
+    X509Certificate cert = _ca->signCSR(CertificateSigningRequest{*_certDetails,
+                                                       AsymmetricKeypair::generate()});
+
+    testValiditySpan(cert, validityTime, validFrom);
+
 }

@@ -649,13 +649,23 @@ void _X509_set_pubkey(X509 *x, EVP_PKEY *key)
 void _X509_set_notBefore(X509 *x, const time_point &t)
 {
     auto asn1time = _ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(t));
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notBefore, x, asn1time.get());
+    _X509_set_notBefore_ASN1(x, asn1time.get());
 }
 
 void _X509_set_notAfter(X509 *x, const time_point &t)
 {
     auto asn1time = _ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(t));
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notAfter, x, asn1time.get());
+    _X509_set_notAfter_ASN1(x, asn1time.get());
+}
+
+void _X509_set_notBefore_ASN1(X509 *x, const ASN1_TIME* asn1time)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notBefore, x, asn1time);
+}
+
+void _X509_set_notAfter_ASN1(X509 *x, const ASN1_TIME* asn1time)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_set_notAfter, x, asn1time);
 }
 
 void _X509_sign(X509 *x, EVP_PKEY *pkey, DigestTypes type)
