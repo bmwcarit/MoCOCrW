@@ -22,6 +22,7 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual ASN1_TIME* SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) = 0;
     virtual int SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) = 0;
     virtual STACK_OF(X509_CRL)* SSL_sk_X509_CRL_new_null() = 0;
     virtual void SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) = 0;
@@ -212,6 +213,7 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD4(SSL_ASN1_TIME_adj, ASN1_TIME*(ASN1_TIME*, time_t, int, long));
     MOCK_METHOD2(SSL_sk_X509_CRL_push, int(STACK_OF(X509_CRL)*, const X509_CRL*));
     MOCK_METHOD0(SSL_sk_X509_CRL_new_null, STACK_OF(X509_CRL)*());
     MOCK_METHOD1(SSL_sk_X509_CRL_free, void(STACK_OF(X509_CRL)*));

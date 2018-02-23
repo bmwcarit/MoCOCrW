@@ -519,7 +519,7 @@ SSL_X509_Ptr _PEM_read_bio_X509(BIO*);
  *           psec will be written with a negative value (or 0).
  * @throw OpenSSLException when an error occurs (e.g., wrong ASN1_TIME formats)
  */
-int _ASN1_TIME_diff(int *pday, int *psec,
+void _ASN1_TIME_diff(int *pday, int *psec,
                               const ASN1_TIME *from, const ASN1_TIME *to);
 
 /**
@@ -867,6 +867,16 @@ SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO* bp);
  * Sets a list of CRLs for a verification context.
  */
 void _X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls);
+
+/**
+ * Adds a specific amount of days and seconds to a time_t and returns it as an ASN1_TIME.
+ */
+SSL_ASN1_TIME_Ptr _ASN1_TIME_adj(std::time_t t, int days, long seconds);
+
+/**
+ * Prints an ASN1_STRING to a BIO object.
+ */
+void _ASN1_STRING_print_ex(BIO* out, const ASN1_STRING* str);
 
 }  //::openssl
 }  //::mococrw

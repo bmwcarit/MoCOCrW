@@ -84,6 +84,19 @@ struct OpenSSLPositiveReturnCheckPolicy
     }
 };
 
+/**
+ * Some OpenSSL functions return positive values or zero for success
+ * and negative values to indicate some failure.
+ */
+struct OpenSSLNonNegativeReturnCheckPolicy
+{
+    template <class Rv>
+    static inline bool returnValueIsOk(const Rv &rv)
+    {
+        return rv >= 0;
+    }
+};
+
 
 /**
  * CPPC provides a template-class 'CallCheckContext' that
@@ -97,6 +110,8 @@ struct OpenSSLPositiveReturnCheckPolicy
  */
 using OpensslCallIsOne =
         ::cppc::CallCheckContext<OpenSSLIsOneReturnCheckPolicy, OpenSSLExceptionErrorPolicy>;
+using OpensslCallIsNonNegative =
+        ::cppc::CallCheckContext<OpenSSLNonNegativeReturnCheckPolicy, OpenSSLExceptionErrorPolicy>;
 using OpensslCallIsPositive =
         ::cppc::CallCheckContext<OpenSSLPositiveReturnCheckPolicy, OpenSSLExceptionErrorPolicy>;
 using OpensslCallPtr = ::cppc::CallCheckContext<::cppc::IsNotNullptrReturnCheckPolicy,
@@ -494,10 +509,22 @@ X509_NAME* _X509_get_issuer_name(X509 *ptr)
                                         ptr);
 }
 
-int _ASN1_TIME_diff(int *pday, int *psec,
+void _ASN1_TIME_diff(int *pday, int *psec,
                               const ASN1_TIME *from, const ASN1_TIME *to)
 {
-    return lib::OpenSSLLib::SSL_ASN1_TIME_diff(pday, psec, from, to);
+    // If we don't have a 24 bit int, we can run into problems because a 16 bit integer can only
+    // count days for 89 years.
+    static_assert(sizeof(int) >= 3,
+                  "Integer should have at least 24 bits to cover all ASN1_TIME differences in days");
+
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_diff, pday, psec, from, to);
+
+    //double check that openssl keeps its promise that the signs are identical
+    //if at least one of "days" or "seconds" is 0, then nothing needs to be checked
+    if ((*pday < 0 && *psec > 0)
+            || (*pday > 0 && *psec < 0)) {
+        throw OpenSSLException("OpenSSL violates API convention");
+    }
 }
 
 SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t)
@@ -570,12 +597,7 @@ time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
     //both values (days and seconds) are negative, if asn1Now is later than givenTime.
     //otherwise, they are both positive
     _ASN1_TIME_diff(&days, &seconds, asn1Now.get(), time);
-    //double check that openssl keeps its promise that the signs are identical
-    //if at least one of "days" or "seconds" is 0, then nothing needs to be checked
-    if ((days < 0 && seconds > 0)
-            || (days > 0 && seconds < 0)) {
-        throw OpenSSLException("OpenSSL violates API convention");
-    }
+
     return epoch + (24h * days) + (1s * seconds);
 }
 
@@ -665,12 +687,7 @@ std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry)
     auto *data = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_NAME_ENTRY_get_data, entry);
 
     BioObject bio{BioObject::Types::MEM};
-    auto rv = lib::OpenSSLLib::SSL_ASN1_STRING_print_ex(bio.internal(),
-                                        data,
-                                        0 /* no flags */);
-    if (rv == -1) {
-        throw OpenSSLException("Could not read the ASN1_String into the BIO instance");
-    }
+    _ASN1_STRING_print_ex(bio.internal(), data);
     return bio.flushToString();
 }
 
@@ -825,6 +842,21 @@ ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl)
 void _X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls)
 {
     lib::OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(ctx, crls);
+}
+
+SSL_ASN1_TIME_Ptr _ASN1_TIME_adj(time_t t, int days, long seconds)
+{
+    auto asn1Time = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ASN1_TIME_adj,
+                                                nullptr, t, days, seconds);
+    return SSL_ASN1_TIME_Ptr{asn1Time};
+}
+
+void _ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str)
+{
+    OpensslCallIsNonNegative::callChecked(lib::OpenSSLLib::SSL_ASN1_STRING_print_ex,
+                                          out,
+                                          const_cast<ASN1_STRING*>(str),
+                                          0 /* no flags for escaping certain characters */);
 }
 
 }  // ::openssl

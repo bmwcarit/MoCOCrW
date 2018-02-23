@@ -3,7 +3,6 @@
  * @copyright (C) 2017, BMW AG
  * @copyright (C) 2017, BMW Car IT GmbH
  */
-#include <iostream>
 #include <algorithm>
 
 #include <gmock/gmock.h>
@@ -123,4 +122,119 @@ TEST_F(Asn1TimeTest, invalidTimePointConversionThrows)
     EXPECT_THROW({
         year0042.toTimePoint();
     }, OpenSSLException);
+}
+
+TEST_F(Asn1TimeTest, nowTimeIsCorrect)
+{
+    Asn1Time nowTimeFromApi = Asn1Time::now();
+    auto nowTimeFromSystem = std::chrono::system_clock::now();
+
+    //OpenSSL has a precision of 1 second, so we check that
+    // -1 < nowApi - nowSystem < 1
+    ASSERT_LT(std::chrono::seconds(-1), nowTimeFromApi.toTimePoint() - nowTimeFromSystem);
+    ASSERT_LT(nowTimeFromApi.toTimePoint() - nowTimeFromSystem, std::chrono::seconds(1));
+}
+
+TEST_F(Asn1TimeTest, addTimeIsCorrect)
+{
+    auto year2000Day2FromString = Asn1Time::fromString("20000102000000Z");
+    auto year2000Day2FromAdd = Asn1Time::fromString("20000101000000Z") + 24h;
+
+    ASSERT_EQ(year2000Day2FromString, year2000Day2FromAdd);
+}
+
+TEST_F(Asn1TimeTest, subtractTimeIsCorrect)
+{
+    auto year2001FromString = Asn1Time::fromString("20010101010000Z");
+    auto year2001FromSubtract = Asn1Time::fromString("20020101000000Z")
+            - std::chrono::hours(24 * 365 - 1);
+
+    ASSERT_EQ(year2001FromString, year2001FromSubtract);
+}
+
+TEST_F(Asn1TimeTest, addingToLargeTimesWorks)
+{
+    auto year2270FromString = Asn1Time::fromString("22700101000000Z");
+    auto year2270FromAdd = Asn1Time::fromString("22690101000000Z") + std::chrono::hours(24 * 365);
+
+    ASSERT_EQ(year2270FromString, year2270FromAdd);
+}
+
+TEST_F(Asn1TimeTest, addingLargeDurationsWorks)
+{
+    auto year2000FromString = Asn1Time::fromString("20000101000000Z");
+    auto year2000FromAdd = Asn1Time::fromString("10000101000000Z")
+            + std::chrono::hours(365242 * 24);
+
+    ASSERT_EQ(year2000FromString, year2000FromAdd);
+}
+
+TEST_F(Asn1TimeTest, subtractingLargeDurationsWorks)
+{
+    auto year2000FromString = Asn1Time::fromString("20000101000000Z");
+    auto year2000FromSubtraction = Asn1Time::fromString("30000101000000Z")
+            - std::chrono::hours(365243 * 24);
+
+    ASSERT_EQ(year2000FromString, year2000FromSubtraction);
+}
+
+TEST_F(Asn1TimeTest, creatingDifferencesWorks)
+{
+    auto year2000 = Asn1Time::fromString("20000101000000Z");
+    auto year2000Day2Hour1 = Asn1Time::fromString("20000102010000Z");
+
+    ASSERT_EQ(std::chrono::hours(25), year2000Day2Hour1 - year2000);
+}
+
+TEST_F(Asn1TimeTest, creatingNegativeDifferencesWorks)
+{
+    auto year2000 = Asn1Time::fromString("20000101000000Z");
+    auto year2010 = Asn1Time::fromString("20100101010101Z");
+
+    ASSERT_EQ(-1 * (year2010 - year2000), year2000 - year2010);
+}
+
+TEST_F(Asn1TimeTest, creatingDifferencesDoesNotOverflow)
+{
+    std::cout << ( Asn1Time::max() - Asn1Time::min()).count() << std::endl;
+    ASSERT_EQ(std::chrono::seconds(315569519999), Asn1Time::max() - Asn1Time::min());
+}
+
+TEST_F(Asn1TimeTest, addingDifferencesDoesNotOverflow)
+{
+    ASSERT_EQ(Asn1Time::min() + std::chrono::seconds(315569519999), Asn1Time::max());
+}
+
+TEST_F(Asn1TimeTest, overflowingAsn1TimeThrows)
+{
+    ASSERT_THROW(Asn1Time::max() + std::chrono::seconds(1), mococrw::MoCOCrWException);
+}
+
+TEST_F(Asn1TimeTest, underflowingAsn1TimeThrows)
+{
+    ASSERT_THROW(Asn1Time::min() - std::chrono::seconds(1), mococrw::MoCOCrWException);
+}
+
+TEST_F(Asn1TimeTest, addingOverflowingDurationThrows)
+{
+    auto asn1time = Asn1Time::fromString("20000101000000Z");
+    auto duration = std::chrono::seconds(std::numeric_limits<int>::max());
+    duration *= 366 * 24 * 60 * 60; // Make the number of days exceed MAX_INT
+
+    ASSERT_THROW(asn1time + duration, mococrw::MoCOCrWException);
+}
+
+TEST_F(Asn1TimeTest, addingDifferenceMakesEqual)
+{
+    auto year2000 = Asn1Time::fromString("20000101000000Z");
+    auto year2001 = Asn1Time::fromString("20010101000000Z");
+
+    ASSERT_EQ(year2001, year2000 + (year2001 - year2000));
+}
+
+TEST_F(Asn1TimeTest, conversionFromAndToStringWorks)
+{
+    auto year2270 = Asn1Time::fromString("22700101000000Z");
+
+    ASSERT_EQ(year2270, Asn1Time::fromString(year2270.toString()));
 }

@@ -635,6 +635,10 @@ int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* 
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_CRL_push(stack, crl);
 }
+ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_adj(s, t, offset_day, offset_sec);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

@@ -42,6 +42,7 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static ASN1_TIME* SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) noexcept;
     static int SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept;
     static STACK_OF(X509_CRL)* SSL_sk_X509_CRL_new_null() noexcept;
     static void SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) noexcept;
