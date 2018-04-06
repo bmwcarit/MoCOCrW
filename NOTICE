@@ -1,0 +1,26 @@
+This project includes software developed by
+BMW Car IT GmbH (http://www.bmw-carit.de)
+
+Licensed under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License. You may obtain a copy of the License at:
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied. See the License for the
+specific language governing permissions and limitations
+under the License.
+
+This project has dependencies to:
+(dynamically linked)
+    OpenSSL v1.0.2 (and later of 1.0.2 branch) under OpenSSL License / Original SSLeay License
+(header only)
+    Boost under Boost Software License, Version 1.0
+(header only library, shipped with this source package)
+    cppc (https://github.com/mgelde/CPPC) under The Apache License 2.0 (Apache-2)
+(libraries used during build/test)
+    libgtest under BSD 3-clause License (BSD-3-clause)
+    libgmock under BSD 3-clause License (BSD-3-clause)
