@@ -84,28 +84,32 @@ void X509Test::SetUp()
         _pemChainNoNewlines.end());
 }
 
-const std::string X509Test::_pemString{
-        "-----BEGIN CERTIFICATE-----\n"
-        "MIIDijCCAnICCQDLbB6fOKuKUjANBgkqhkiG9w0BAQsFADBHMQswCQYDVQQGEwJk\n"
-        "ZTELMAkGA1UECAwCYncxDDAKBgNVBAcMA3VsbTEMMAoGA1UECgwDQk1XMQ8wDQYD\n"
-        "VQQLDAZDYXIgSVQwHhcNMTcwMzA5MDkxOTI4WhcNMTcxMTIwMDkxOTI4WjCBxjES\n"
-        "MBAGA1UEAwwJSW1BVGVhcG90MQswCQYDVQQGEwJERTENMAsGA1UEBwwEb2JlbjEQ\n"
-        "MA4GA1UECAwHbmViZW5hbjEWMBQGA1UECwwNTGludXggU3VwcG9ydDEMMAoGA1UE\n"
-        "CgwDQk1XMSkwJwYJKoZIhvcNAQkBFhpzdXBwb3J0QGxpbnV4LmJtd2dyb3VwLmNv\n"
-        "bTExMC8GA1UEBRMoRUNVLVVJRDowOEUzNkRENTAxOTQxNDMyMzU4QUZFODI1NkJD\n"
-        "NkVGRDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAL+7+KU8KW3lV9W3\n"
-        "keTv2/6nWsVhtOCdsM0q+8Z1ttZ+jh0R2Ki2hqKFfxd91uhSjRunRu7LUvWaDnW0\n"
-        "1trNvwyyAPIC33r8JwmBk4y6R0tYrw4JE4fEsQpSyjtsi9OOeG9yJbO9EDSjEgfU\n"
-        "H4vjgiBQolnTr5OetNB4doJ+lAIUTU9j8woqVr1Y7hqDoW2S9vs6z658QIseSGqB\n"
-        "BG1ZuJkCO+VTjdSETPgQWnWlOl9aS+utyvT/CLH8MvBmkpMV8D8P0adpT6AB3NQY\n"
-        "iK6EuFRzGAJtCFWF+iL2pyhEKb0gaM7Bb7UROxo+BVUc5w1WWZWpm9X6F5LGTnLt\n"
-        "S9fxZccCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEADu1VAiSfn5DTyymTWIByDJgd\n"
-        "F9czFPRqyPL3kK3SpMQDqj8uuTYYbgPWP5PPUp2qzazubSWEK3sgu08pM9F/oBJS\n"
-        "XXT/FbrfR38LG+hHer6hqBNmN4+mlifdiNCguqEowouAQfduGfGHzNdrUlt0svIs\n"
-        "b4Jv7NXsn4pBx6ObGfYWNlxD1zwt71pdjVdwUQqJIEVihh0Bwv4wSmqFJ/iWJdpY\n"
-        "0v1OLbCDbbOXPLx/fWyf0TN3bt/Fr1OlGY4UCnKxi+sjTRzWHcmQ2Ox6DgI9MOMZ\n"
-        "o7k8jBD0+ZUfE2t9tXJuTKSldE7TuK9ff3NFc433s3FVNPqSE59qs+pJW5joLA==\n"
-        "-----END CERTIFICATE-----\n"};
+const std::string X509Test::_pemString{R"(-----BEGIN CERTIFICATE-----
+MIIEUDCCAzigAwIBAgIJAO1DR/R6S8YsMA0GCSqGSIb3DQEBCwUAMIG8MQswCQYD
+VQQGEwJERTEQMA4GA1UECAwHbmViZW5hbjENMAsGA1UEBwwEb2JlbjERMA8GA1UE
+CgwITGludXggQUcxFjAUBgNVBAsMDUxpbnV4IFN1cHBvcnQxIjAgBgkqhkiG9w0B
+CQEWE3N1cHBvcnRAZXhhbXBsZS5jb20xKTAnBgNVBAUTIDA4RTM2REQ1MDE5NDE0
+MzIzNThBRkU4MjU2QkM2RUZEMRIwEAYDVQQDDAlJbUFUZWFwb3QwHhcNMTgwNDA5
+MTMwMzUzWhcNNDUwODI1MTMwMzUzWjCBvDELMAkGA1UEBhMCREUxEDAOBgNVBAgM
+B25lYmVuYW4xDTALBgNVBAcMBG9iZW4xETAPBgNVBAoMCExpbnV4IEFHMRYwFAYD
+VQQLDA1MaW51eCBTdXBwb3J0MSIwIAYJKoZIhvcNAQkBFhNzdXBwb3J0QGV4YW1w
+bGUuY29tMSkwJwYDVQQFEyAwOEUzNkRENTAxOTQxNDMyMzU4QUZFODI1NkJDNkVG
+RDESMBAGA1UEAwwJSW1BVGVhcG90MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB
+CgKCAQEArXHJRfDgJTuvUYwGj/uuXveDUvsMvKU3KZim0lfcSd88xNvgml1wFIEu
+ovER/ISKzYuhdQrV/W5ujtGj+5XEk/vMlrhviQYaPLTFMipNKhxOJ7eKtd9Lflsz
+oa/3+nQVsWHgyyHdIKSrM2Ayna2HnMgQZOT3xolHVUX4V3Oip7iiOED1igbFCDzi
+krL4fd6EpJHxfGa983Snya7CEm3caN4Mq78GSsDuojSn17DNoCnePSrNB6q77pWk
+FVlmqeVdtnABoJ/zmdON8i1CnNsdguHfAf1zXYzmpRjfdkb1e/PSmQe0PArJ/dyS
+UpEUCLPlBOQOU22rLXsAFVVTAfRF4wIDAQABo1MwUTAdBgNVHQ4EFgQU/2H7Z/yC
+UAH3bbrf3GAp0MDx3+swHwYDVR0jBBgwFoAU/2H7Z/yCUAH3bbrf3GAp0MDx3+sw
+DwYDVR0TAQH/BAUwAwEB/zANBgkqhkiG9w0BAQsFAAOCAQEAZ6lSJotDC5I13HK3
+2Q4woe8pbxt8KI7qhrl/7sWTT/UBSVj4ZWoyLJiE8XQjXw8EWODKsECeWI0Ztxib
+iusTx0kuW5lo8EPLqW7hG4aD7sZCmslBZjB3kGU8iH4AGdIswmC7pzraHdKRWpb7
+a+nduZ+dBBL7f+jPnCV6y0uRJVQZ3IinoZGeZyFazfq4tWraIotE7STkQpoiM8TG
+4vj2kM+h9miQEbYAyg6z4uwoiK4eqOvwJdqTxjHufDbRK1WmdrieU8psr6lebWP+
+KuAcbGt8ba8eeJrDJoBKRB6y4K/LM7Z/Ajq4548PduDyFuKqC2qlw0LAWUbQprPX
+2EI7Tw==
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_shortSerialPemString{
         "-----BEGIN CERTIFICATE-----\n"
@@ -309,9 +313,9 @@ TEST_F(X509Test, testParsingIssuerAndSubject)
     ASSERT_THAT(subject.localityName(), Eq("oben"));
     ASSERT_THAT(subject.stateOrProvinceName(), Eq("nebenan"));
     ASSERT_THAT(subject.organizationalUnitName(), Eq("Linux Support"));
-    ASSERT_THAT(subject.organizationName(), Eq("BMW"));
-    ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("support@linux.bmwgroup.com"));
-    ASSERT_THAT(subject.serialNumber(), Eq("ECU-UID:08E36DD501941432358AFE8256BC6EFD"));
+    ASSERT_THAT(subject.organizationName(), Eq("Linux AG"));
+    ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("support@example.com"));
+    ASSERT_THAT(subject.serialNumber(), Eq("08E36DD501941432358AFE8256BC6EFD"));
 }
 
 TEST_F(X509Test, testLoadPEMCertFromFileDirectly)
@@ -534,9 +538,9 @@ TEST_F(X509Test, testGetSerialNumber)
 {
     EXPECT_THROW(_cert.getSerialNumber(), OpenSSLException)
         << "X509Certificate::getSerialNumber() should have thrown for serial numbers > sizeof(long)";
-    EXPECT_EQ("14658124556383521362", _cert.getSerialNumberDecimal())
+    EXPECT_EQ("17096587725777913388", _cert.getSerialNumberDecimal())
         << "X509Certificate::getSerialNumberDecimal() did not return expected value";
-    EXPECT_EQ((std::vector<uint8_t>{0xcb, 0x6c, 0x1e, 0x9f, 0x38, 0xab, 0x8a, 0x52}),
+    EXPECT_EQ((std::vector<uint8_t>{0xed, 0x43, 0x47, 0xf4, 0x7a, 0x4b, 0xc6, 0x2c}),
               _cert.getSerialNumberBinary())
         << "X509Certificate::getSerialNumberBinary() did not return expected value";
 

@@ -47,12 +47,12 @@ int main(int, char **)
     auto dn = DistinguishedName::Builder()
                       .commonName("ImATeapot")
                       .countryName("DE")
-                      .organizationName("BMW")
+                      .organizationName("Linux AG")
                       .organizationalUnitName("Linux Support")
-                      .pkcs9EmailAddress("support@linux.bmwgroup.com")
+                      .pkcs9EmailAddress("support@example.com")
                       .localityName("oben")
                       .stateOrProvinceName("nebenan")
-                      .serialNumber("ECU-UID:08E36DD501941432358AFE8256BC6EFD")
+                      .serialNumber("08E36DD501941432358AFE8256BC6EFD")
                       .build();
     auto keypair = AsymmetricKeypair::generate();
     CertificateSigningRequest csr{dn, keypair};

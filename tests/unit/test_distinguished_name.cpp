@@ -27,11 +27,11 @@ void DistinguishedNameTest::SetUp()
     auto builder = DistinguishedName::Builder();
     builder.commonName("ImATeapot")
             .countryName("DE")
-            .organizationName("BMW")
+            .organizationName("Linux AG")
             .organizationalUnitName("Linux Support")
-            .pkcs9EmailAddress("support@linux.bmwgroup.com")
+            .pkcs9EmailAddress("support@example.com")
             .localityName("oben")
-            .serialNumber("ECU-UID:08E36DD501941432358AFE8256BC6EFD");
+            .serialNumber("08E36DD501941432358AFE8256BC6EFD");
     builder.stateOrProvinceName("nebenan");
     _dn = builder.build();
     _x509Name = _X509_NAME_new();
@@ -46,11 +46,11 @@ TEST_F(DistinguishedNameTest, createDistinguishedName)
 {
     ASSERT_EQ(_dn.commonName(), "ImATeapot");
     ASSERT_EQ(_dn.countryName(), "DE");
-    ASSERT_EQ(_dn.organizationName(), "BMW");
+    ASSERT_EQ(_dn.organizationName(), "Linux AG");
     ASSERT_EQ(_dn.organizationalUnitName(), "Linux Support");
-    ASSERT_EQ(_dn.pkcs9EmailAddress(), "support@linux.bmwgroup.com");
+    ASSERT_EQ(_dn.pkcs9EmailAddress(), "support@example.com");
     ASSERT_EQ(_dn.stateOrProvinceName(), "nebenan");
-    ASSERT_EQ(_dn.serialNumber(), "ECU-UID:08E36DD501941432358AFE8256BC6EFD");
+    ASSERT_EQ(_dn.serialNumber(), "08E36DD501941432358AFE8256BC6EFD");
     ASSERT_EQ(_dn.localityName(), "oben");
 }
 
