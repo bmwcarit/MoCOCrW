@@ -1,0 +1,13 @@
+sudo: required
+services:
+ - docker
+
+before_install:
+ - docker pull neverpanic/mococrw-build-env
+ - docker images
+
+script:
+  - mkdir build
+  - docker run --rm -t -v "$(readlink -f .):/src" -v "$(readlink -f build):/build" --workdir /build neverpanic/mococrw-build-env cmake -DCMAKE_BUILD_TYPE=Coverage -DBUILD_TESTING=On /src
+  - docker run --rm -t -v "$(readlink -f .):/src" -v "$(readlink -f build):/build" --workdir /build neverpanic/mococrw-build-env make -j2
+  - docker run --rm -t -v "$(readlink -f .):/src" -v "$(readlink -f build):/build" --workdir /build neverpanic/mococrw-build-env ctest -j2 --output-on-failure
