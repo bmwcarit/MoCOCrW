@@ -566,52 +566,109 @@ void _ASN1_TIME_set_string(ASN1_TIME *s, const char *str)
 }
 
 /**
+ * @brief Calculates the difference between epoch and an ASN1_TIME in seconds.
+ * @param time the ASN1 time for which the difference should be calculated
+ * @return the amount of seconds that are the equivalent of (time - epoch)
+ */
+std::int64_t secondsDiffToEpoch(const ASN1_TIME* time)
+{
+    auto epoch = _ASN1_TIME_from_time_t(0);
+    //compute the offset between "time" and epoch in days and seconds.
+    int days, seconds;
+    _ASN1_TIME_diff(&days, &seconds, epoch.get(), time);
+
+    // Convert days to seconds and add both.
+    return 24 * 60 * 60 * static_cast<int64_t>(days) + static_cast<int64_t>(seconds);
+}
+
+enum class ComparisonResult { Lesser, Greater, Equal };
+
+/**
+ * @brief Compares an ASN1_TIME with a time_t.
+ * @param asn1Time the ASN1_time to compare
+ * @param timeT the time_t to compare
+ * @return Lesser, if asn1Time < timeT; Equal, if asn1Time == timeT; Greater, if asn1Time > timeT
+ */
+ComparisonResult compare(const ASN1_TIME* asn1Time, std::time_t timeT)
+{
+    int days, seconds;
+
+    // These are the limits of Asn1Time (1.1.0000:00:00:00, 31.12.9999:23:59:59)
+    // as second diffs to 1.1.1970.
+    constexpr int64_t minAsn1TimeAsTimeT = -62167219200;
+    constexpr int64_t maxAsn1TimeAsTimeT = 253402300799;
+
+    // First check if the time_t is outside of the ASN1_TIME range.
+    if (timeT > maxAsn1TimeAsTimeT) {
+        return ComparisonResult::Lesser;
+    } else if (timeT < minAsn1TimeAsTimeT) {
+        return ComparisonResult::Greater;
+    }
+
+    // Since it is within ASN1 range, we may safely cast it to one.
+    auto timeTAsAsn1 = _ASN1_TIME_from_time_t(timeT);
+    _ASN1_TIME_diff(&days, &seconds, asn1Time, timeTAsAsn1.get());
+    if (days < 0 || seconds < 0) {
+        return ComparisonResult::Greater;
+    } else if (days > 0 || seconds > 0) {
+        return ComparisonResult::Lesser;
+    } else {
+        return ComparisonResult::Equal;
+    }
+}
+
+/**
+ * @brief Checks that an ASN1 time is within a specific range.
+ * @param time the ASN1 time that is checked.
+ * @param minValue the minimum value it shall have, as time_t
+ * @param maxValue the maximum value it shall have, as time_t
+ * @throw OpenSSLException if the ASN1 time is outside of the specified range
+ */
+void checkAsn1TimeFitsIntoLimits(const ASN1_TIME* time, std::time_t minValue, std::time_t maxValue)
+{
+    if (compare(time, minValue) == ComparisonResult::Lesser) {
+        throw OpenSSLException("ASN1_TIME is too small for new range");
+    }
+    if (compare(time, maxValue) == ComparisonResult::Greater) {
+        throw OpenSSLException("ASN1_TIME is too big for new range");
+    }
+}
+
+/**
  * @brief Convert an ASN1_TIME instance to a std::chrono::system_clock::time_point
  * @param [in] time An ASN1 encoded time object
  * @return A c++ time_point object with the same time
  */
 time_point _asn1TimeToTimePoint(const ASN1_TIME *time)
 {
-    /*
-     * Gather around for the fun tale of OpenSSL time:
-     *
-     * Since there is no way to convert a ASN1_TIME instance to a time_t, we
-     * need to:
-     *
-     * (1) Create an ASN1_TIME instance corresponding to system_clock::now()
-     *      Let's call that asn1Now
-     * (2) Compute the delta between "time" and "asn1Now" in days and seconds (signed)
-     * (3) Convert the days + seconds offset into a std::system_clock::time_point
-     *
-     */
     using std::chrono::system_clock;
 
     const auto epoch = system_clock::from_time_t(0);
 
-    auto asn1Now = _ASN1_TIME_from_time_t(system_clock::to_time_t(epoch));
     auto maxTimePoint = system_clock::time_point::max();
-    auto maxAsn1TimePoint = _ASN1_TIME_from_time_t(system_clock::to_time_t(maxTimePoint));
+    auto maxTimePointAsTimeT = system_clock::to_time_t(maxTimePoint);
     auto minTimePoint = system_clock::time_point::min();
-    auto minAsn1TimePoint = _ASN1_TIME_from_time_t(system_clock::to_time_t(minTimePoint));
+    auto minTimePointAsTimeT = system_clock::to_time_t(minTimePoint);
 
-    // first we check if the ASN1_TIME fits into the time point.
-    int days, seconds;
-    _ASN1_TIME_diff(&days, &seconds, minAsn1TimePoint.get(), time);
-    if (days < 0 || seconds < 0) {
-        throw OpenSSLException("ASN1_TIME does not fit into time_point");
-    }
-    _ASN1_TIME_diff(&days, &seconds, time, maxAsn1TimePoint.get());
-    if (days < 0 || seconds < 0) {
-        throw OpenSSLException("ASN1_TIME does not fit into time_point");
-    }
+    checkAsn1TimeFitsIntoLimits(time, minTimePointAsTimeT, maxTimePointAsTimeT);
 
+    return epoch + 1s * secondsDiffToEpoch(time);
+}
 
-    //compute the offset between "time" and "asn1Now" in days and seconds.
-    //both values (days and seconds) are negative, if asn1Now is later than givenTime.
-    //otherwise, they are both positive
-    _ASN1_TIME_diff(&days, &seconds, asn1Now.get(), time);
+/**
+ * @brief Convert an ASN1_TIME instance to a time_t
+ * @param [in] time An ASN1 encoded time object
+ * @return A time_t object with the same time
+ */
+time_t _asn1TimeToTimeT(const ASN1_TIME *time)
+{
+    auto maxTimeT = std::numeric_limits<time_t>::max();
+    auto minTimeT = std::numeric_limits<time_t>::min();
 
-    return epoch + (24h * days) + (1s * seconds);
+    checkAsn1TimeFitsIntoLimits(time, minTimeT, maxTimeT);
+
+    // We know we can cast this to time_t since we just checked that it lies within its limits.
+    return static_cast<time_t>(secondsDiffToEpoch(time));
 }
 
 
@@ -880,6 +937,12 @@ void _ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str)
                                           out,
                                           const_cast<ASN1_STRING*>(str),
                                           0 /* no flags for escaping certain characters */);
+}
+
+void _X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, time_t time)
+{
+    lib::OpenSSLLib::SSL_X509_STORE_CTX_set_time(ctx, 0 /* Time flags? Not used within OpenSSL */,
+                                                 time);
 }
 
 }  // ::openssl

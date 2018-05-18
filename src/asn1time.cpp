@@ -74,6 +74,11 @@ std::chrono::system_clock::time_point Asn1Time::toTimePoint() const
     return _asn1TimeToTimePoint(internal());
 }
 
+std::time_t Asn1Time::toTimeT() const
+{
+    return _asn1TimeToTimeT(internal());
+}
+
 std::string Asn1Time::toString() const
 {
     BioObject bio{BioObject::Types::MEM};

@@ -80,6 +80,12 @@ TEST_F(Asn1TimeTest, fromTimePointToTimePointIsIdentical)
     EXPECT_THAT(t.toTimePoint(), Eq(tp_2017_3_27__19_00_38));
 }
 
+TEST_F(Asn1TimeTest, fromTimeTToTimeTIsIdentical)
+{
+    auto t = Asn1Time::fromTimeT(tt_2017_3_27__19_00_38);
+    EXPECT_THAT(t.toTimeT(), Eq(tt_2017_3_27__19_00_38));
+}
+
 TEST_F(Asn1TimeTest, checkComparisonOperators)
 {
     auto year2000 = Asn1Time::fromString("20000101000000Z");
@@ -209,7 +215,6 @@ TEST_F(Asn1TimeTest, creatingNegativeDifferencesWorks)
 
 TEST_F(Asn1TimeTest, creatingDifferencesDoesNotOverflow)
 {
-    std::cout << ( Asn1Time::max() - Asn1Time::min()).count() << std::endl;
     ASSERT_EQ(std::chrono::seconds(315569519999), Asn1Time::max() - Asn1Time::min());
 }
 
@@ -250,4 +255,12 @@ TEST_F(Asn1TimeTest, conversionFromAndToStringWorks)
     auto year2270 = Asn1Time::fromString("22700101000000Z");
 
     ASSERT_EQ(year2270, Asn1Time::fromString(year2270.toString()));
+}
+
+// In theory we can handle cases where time_t is smaller than Asn1Time.
+// In practice, however, this has never been tested, therefore this assert.
+TEST_F(Asn1TimeTest, timeTIsLargeEnoughForAsn1Time)
+{
+    static_assert(sizeof(time_t) >= 5,
+                  "time_t is smaller than Asn1Time. This might work, but has never been tested");
 }
