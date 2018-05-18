@@ -597,6 +597,10 @@ ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day,
 {
     return ASN1_TIME_adj(s, t, offset_day, offset_sec);
 }
+void OpenSSLLib::SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, unsigned long flags, time_t t) noexcept
+{
+    X509_STORE_CTX_set_time(ctx, flags, t);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

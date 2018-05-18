@@ -105,6 +105,8 @@ void VerificationTest::SetUp()
     _root3_int1_cert12 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.cert12.pem"));
 }
 
+using VerificationContext = mococrw::X509Certificate::VerificationContext;
+
 TEST_F(VerificationTest, testSimpleCertValidation)
 {
     std::vector<X509Certificate> trustStore{*_root1.get()};
@@ -121,12 +123,66 @@ TEST_F(VerificationTest, testExpiredCertValidationFails)
     ASSERT_THROW(_root1_expired->verify(trustStore, intermediateCAs), MoCOCrWException);
 }
 
+TEST_F(VerificationTest, testPastCertValidationSucceedsWithTimeSetAccordingly)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1_expired.get())
+       .setVerificationCheckTime(_root1_expired->getNotBeforeAsn1() + Asn1Time::Seconds(1));
+
+    ASSERT_NO_THROW(_root1_expired->verify(ctx));
+}
+
+TEST_F(VerificationTest, testPastCertValidationFailsWithTimeSetToNow)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1_expired.get())
+       .setVerificationCheckTime(Asn1Time::now());
+
+    ASSERT_THROW(_root1_expired->verify(ctx), MoCOCrWException);
+}
+
 TEST_F(VerificationTest, testFutureCertValidationFails)
 {
     std::vector<X509Certificate> trustStore{*_root1.get()};
     std::vector<X509Certificate> intermediateCAs{};
 
     ASSERT_THROW(_root1_future->verify(trustStore, intermediateCAs), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testFutureCertValidationFailsWithTimeSetToNow)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1.get())
+       .setVerificationCheckTime(Asn1Time::now());
+
+    ASSERT_THROW(_root1_future->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testFutureCertValidationSucceedsWithTimeSetAccordingly)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1_future.get())
+       .setVerificationCheckTime(_root1_future->getNotBeforeAsn1() + Asn1Time::Seconds(1));
+
+    _root1_future->verify(ctx);
+}
+
+TEST_F(VerificationTest, testCertValidationFailsWithTimeInFuture)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1.get())
+       .setVerificationCheckTime(_root1->getNotAfterAsn1() + Asn1Time::Seconds(1));
+
+    ASSERT_THROW(_root1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testCertValidationFailsWithTimeInPast)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_root1.get())
+       .setVerificationCheckTime(_root1->getNotBeforeAsn1() - Asn1Time::Seconds(1));
+
+    ASSERT_THROW(_root1->verify(ctx), MoCOCrWException);
 }
 
 TEST_F(VerificationTest, testSimpleCertValidationWorksForSubCA)
@@ -264,8 +320,6 @@ TEST_F(VerificationTest, testVerificationWorksWithBothRootsInTrustStoreComplexCh
     (_root1_int1_cert1->verify(trustStore, intermediateCAs));
     ASSERT_NO_THROW(_root2_int1_cert1->verify(trustStore, intermediateCAs));
 }
-
-using VerificationContext = mococrw::X509Certificate::VerificationContext;
 
 TEST_F(VerificationTest, testVerificationFailsWithNonSelfSignedRootAndFlag)
 {

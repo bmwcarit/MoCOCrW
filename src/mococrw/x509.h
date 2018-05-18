@@ -139,6 +139,7 @@ public:
             , _crls{}
             , _enforceSelfSignedRootCertificate{false}
             , _enforceCrlForWholeChain{false}
+            , _verificationCheckTime{}
         {}
 
         /**
@@ -221,6 +222,14 @@ public:
         }
 
         /**
+         * Sets the time for this verification context. All time based validity checks will check
+         * with relation to the given time instead of the current time.
+         * This only supports times that are within range of std::time_t.
+         * @throw MoCOCrWException if a time was passed that is outside of std::time_t range.
+         */
+        VerificationContext& setVerificationCheckTime(Asn1Time checkTime);
+
+        /**
          * Does a check to see if the current context is in a good state to verify certificates.
          * Invalid states are:
          *  - enforceCrlsForAllCAs is set, but enforceSelfSignedRootCertificate isn't
@@ -237,6 +246,7 @@ public:
         std::vector<CertificateRevocationList> _crls;
         bool _enforceSelfSignedRootCertificate;
         bool _enforceCrlForWholeChain;
+        boost::optional<std::time_t> _verificationCheckTime;
 
         template<typename Container1, typename Container2>
         void _addAll(Container1& addTo, Container2&& addThese)

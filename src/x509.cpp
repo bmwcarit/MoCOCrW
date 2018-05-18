@@ -78,6 +78,17 @@ void X509Certificate::VerificationContext::validityCheck() const
     }
 }
 
+X509Certificate::VerificationContext&
+X509Certificate::VerificationContext::setVerificationCheckTime(Asn1Time checkTime)
+{
+    try {
+        _verificationCheckTime = checkTime.toTimeT();
+    } catch (const OpenSSLException& e) {
+        throw MoCOCrWException(e.what());
+    }
+    return *this;
+}
+
 void X509Certificate::verify(const std::vector<X509Certificate> &trustStore,
                 const std::vector<X509Certificate> &intermediateCAs) const
 {
@@ -121,6 +132,11 @@ void X509Certificate::verify(const X509Certificate::VerificationContext &ctx) co
 
     if (ctx._enforceCrlForWholeChain) {
         flags |= X509VerificationFlags::CRL_CHECK_ALL;
+    }
+
+    if (ctx._verificationCheckTime) {
+        flags |= X509VerificationFlags::USE_CHECK_TIME;
+        _X509_STORE_CTX_set_time(verifyCtx.get(), ctx._verificationCheckTime.get());
     }
 
     _X509_VERIFY_PARAM_set_flags(param, flags);

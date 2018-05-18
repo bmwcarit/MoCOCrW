@@ -581,6 +581,7 @@ public:
     static constexpr unsigned long PARTIAL_CHAIN = X509_V_FLAG_PARTIAL_CHAIN;
     static constexpr unsigned long CRL_CHECK_ALL = X509_V_FLAG_CRL_CHECK_ALL;
     static constexpr unsigned long CRL_CHECK = X509_V_FLAG_CRL_CHECK;
+    static constexpr unsigned long USE_CHECK_TIME = X509_V_FLAG_USE_CHECK_TIME;
 };
 
 /**
@@ -904,6 +905,17 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_adj(std::time_t t, int days, long seconds);
  * Prints an ASN1_STRING to a BIO object.
  */
 void _ASN1_STRING_print_ex(BIO* out, const ASN1_STRING* str);
+
+/**
+ * Sets the time of verification for a verification context.
+ */
+void _X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, std::time_t time);
+
+/**
+ * Converts an ASN1_TIME to a time_t.
+ * @throw OpenSSLException if the ASN1_TIME doesn't fit into a time_t.
+ */
+time_t _asn1TimeToTimeT(const ASN1_TIME *time);
 
 }  //::openssl
 }  //::mococrw

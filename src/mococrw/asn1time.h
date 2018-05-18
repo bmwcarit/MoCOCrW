@@ -83,7 +83,19 @@ public:
      */
     Seconds operator-(const Asn1Time& rhs) const;
 
+    /**
+     * @brief Returns the equivalent of this Asn1Time as a time_point.
+     * @throws OpenSSLException if the resulting time_point would be out of bounds.
+     * @return the calculated time_point
+     */
     std::chrono::system_clock::time_point toTimePoint() const;
+
+    /**
+     * @brief Returns the equivalent of this Asn1Time as a time_t.
+     * @throws OpenSSLException if the resulting time_t would be out of bounds.
+     * @return the calculated time_t
+     */
+    std::time_t toTimeT() const;
 
     /**
      * @brief Returns the string representation of this Asn1Time.
