@@ -27,7 +27,7 @@ namespace utility
 
 std::string toHex(const std::vector<uint8_t> &data) {
     std::stringstream result;
-    for(int i = 0, size = data.size(); i < size; i++) {
+    for(size_t i = 0; i < data.size(); i++) {
         result << std::hex << std::setfill('0') << std::setw(2) << (int)data[i];
     }
     return result.str();

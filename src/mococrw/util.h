@@ -29,7 +29,6 @@ namespace utility
 template <class T>
 using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
 
-std::string toHex(std::vector<uint8_t> &data);
-
+std::string toHex(const std::vector<uint8_t> &data);
 }  //::utility
 }  //::mococrw

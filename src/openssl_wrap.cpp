@@ -140,20 +140,20 @@ SSL_X509_REQ_Ptr _X509_REQ_new()
     return SSL_X509_REQ_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_REQ_new)};
 }
 
-int _EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) {
-    return lib::OpenSSLLib::SSL_EVP_DigestFinal_ex(ctx, md, s);
+void _EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_DigestFinal_ex, ctx, md, s);
 }
 
-int _EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) {
-    return lib::OpenSSLLib::SSL_EVP_DigestUpdate(ctx, d, cnt);
+void _EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_DigestUpdate, ctx, d, cnt);
 }
 
-int _EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl) {
-    return lib::OpenSSLLib::SSL_EVP_DigestInit_ex(ctx, type, impl);
+void _EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_DigestInit_ex, ctx, type, impl);
 }
 
 void _EVP_MD_CTX_init(EVP_MD_CTX* ctx) {
-    return lib::OpenSSLLib::SSL_EVP_MD_CTX_init(ctx);
+    lib::OpenSSLLib::SSL_EVP_MD_CTX_init(ctx);
 }
 
 /**
@@ -361,10 +361,6 @@ void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx)
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_X509_REQ_sign_ctx, req, ctx);
 }
 
-
-namespace
-{
-
 const EVP_MD* _getMDPtrFromDigestType(DigestTypes type)
 {
     switch (type) {
@@ -376,9 +372,6 @@ const EVP_MD* _getMDPtrFromDigestType(DigestTypes type)
             throw std::runtime_error("Unknown digest type");
     }
 }
-
-}
-
 
 void _EVP_DigestSignInit(EVP_MD_CTX* ctx, DigestTypes type, EVP_PKEY* pkey)
 {
