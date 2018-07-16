@@ -55,6 +55,11 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_EVP_MD_CTX_cleanup(EVP_MD_CTX* ctx) noexcept;
+    static int SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) noexcept;
+    static int SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) noexcept;
+    static int SSL_EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl) noexcept;
+    static void SSL_EVP_MD_CTX_init(EVP_MD_CTX* ctx) noexcept;
     static void SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, unsigned long flags, time_t t) noexcept;
     static ASN1_TIME* SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) noexcept;
     static int SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept;

@@ -156,6 +156,26 @@ using time_point = std::chrono::system_clock::time_point;
  * from the native OpenSSL methods.
  */
 
+/*
+ * Retrieve the digest value from ctx and places it in md.
+ */
+int _EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s);
+
+/*
+ * Hash cnt bytes of data at d into the digest context ctx.
+ */
+int _EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt);
+
+/*
+ * Set up digest context ctx to use a digest type from ENGINE impl.
+ */
+int _EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl);
+
+/*
+ * Initialize digest context ctx.
+ */
+void _EVP_MD_CTX_init(EVP_MD_CTX* ctx);
+
 /**
  * Create a new EVP_PKEY instance.
  *
@@ -464,6 +484,16 @@ enum class DigestTypes {
 void _EVP_DigestSignInit(EVP_MD_CTX* ctx, DigestTypes md, EVP_PKEY* pkey);
 
 /**
+<<<<<<< Updated upstream
+=======
+ * Get reference to digest function for a given digest type.
+ *
+ * @throws std::runtime_error if the requested digest function was not found.
+ */
+const EVP_MD* _getMDPtrFromDigestType(DigestTypes type);
+
+/**
+>>>>>>> Stashed changes
  * Create an MD_CTX object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
