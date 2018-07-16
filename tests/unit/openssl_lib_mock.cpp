@@ -659,6 +659,26 @@ void OpenSSLLib::SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, unsigned long 
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_set_time(ctx, flags, t);
 }
+void OpenSSLLib::SSL_EVP_MD_CTX_init(EVP_MD_CTX* ctx) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_CTX_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestInit_ex(ctx, type, impl);
+}
+int OpenSSLLib::SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestUpdate(ctx, d, cnt);
+}
+int OpenSSLLib::SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestFinal_ex(ctx, md, s);
+}
+int OpenSSLLib::SSL_EVP_MD_CTX_cleanup(EVP_MD_CTX* ctx) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_CTX_cleanup(ctx);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

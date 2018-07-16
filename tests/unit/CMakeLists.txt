@@ -19,6 +19,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_executable(keytests test_key.cpp ${REAL_SOURCES})
     add_executable(csrtests test_csr.cpp "${SRC_DIR}/key.cpp" ${REAL_SOURCES})
     add_executable(biotests test_bio.cpp ${REAL_SOURCES})
+    add_executable(hashtests test_hash.cpp ${REAL_SOURCES})
+    add_executable(utiltests test_util.cpp ${REAL_SOURCES})
     add_executable(x509tests test_x509.cpp
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/csr.cpp"
@@ -57,6 +59,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(keytests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(csrtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(biotests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
+    target_link_libraries(hashtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
+    target_link_libraries(utiltests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(x509tests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(crltests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(verificationtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
@@ -66,6 +70,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_test(OpenSSLTest openssltest)
 
     add_test(Asn1TimeTests asn1timetests)
+    add_test(HashTests hashtests)
+    add_test(UtilTests utiltests)
     add_test(KeyTest keytests)
     add_test(CsrTests csrtests)
     add_test(
