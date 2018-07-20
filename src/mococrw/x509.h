@@ -113,6 +113,13 @@ public:
     AsymmetricPublicKey getPublicKey() const;
 
     /**
+     * @brief Verify if the certificate is a CA
+     *
+     * @return Whether the certificate is a CA or not
+     */
+    bool checkIfCA() const;
+
+    /**
      * Get the internal openssl x509 instance.
      *
      * This method can be used when interaction with

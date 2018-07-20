@@ -232,6 +232,8 @@ public:
     static const char* SSL_X509_verify_cert_error_string(long n) noexcept;
     static int SSL_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx) noexcept;
 
+    static int SSL_X509_check_ca(X509 *cert) noexcept;
+
     /* stack of X509 */
     static STACK_OF(X509)* SSL_sk_X509_new_null() noexcept;
     static int SSL_sk_X509_push(STACK_OF(X509)* stack, const X509 *crt) noexcept;

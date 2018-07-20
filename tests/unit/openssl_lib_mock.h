@@ -214,6 +214,8 @@ public:
     virtual const char* SSL_X509_verify_cert_error_string(long n) = 0;
     virtual int SSL_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx) = 0;
 
+    virtual int SSL_X509_check_ca(X509 *cert) = 0;
+
     /* stack of X509 */
     virtual STACK_OF(X509)* SSL_sk_X509_new_null() = 0;
     virtual int SSL_sk_X509_push(STACK_OF(X509)* stack, const X509 *crt) = 0;
@@ -376,6 +378,8 @@ public:
     MOCK_METHOD1(SSL_X509_verify_cert, int(X509_STORE_CTX*));
     MOCK_METHOD1(SSL_X509_verify_cert_error_string, const char*(long));
     MOCK_METHOD1(SSL_X509_STORE_CTX_get_error, int(X509_STORE_CTX*));
+
+    MOCK_METHOD1(SSL_X509_check_ca, int(X509*));
 
     MOCK_METHOD0(SSL_sk_X509_new_null, STACK_OF(X509)*());
     MOCK_METHOD2(SSL_sk_X509_push, int(STACK_OF(X509)*, const X509*));
