@@ -581,7 +581,7 @@ X509_VERIFY_PARAM* _X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
  *
  * @return Whether the certificate is a CA or not
  */
-void _X509_check_ca(X509 *cert);
+bool _X509_check_ca(X509 *cert);
 
 class X509VerificationFlags {
 public:

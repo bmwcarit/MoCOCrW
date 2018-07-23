@@ -181,15 +181,9 @@ AsymmetricPublicKey X509Certificate::getPublicKey() const
     return AsymmetricPublicKey(std::move(pubkey));
 }
 
-bool X509Certificate::checkIfCA() const
+bool X509Certificate::isCA() const
 {
-    bool result = true;
-    try {
-         _X509_check_ca(_x509.get());
-    } catch (const OpenSSLException& e) {
-        result = false;
-    }
-    return result;
+    return  _X509_check_ca(_x509.get());;
 }
 
 std::chrono::system_clock::time_point X509Certificate::getNotBefore() const

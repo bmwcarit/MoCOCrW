@@ -117,7 +117,7 @@ public:
      *
      * @return Whether the certificate is a CA or not
      */
-    bool checkIfCA() const;
+    bool isCA() const;
 
     /**
      * Get the internal openssl x509 instance.

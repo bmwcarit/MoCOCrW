@@ -568,3 +568,11 @@ TEST_F(X509Test, testGetSerialNumber)
     EXPECT_EQ("-42", negativeSerialCert.getSerialNumberDecimal());
     EXPECT_EQ(std::vector<uint8_t>{0x2a}, negativeSerialCert.getSerialNumberBinary());
 }
+
+TEST_F(X509Test, testCACheck)
+{
+    EXPECT_EQ(false, _root1_expired->isCA())
+        << "X509Certificate::isCA() should have returned false";
+    EXPECT_EQ(true, _root1->isCA())
+        << "X509Certificate::isCA() should have returned true";
+}
