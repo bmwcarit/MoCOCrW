@@ -16,20 +16,22 @@
  * limitations under the License.
  * #L%
  */
-#pragma once
-
-#include <memory>
-#include <vector>
+#include "mococrw/util.h"
+#include <sstream>
+#include <iomanip>
 
 namespace mococrw
 {
 namespace utility
 {
 
-template <class T>
-using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
+std::string toHex(const std::vector<uint8_t> &data) {
+    std::stringstream result;
+    for(int i = 0, size = data.size(); i < size; i++) {
+        result << std::hex << std::setfill('0') << std::setw(2) << (int)data[i];
+    }
+    return result.str();
+}
 
-std::string toHex(std::vector<uint8_t> &data);
-
-}  //::utility
-}  //::mococrw
+}
+}
