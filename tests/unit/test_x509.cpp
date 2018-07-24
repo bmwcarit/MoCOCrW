@@ -62,9 +62,6 @@ protected:
     std::unique_ptr<X509Certificate> _root1_int1_cert1;
 
     std::unique_ptr<X509Certificate> _root2;
-    std::unique_ptr<X509Certificate> _root2_int1;
-    std::unique_ptr<X509Certificate> _root2_int1_cert1;
-
 
     std::unique_ptr<X509Certificate> _year1970;
     std::unique_ptr<X509Certificate> _year2049;
@@ -85,8 +82,6 @@ void X509Test::SetUp()
     _root1_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root1.int1.cert1.pem"));
 
     _root2 = std::make_unique<X509Certificate>(loadCertFromFile("root2.pem"));
-    _root2_int1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
-    _root2_int1_cert1 = std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
 
     _year1970 = std::make_unique<X509Certificate>(loadCertFromFile("year1970.pem"));
     _year2049 = std::make_unique<X509Certificate>(loadCertFromFile("year2049.pem"));
@@ -585,6 +580,9 @@ TEST_F(X509Test, testRootCertificateIsCA)
 
 TEST_F(X509Test, testIntermediateCertificateIsCA)
 {
+    std::unique_ptr<X509Certificate> _root2_int1 =
+            std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
+
     EXPECT_TRUE(_root1_int1->isCA())
         << "X509Certificate::isCA(): Root1 Intermediate Certificate is a CA";
 
@@ -594,6 +592,9 @@ TEST_F(X509Test, testIntermediateCertificateIsCA)
 
 TEST_F(X509Test, testClientCertificateIsNotCA)
 {
+    std::unique_ptr<X509Certificate> _root2_int1_cert1 =
+            std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
+
     EXPECT_FALSE(_root1_int1_cert1->isCA())
         << "X509Certificate::isCA(): Root1 Client Certificate is not a CA";
 
@@ -603,7 +604,7 @@ TEST_F(X509Test, testClientCertificateIsNotCA)
 
 TEST_F(X509Test, testExpiredCertificateIsNotCA)
 {
-    EXPECT_FALSE(_root1_expired->isCA());
+    EXPECT_FALSE(_root1_expired->isCA())
         << "X509Certificate::isCA(): Certificate is not a CA";
 }
 
