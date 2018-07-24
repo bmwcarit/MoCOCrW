@@ -405,7 +405,7 @@ public:
      * Access the OpenSSLLibMock instance currently
      * maintained. Create a new one, if none is present.
      */
-    static OpenSSLLibMock& getMockInterface();
+    static ::testing::NiceMock<OpenSSLLibMock>& getMockInterface();
 
     /**
      * Reset the current OpenSSLLibMock instance
@@ -419,7 +419,7 @@ public:
     static void destroy();
 
 private:
-    static std::unique_ptr<OpenSSLLibMock> _mock;
+    static std::unique_ptr<::testing::NiceMock<OpenSSLLibMock>> _mock;
 
     /* Unsure how much parallization happens with regard to the tests
      * but let's be safe
