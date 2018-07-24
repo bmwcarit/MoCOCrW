@@ -27,13 +27,13 @@ namespace mococrw
 {
 namespace openssl
 {
-std::unique_ptr<OpenSSLLibMock> OpenSSLLibMockManager::_mock{nullptr};
+std::unique_ptr<::testing::NiceMock<OpenSSLLibMock>> OpenSSLLibMockManager::_mock{nullptr};
 std::mutex OpenSSLLibMockManager::_mutex{};
 
 /*
  * If there is no mock yet, we create a new one.
  */
-OpenSSLLibMock& OpenSSLLibMockManager::getMockInterface()
+testing::NiceMock<OpenSSLLibMock>& OpenSSLLibMockManager::getMockInterface()
 {
     if (!_mock) {
         resetMock();
@@ -45,7 +45,7 @@ OpenSSLLibMock& OpenSSLLibMockManager::getMockInterface()
 void OpenSSLLibMockManager::resetMock()
 {
     std::lock_guard<std::mutex> _lock(_mutex);
-    _mock = std::make_unique<OpenSSLLibMock>();
+    _mock = std::make_unique<::testing::NiceMock<OpenSSLLibMock>>();
 }
 
 void OpenSSLLibMockManager::destroy()
