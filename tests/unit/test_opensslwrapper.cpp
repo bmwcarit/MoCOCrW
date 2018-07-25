@@ -47,6 +47,7 @@ class OpenSSLWrapperTest : public ::testing::Test
 {
 public:
     void SetUp() override;
+    void TearDown() override;
 
 protected:
     std::string _defaultErrorMessage{"bla bla bla"};
@@ -75,6 +76,11 @@ void OpenSSLWrapperTest::SetUp()
     ON_CALL(_mock(), SSL_ERR_error_string(_, nullptr))
             .WillByDefault(Return(const_cast<char *>(_defaultErrorMessage.c_str())));
     // TODO: Get rid of the uninteresting calls by default here somehow...
+}
+
+void OpenSSLWrapperTest::TearDown()
+{
+    OpenSSLLibMockManager::destroy();
 }
 
 /*
