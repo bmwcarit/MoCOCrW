@@ -181,6 +181,11 @@ AsymmetricPublicKey X509Certificate::getPublicKey() const
     return AsymmetricPublicKey(std::move(pubkey));
 }
 
+bool X509Certificate::isCA() const
+{
+    return  _X509_check_ca(_x509.get());;
+}
+
 std::chrono::system_clock::time_point X509Certificate::getNotBefore() const
 {
     /* OpenSSL's const-correctness is totally broken. */

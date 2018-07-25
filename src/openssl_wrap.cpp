@@ -440,6 +440,10 @@ X509_VERIFY_PARAM* _X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx) {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_STORE_CTX_get0_param, ctx);
 }
 
+bool _X509_check_ca(X509 *cert) {
+    return lib::OpenSSLLib::SSL_X509_check_ca(cert);
+}
+
 void _X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param, unsigned long flags) {
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_VERIFY_PARAM_set_flags, param, flags);
 }

@@ -576,6 +576,13 @@ void _X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store, X509 *x509, ST
  */
 X509_VERIFY_PARAM* _X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
 
+/**
+ * @brief Verify if the certificate is a CA
+ *
+ * @return Whether the certificate is a CA or not
+ */
+bool _X509_check_ca(X509 *cert);
+
 class X509VerificationFlags {
 public:
     static constexpr unsigned long PARTIAL_CHAIN = X509_V_FLAG_PARTIAL_CHAIN;

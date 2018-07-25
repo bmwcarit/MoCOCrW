@@ -452,6 +452,10 @@ int OpenSSLLib::SSL_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx) noexcept {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_get_error(ctx);
 }
 
+int OpenSSLLib::SSL_X509_check_ca(X509 *cert) noexcept {
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_check_ca(cert);
+}
+
 /* stack of X509 */
 STACK_OF(X509)* OpenSSLLib::SSL_sk_X509_new_null() noexcept
 {

@@ -568,3 +568,49 @@ TEST_F(X509Test, testGetSerialNumber)
     EXPECT_EQ("-42", negativeSerialCert.getSerialNumberDecimal());
     EXPECT_EQ(std::vector<uint8_t>{0x2a}, negativeSerialCert.getSerialNumberBinary());
 }
+
+TEST_F(X509Test, testRootCertificateIsCA)
+{
+    EXPECT_TRUE(_root1->isCA())
+        << "X509Certificate::isCA(): Root1 certificate is a CA";
+
+    EXPECT_TRUE(_root2->isCA())
+        << "X509Certificate::isCA(): Root2 certificate is a CA";
+}
+
+TEST_F(X509Test, testIntermediateCertificateIsCA)
+{
+    std::unique_ptr<X509Certificate> _root2_int1 =
+            std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
+
+    EXPECT_TRUE(_root1_int1->isCA())
+        << "X509Certificate::isCA(): Root1 Intermediate Certificate is a CA";
+
+    EXPECT_TRUE(_root2_int1->isCA())
+        << "X509Certificate::isCA(): Root2 Intermediate Certificate is a CA";
+}
+
+TEST_F(X509Test, testClientCertificateIsNotCA)
+{
+    std::unique_ptr<X509Certificate> _root2_int1_cert1 =
+            std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
+
+    EXPECT_FALSE(_root1_int1_cert1->isCA())
+        << "X509Certificate::isCA(): Root1 Client Certificate is not a CA";
+
+    EXPECT_FALSE(_root2_int1_cert1->isCA())
+        << "X509Certificate::isCA(): Root2 Client Certificate is not a CA";
+}
+
+TEST_F(X509Test, testExpiredCertificateIsNotCA)
+{
+    std::unique_ptr<X509Certificate> expiredCAcert =
+            std::make_unique<X509Certificate>(loadCertFromFile("expiredCA.pem"));
+    /*Check an expired CA certificate*/
+    EXPECT_TRUE(expiredCAcert->isCA())
+        << "X509Certificate::isCA(): Certificate is a CA";
+    /*Check an expired non CA certificate*/
+    EXPECT_FALSE(_root1_expired->isCA())
+        << "X509Certificate::isCA(): Certificate is not a CA";
+}
+
