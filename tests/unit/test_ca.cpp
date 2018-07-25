@@ -18,6 +18,7 @@
  */
 #include <gtest/gtest.h>
 
+#include <string>
 #include <fstream>
 #include <cstdio>
 
@@ -27,6 +28,7 @@
 #include "mococrw/key_usage.h"
 
 using namespace mococrw;
+using namespace std::string_literals;
 
 class CATest : public ::testing::Test
 {
@@ -120,7 +122,7 @@ void CATest::SetUp()
 std::string exec(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
-    std::shared_ptr<FILE> pipe(popen(cmd, "r"), pclose);
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
     if (!pipe) throw std::runtime_error("popen() failed!");
     while (!feof(pipe.get())) {
         if (fgets(buffer.data(), 128, pipe.get()) != NULL) {
@@ -285,11 +287,16 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
     CertificateSigningRequest csr{*_certDetails, keypair};
     X509Certificate cert = _ca->signCSR(csr);
 
-    std::ofstream file("cert.pem");
+    std::string tmpfile = std::tmpnam(nullptr);
+    std::ofstream file(tmpfile);
+    ASSERT_TRUE(file.good()) << "Cannot open tmpfile to write certificate for openssl inspection";
     file << cert.toPEM();
+    ASSERT_TRUE(file.good()) << "Writing of certificate for openssl inspection failed";
     file.close();
 
-    std::string output = exec("openssl x509 -in cert.pem -noout -text");
+    std::string opensslCommandline = "openssl x509 -in "s + tmpfile + " -noout -text";
+    std::string output = exec(opensslCommandline.c_str());
+    std::remove(tmpfile.c_str());
 
     EXPECT_NE(output.find("Issuer: CN=ImATeapot, C=DE, L=oben, ST=nebenan, OU=Linux Support"),
               std::string::npos);
