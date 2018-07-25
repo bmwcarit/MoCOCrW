@@ -413,6 +413,11 @@ public:
      */
     static void resetMock();
 
+    /**
+     * Destroy current mock object to trigger gmock call analysis
+     */
+    static void destroy();
+
 private:
     static std::unique_ptr<OpenSSLLibMock> _mock;
 
