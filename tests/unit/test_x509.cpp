@@ -604,6 +604,12 @@ TEST_F(X509Test, testClientCertificateIsNotCA)
 
 TEST_F(X509Test, testExpiredCertificateIsNotCA)
 {
+    std::unique_ptr<X509Certificate> expiredCAcert =
+            std::make_unique<X509Certificate>(loadCertFromFile("expiredCA.pem"));
+    /*Check an expired CA certificate*/
+    EXPECT_TRUE(expiredCAcert->isCA())
+        << "X509Certificate::isCA(): Certificate is a CA";
+    /*Check an expired non CA certificate*/
     EXPECT_FALSE(_root1_expired->isCA())
         << "X509Certificate::isCA(): Certificate is not a CA";
 }
