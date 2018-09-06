@@ -206,10 +206,6 @@ bool _EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b)
     }
 }
 
-int _CRYPTO_add(int *pointer, int amount, int type) {
-    return lib::OpenSSLLib::SSL_CRYPTO_add(pointer, amount, type);
-}
-
 SSL_X509_NAME_Ptr _X509_NAME_new()
 {
     return SSL_X509_NAME_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_NAME_new)};
@@ -280,9 +276,9 @@ SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio)
                                           nullptr)}; // no password either
 }
 
-BIO_METHOD* _BIO_s_mem() { return lib::OpenSSLLib::SSL_BIO_s_mem(); }
+const BIO_METHOD* _BIO_s_mem() { return lib::OpenSSLLib::SSL_BIO_s_mem(); }
 
-SSL_BIO_Ptr _BIO_new(BIO_METHOD* method)
+SSL_BIO_Ptr _BIO_new(const BIO_METHOD* method)
 {
     return SSL_BIO_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_BIO_new, method)};
 }
@@ -922,12 +918,12 @@ void _X509_CRL_verify(X509_CRL *crl, EVP_PKEY *key)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_X509_CRL_verify, crl, key);
 }
 
-ASN1_TIME* _X509_CRL_get_lastUpdate(const X509_CRL* crl)
+const ASN1_TIME* _X509_CRL_get_lastUpdate(const X509_CRL* crl)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_get_lastUpdate, crl);
 }
 
-ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl)
+const ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_get_nextUpdate, crl);
 }

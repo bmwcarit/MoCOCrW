@@ -65,7 +65,7 @@ TEST_F(Asn1TimeTest, parseFromUTCTime)
 TEST_F(Asn1TimeTest, parseFromGeneralizedTime)
 {
     auto refFromTimePoint = Asn1Time::fromTimePoint(tp_2017_3_27__19_00_38);
-    auto fromGeneralizedTime = Asn1Time::fromString("20170327190038");
+    auto fromGeneralizedTime = Asn1Time::fromString("20170327190038Z");
     EXPECT_THAT(fromGeneralizedTime, Eq(refFromTimePoint));
 }
 

@@ -58,6 +58,7 @@ endif()
 
 if(OPENSSL_FOUND)
     include_directories(${OPENSSL_INCLUDE_DIR} ${OPENSSL_INCLUDE_DIRS})
+    link_directories(${OPENSSL_LIBRARY_DIRS})
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
