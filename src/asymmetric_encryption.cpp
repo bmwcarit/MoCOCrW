@@ -19,6 +19,8 @@
 #include "mococrw/asymmetric_encryption.h"
 
 #include <fstream>
+#include <type_traits>
+#include <cstring>
 
 #include "mococrw/error.h"
 #include "mococrw/hash.h"

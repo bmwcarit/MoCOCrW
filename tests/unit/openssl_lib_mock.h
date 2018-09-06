@@ -112,6 +112,7 @@ public:
     virtual const EC_GROUP* SSL_EC_KEY_get0_group(const EC_KEY *key) = 0;
     virtual int SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) = 0;
     virtual int SSL_EVP_PKEY_type(int type) = 0;
+    virtual int SSL_EVP_PKEY_id(const EVP_PKEY *pkey) = 0;
     virtual int SSL_EVP_PKEY_size(EVP_PKEY *pkey) = 0;
 
     /* Error handling */
@@ -247,6 +248,7 @@ public:
     virtual int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) = 0;
+    virtual EC_KEY *SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) = 0;
 
     /* Encryption */
     virtual int SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) = 0;
@@ -355,6 +357,8 @@ public:
     MOCK_METHOD1(SSL_EC_GROUP_get_curve_name, int(const EC_GROUP *group));
 
     MOCK_METHOD1(SSL_EVP_PKEY_type, int(int type));
+    MOCK_METHOD1(SSL_EVP_PKEY_id, int(const EVP_PKEY *pkey));
+
     MOCK_METHOD1(SSL_EVP_PKEY_size, int(EVP_PKEY *pkey));
 
     MOCK_METHOD0(SSL_ERR_get_error, unsigned long());
@@ -472,6 +476,8 @@ public:
     MOCK_METHOD2(SSL_EVP_PKEY_CTX_get_rsa_oaep_label, int(EVP_PKEY_CTX *ctx, unsigned char *l));
     MOCK_METHOD1(SSL_RSA_size, int(const RSA *r));
     MOCK_METHOD1(SSL_EVP_MD_size, int(const EVP_MD *md));
+    MOCK_METHOD1(SSL_EVP_PKEY_get0_EC_KEY, EC_KEY*(EVP_PKEY *pkey));
+
 };
 
 /**

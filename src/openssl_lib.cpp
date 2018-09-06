@@ -75,7 +75,6 @@ int OpenSSLLib::SSL_EVP_PKEY_keygen(EVP_PKEY_CTX* ctx, EVP_PKEY** ppkey) noexcep
     return EVP_PKEY_keygen(ctx, ppkey);
 }
 
-
 int OpenSSLLib::SSL_EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return EVP_PKEY_keygen_init(ctx);
@@ -91,12 +90,10 @@ EVP_PKEY_CTX* OpenSSLLib::SSL_EVP_PKEY_CTX_new_id(int id, ENGINE* engine) noexce
     return EVP_PKEY_CTX_new_id(id, engine);
 }
 
-
 void OpenSSLLib::SSL_EVP_PKEY_CTX_free(EVP_PKEY_CTX* ptr) noexcept
 {
     return EVP_PKEY_CTX_free(ptr);
 }
-
 
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbits) noexcept
 {
@@ -112,6 +109,7 @@ int OpenSSLLib::SSL_EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx) noexcept
 {
     return EVP_PKEY_paramgen_init(ctx);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey) noexcept
 {
     return EVP_PKEY_paramgen(ctx, ppkey);
@@ -140,6 +138,11 @@ int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept
 int OpenSSLLib::SSL_EVP_PKEY_type(int type) noexcept
 {
     return EVP_PKEY_type(type);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_id(const EVP_PKEY *pkey) noexcept
+{
+    return EVP_PKEY_id(pkey);
 }
 
 int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept
@@ -239,7 +242,6 @@ int OpenSSLLib::SSL_EVP_DigestSignInit(EVP_MD_CTX* ctx,
     return EVP_DigestSignInit(ctx, pctx, type, e, pkey);
 }
 
-
 void OpenSSLLib::SSL_EVP_MD_CTX_destroy(EVP_MD_CTX* ptr) noexcept { EVP_MD_CTX_destroy(ptr); }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha1() noexcept { return EVP_sha1(); }
@@ -273,7 +275,6 @@ EVP_PKEY* OpenSSLLib::SSL_PEM_read_bio_PUBKEY(BIO* bio,
 {
     return PEM_read_bio_PUBKEY(bio, pkey, cb, u);
 }
-
 
 EVP_PKEY* OpenSSLLib::SSL_PEM_read_bio_PrivateKey(BIO* bio,
                                                   EVP_PKEY** pkey,
@@ -440,7 +441,6 @@ int OpenSSLLib::SSL_X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param, unsign
     return X509_VERIFY_PARAM_set_flags(param, flags);
 }
 
-
 int OpenSSLLib::SSL_X509_verify_cert(X509_STORE_CTX *ctx) noexcept
 {
     return X509_verify_cert(ctx);
@@ -475,6 +475,7 @@ int OpenSSLLib::SSL_sk_X509_push(STACK_OF(X509)* stack, const X509 *crt) noexcep
      */ 
     return sk_X509_push(stack,  const_cast<X509*>(crt));
 }
+
 void OpenSSLLib::SSL_sk_X509_free(STACK_OF(X509)* stack) noexcept { sk_X509_free(stack); }
 
 BIO* OpenSSLLib::SSL_BIO_new_file(const char* filename, const char* mode) noexcept
@@ -519,6 +520,7 @@ void OpenSSLLib::SSL_X509V3_set_ctx_nodb(X509V3_CTX* ctx) noexcept
 {
     X509V3_set_ctx_nodb(ctx);
 }
+
 void OpenSSLLib::SSL_X509V3_set_ctx(X509V3_CTX* ctx,
                                     X509* issuer,
                                     X509* subject,
@@ -528,122 +530,152 @@ void OpenSSLLib::SSL_X509V3_set_ctx(X509V3_CTX* ctx,
 {
     X509V3_set_ctx(ctx, issuer, subject, req, crl, flags);
 }
+
 int OpenSSLLib::SSL_X509_set_serialNumber(X509* x, ASN1_INTEGER* serial) noexcept
 {
     return X509_set_serialNumber(x, serial);
 }
+
 ASN1_INTEGER* OpenSSLLib::SSL_X509_get_serialNumber(X509* x) noexcept
 {
     return X509_get_serialNumber(x);
 }
+
 int OpenSSLLib::SSL_ASN1_INTEGER_set(ASN1_INTEGER* a, long value) noexcept
 {
     return ASN1_INTEGER_set(a, value);
 }
+
 long OpenSSLLib::SSL_ASN1_INTEGER_get(const ASN1_INTEGER* a) noexcept
 {
     return ASN1_INTEGER_get(a);
 }
+
 int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER* x, const ASN1_INTEGER* y) noexcept
 {
     return ASN1_INTEGER_cmp(x, y);
 }
+
 BIGNUM* OpenSSLLib::SSL_ASN1_INTEGER_to_BN(const ASN1_INTEGER* ai, BIGNUM* bn) noexcept
 {
     return ASN1_INTEGER_to_BN(ai, bn);
 }
+
 void OpenSSLLib::SSL_BN_free(BIGNUM* a) noexcept
 {
     BN_free(a);
 }
+
 char* OpenSSLLib::SSL_BN_bn2dec(const BIGNUM* a) noexcept
 {
     return BN_bn2dec(a);
 }
+
 void* OpenSSLLib::SSL_OPENSSL_malloc(int num) noexcept
 {
     return OPENSSL_malloc(num);
 }
+
 void OpenSSLLib::SSL_OPENSSL_free(void* addr) noexcept
 {
     OPENSSL_free(addr);
 }
+
 void OpenSSLLib::SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) noexcept
 {
     ASN1_INTEGER_free(a);
 }
+
 ASN1_INTEGER* OpenSSLLib::SSL_ASN1_INTEGER_new() noexcept
 {
     return ASN1_INTEGER_new();
 }
+
 int OpenSSLLib::SSL_BN_bn2bin(const BIGNUM* a, unsigned char* to) noexcept
 {
     return BN_bn2bin(a, to);
 }
+
 int OpenSSLLib::SSL_BN_num_bytes(const BIGNUM* a) noexcept
 {
     return BN_num_bytes(a);
 }
+
 int OpenSSLLib::SSL_ASN1_TIME_set_string(ASN1_TIME* s, const char* str) noexcept
 {
     return ASN1_TIME_set_string(s, str);
 }
+
 ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_new() noexcept
 {
     return ASN1_TIME_new();
 }
+
 ASN1_STRING* OpenSSLLib::SSL_ASN1_STRING_dup(const ASN1_STRING* str) noexcept
 {
     return ASN1_STRING_dup(str);
 }
+
 X509_NAME* OpenSSLLib::SSL_X509_CRL_get_issuer(const X509_CRL* crl) noexcept
 {
     return X509_CRL_get_issuer(crl);
 }
+
 int OpenSSLLib::SSL_X509_CRL_verify(X509_CRL* a, EVP_PKEY* r) noexcept
 {
     return X509_CRL_verify(a, r);
 }
+
 const ASN1_TIME* OpenSSLLib::SSL_X509_CRL_get_nextUpdate(const X509_CRL* x) noexcept
 {
     return X509_CRL_get0_nextUpdate(x);
 }
+
 const ASN1_TIME* OpenSSLLib::SSL_X509_CRL_get_lastUpdate(const X509_CRL* x) noexcept
 {
     return X509_CRL_get0_lastUpdate(x);
 }
+
 X509_CRL* OpenSSLLib::SSL_PEM_read_bio_X509_CRL(BIO* bp, X509_CRL** x, pem_password_cb* cb, void* u) noexcept
 {
     return PEM_read_bio_X509_CRL(bp, x, cb, u);
 }
+
 int OpenSSLLib::SSL_PEM_write_bio_X509_CRL(BIO* bp, X509_CRL* x) noexcept
 {
     return PEM_write_bio_X509_CRL(bp, x);
 }
+
 X509_CRL* OpenSSLLib::SSL_d2i_X509_CRL_bio(BIO* bp, X509_CRL** crl) noexcept
 {
     return d2i_X509_CRL_bio(bp, crl);
 }
+
 void OpenSSLLib::SSL_X509_CRL_free(X509_CRL* a) noexcept
 {
     X509_CRL_free(a);
 }
+
 X509_CRL* OpenSSLLib::SSL_X509_CRL_new() noexcept
 {
     return X509_CRL_new();
 }
+
 void OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls) noexcept
 {
     X509_STORE_CTX_set0_crls(ctx, crls);
 }
+
 void OpenSSLLib::SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) noexcept
 {
     sk_X509_CRL_free(stack);
 }
+
 STACK_OF(X509_CRL)* OpenSSLLib::SSL_sk_X509_CRL_new_null() noexcept
 {
     return sk_X509_CRL_new_null();
 }
+
 int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept
 {
     /* 
@@ -652,70 +684,86 @@ int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* 
      */ 
     return sk_X509_CRL_push(stack, const_cast<X509_CRL*>(crl));
 }
+
 ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) noexcept
 {
     return ASN1_TIME_adj(s, t, offset_day, offset_sec);
 }
+
 void OpenSSLLib::SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, unsigned long flags, time_t t) noexcept
 {
     X509_STORE_CTX_set_time(ctx, flags, t);
 }
+
 void OpenSSLLib::SSL_EVP_MD_CTX_init(EVP_MD_CTX* ctx) noexcept
 {
     EVP_MD_CTX_init(ctx);
 }
+
 int OpenSSLLib::SSL_EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl) noexcept
 {
     return EVP_DigestInit_ex(ctx, type, impl);
 }
+
 int OpenSSLLib::SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) noexcept
 {
     return EVP_DigestUpdate(ctx, d, cnt);
 }
+
 int OpenSSLLib::SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) noexcept
 {
     return EVP_DigestFinal_ex(ctx, md, s);
 }
+
 int OpenSSLLib::SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) noexcept
 {
     return EVP_MD_CTX_reset(ctx);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept
 {
     return EVP_PKEY_encrypt_init(ctx);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
                                      unsigned char *out, size_t *outlen,
                                      const unsigned char *in, size_t inlen) noexcept
 {
     return EVP_PKEY_encrypt(ctx, out, outlen, in, inlen);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx) noexcept
 {
     return EVP_PKEY_decrypt_init(ctx);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
                                      unsigned char *out, size_t *outlen,
                                      const unsigned char *in, size_t inlen) noexcept
 {
     return EVP_PKEY_decrypt(ctx, out, outlen, in, inlen);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
 {
     return EVP_PKEY_CTX_set_rsa_oaep_md(ctx, md);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen) noexcept
 {
     return EVP_PKEY_CTX_set0_rsa_oaep_label(ctx, l, llen);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept
 {
     return EVP_PKEY_CTX_get0_rsa_oaep_label(ctx, l);
 }
+
 int OpenSSLLib::SSL_RSA_size(const RSA *r) noexcept
 {
     return RSA_size(r);
 }
+
 int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD *md) noexcept
 {
     return EVP_MD_size(md);
@@ -726,6 +774,7 @@ int OpenSSLLib::SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t 
 {
     return EVP_PKEY_sign(ctx, sig, siglen, tbs, tbslen);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx) noexcept
 {
     return EVP_PKEY_sign_init(ctx);
@@ -747,6 +796,7 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noe
 {
     return EVP_PKEY_CTX_set_rsa_padding(ctx, pad);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) noexcept
 {
     return EVP_PKEY_CTX_set_signature_md(ctx, md);
@@ -756,9 +806,15 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len)
 {
     return EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
 {
     return EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
+}
+
+EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
+{
+    return EVP_PKEY_get0_EC_KEY(pkey);
 }
 }  //::lib
 }  //::openssl

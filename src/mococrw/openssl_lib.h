@@ -106,6 +106,7 @@ public:
     static int SSL_BIO_write(BIO* b, const void* buf, int len) noexcept;
     static int SSL_BIO_read(BIO* b, void* buf, int len) noexcept;
     static BIO* SSL_BIO_new_file(const char* filename, const char* mode) noexcept;
+
     /* Initialization */
     static void SSL_ERR_load_crypto_strings() noexcept;
     static void SSL_SSL_load_error_strings() noexcept;
@@ -129,6 +130,7 @@ public:
     static const EC_GROUP *SSL_EC_KEY_get0_group(const EC_KEY *key) noexcept;
     static int SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept;
     static int SSL_EVP_PKEY_type(int type) noexcept;
+    static int SSL_EVP_PKEY_id(const EVP_PKEY *pkey) noexcept;
     static int SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept;
 
     /* Error handling */
@@ -201,7 +203,6 @@ public:
     static X509_NAME* SSL_X509_REQ_get_subject_name(X509_REQ* req) noexcept;
     static EVP_PKEY* SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept;
     static int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept;
-
     static const EVP_MD* SSL_EVP_sha1() noexcept;
     static const EVP_MD* SSL_EVP_sha256() noexcept;
     static const EVP_MD* SSL_EVP_sha384() noexcept;
@@ -278,6 +279,7 @@ public:
                                    size_t tbslen) noexcept;
     static int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept;
+    static EC_KEY *SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept;
 
     /* Encryption */
     static int SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept;
@@ -291,7 +293,6 @@ public:
     static int SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen) noexcept;
     static int SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept;
-
     static int SSL_RSA_size(const RSA *r) noexcept;
     static int SSL_EVP_MD_size(const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;

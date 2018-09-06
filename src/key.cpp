@@ -131,7 +131,7 @@ std::unique_ptr<AsymmetricKey::Spec> AsymmetricKey::getKeySpec() const
     if(getType() == KeyTypes::ECC) {
         openssl::ellipticCurveNid keyNid;
         try {
-            const EC_GROUP *group = _EC_KEY_get0_group(_key->pkey.ec);
+            const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(_key.get()));
             keyNid = static_cast<openssl::ellipticCurveNid>(_EC_GROUP_get_curve_name(group));
         } catch (const OpenSSLException &e) {
             throw MoCOCrWException(e.what());
