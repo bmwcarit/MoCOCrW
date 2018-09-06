@@ -238,7 +238,7 @@ int _EC_GROUP_get_curve_name(const EC_GROUP *group)
 
 int _EVP_PKEY_type(const EVP_PKEY* key)
 {
-    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_type, key->type);
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_type, lib::OpenSSLLib::SSL_EVP_PKEY_id(key));
 }
 
 int _EVP_PKEY_size(EVP_PKEY *pkey)
@@ -1119,5 +1119,9 @@ void _CRYPTO_malloc_init()
     return lib::OpenSSLLib::SSL_CRYPTO_malloc_init();
 }
 
+EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY,pkey);
+}
 }  // ::openssl
 }  //:: mococrw

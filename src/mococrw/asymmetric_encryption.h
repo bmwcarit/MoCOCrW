@@ -18,8 +18,6 @@
  */
 #pragma once
 
-#include <type_traits>
-
 #include "key.h"
 #include "openssl_wrap.h"
 #include "padding_mode.h"

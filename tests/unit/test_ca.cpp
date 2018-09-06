@@ -403,10 +403,10 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutputECC)
     std::string output = exec(opensslCommandline.c_str());
     std::remove(tmpfile.c_str());
 
-    EXPECT_NE(output.find("Issuer: CN=ImATeapot, C=DE, L=oben, ST=nebenan, OU=Linux Support"),
+    EXPECT_NE(output.find("Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux Support, O = Linux AG"),
               std::string::npos);
 
-    EXPECT_NE(output.find("Subject: CN=BMW internal CA Certificate, C=DE, OU=Car IT, O=BMW"),
+    EXPECT_NE(output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
               std::string::npos);
 
     EXPECT_NE(output.find("ASN1 OID: prime256v1"),
