@@ -113,7 +113,7 @@ FileBio::FileBio(const std::string &filename, FileMode mode, FileType type)
     _bio = _BIO_new_file(filename.c_str(), modeStr.c_str());
 }
 
-BIO_METHOD *BioObject::_bioMethodFromType(Types type)
+const BIO_METHOD *BioObject::_bioMethodFromType(Types type)
 {
     switch (type) {
         case Types::MEM:

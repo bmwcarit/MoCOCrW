@@ -298,11 +298,11 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
     std::string output = exec(opensslCommandline.c_str());
     std::remove(tmpfile.c_str());
 
-    EXPECT_NE(output.find("Issuer: CN=ImATeapot, C=DE, L=oben, ST=nebenan, OU=Linux Support"),
-              std::string::npos);
+    EXPECT_NE(output.find("Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux Support"),
+                          std::string::npos);
 
-    EXPECT_NE(output.find("Subject: CN=BMW internal CA Certificate, C=DE, OU=Car IT, O=BMW"),
-              std::string::npos);
+    EXPECT_NE(output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
+                          std::string::npos);
 
     EXPECT_NE(output.find("X509v3 Key Usage: critical"), std::string::npos);
     EXPECT_NE(output.find("Digital Signature, Certificate Sign, CRL Sign"), std::string::npos);

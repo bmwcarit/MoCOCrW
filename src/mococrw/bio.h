@@ -60,7 +60,7 @@ protected:
     BioObject() = default;
 
     openssl::SSL_BIO_Ptr _bio;
-    static BIO_METHOD *_bioMethodFromType(Types type);
+    static const BIO_METHOD *_bioMethodFromType(Types type);
 };
 
 enum class BioObject::Types : int {

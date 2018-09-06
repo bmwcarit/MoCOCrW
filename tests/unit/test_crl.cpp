@@ -100,6 +100,7 @@ protected:
     std::unique_ptr<X509Certificate> subCACert;
 
     static const std::string invalidCrlPem;
+    static const std::string crlPemChain;
 };
 
 using namespace std::string_literals;
@@ -116,6 +117,32 @@ n0OgWYUWNTyEBw5k30+/4fpnyFjK0v+ed49hHKGrr3vIC30TM9IoBAvbTS41AEi7
 xMXkycw4+LeLOPhYtS5visTc/zvJ70Wr26KnCbt8RrifqDtKckAyUrIzwrkUrv8E
 KwI7L3ne8waohqAL6l7lOVsHdohLGd610g==
 -----BLA X509 CRL-----)"};
+
+
+const std::string CRLTest::crlPemChain{R"(-----BEGIN X509 CRL-----
+MIIB0jCBuwIBATANBgkqhkiG9w0BAQsFADB3MQswCQYDVQQGEwJQVDEOMAwGA1UE
+CAwFUG9ydG8xDjAMBgNVBAcMBVBvcnRvMRkwFwYDVQQKDBBUZXN0T3JnYW5pemF0
+aW9uMRQwEgYDVQQLDAtUZXN0T3JnTmFtZTEXMBUGA1UEAwwOVGVzdENvbW1vbk5h
+bWUXDTE4MDkwNjE2MDI0MVoYDzIxMDAxMDI2MTYwMjQxWqAOMAwwCgYDVR0UBAMC
+AQUwDQYJKoZIhvcNAQELBQADggEBAGNz3yHWB6pOpoEi4obVCFHofiVsiC7cjAxv
+Yn3Hf2+JrfuJ/61kCWSXlOsbMYyfdMJCW8sSs3y58LgHsf2M/vF9bcGMSA5FZiLA
+aGNKoji4MDEZS53H3n5j5pYc5CygOMtoVlLVOyMMIW18D/NlWGKUqjbZn5+Cbhi7
+vPLmaOskoTy2DGGiJLMXFW2TJzV80vo6xJryEohxkZ7td1ZMlYI4gu/FG2jb9E12
+hA9yWP4qIre+D0+puJwtkWCTYrsDwJ33s4oIPJM6TUElFKayKdYXcJuadm1HCceE
+QOFZM6i06ACRSXsFIWqTWfVbyu20se4prAkoNoFgZo3de04Bi9Y=
+-----END X509 CRL-----
+-----BEGIN X509 CRL-----
+MIIBxzCBsAIBATANBgkqhkiG9w0BAQsFADBsMQswCQYDVQQGEwJQVDEPMA0GA1UE
+CAwGTGlzYm9uMQ8wDQYDVQQHDAZMaXNib24xETAPBgNVBAoMCFRlc3RPcmcyMREw
+DwYDVQQLDAhPcmdVbml0MjEVMBMGA1UEAwwMYUNvbW1vbk5hbWUyFw0xODA5MDYx
+NTU3NDVaGA8yMTAwMTAyNjE1NTc0NVqgDjAMMAoGA1UdFAQDAgEEMA0GCSqGSIb3
+DQEBCwUAA4IBAQAJ+yKsrs3zehQUBdsSI+MHCtd8uWd1vpoOppduMaRfheOoCDhJ
+J2n36sCfm6RTZgDrRnJJ0codj9eOM6sTjeD9PSqyJXVGHhLyOJ3bnTYlEWA5yTF5
+OGTsLEpqAHyH/VNBUteKUnZesCoQ5kaAoNqDP40Idr0C4Xt7p1+6qZD4VtwWj8BI
+J7AAvylVGnVoL+qjILNKEWuC5ZzYPikquGuEpPaKBjrJ7dIkHQpKaK9eK5FUkGpG
+kUbmhxAOrcOMYERH1sO1LTIJVjF/UAyE3sce5euUAL8FnO+NrPXuh+cOs8+iyPTy
+P/Cqr2wxM6XEl7ozmvHKU5Wr9Sc50WSSN6Hb
+-----END X509 CRL-----)"};
 
 void CRLTest::SetUp()
 {
@@ -175,4 +202,28 @@ TEST_F(CRLTest, testVerifyingWithWrongCertificateFails)
 TEST_F(CRLTest, testConvertionFromAndToPEMIsNoOp)
 {
     EXPECT_EQ(CertificateRevocationList::fromPEM(rootCrl->toPEM()).toPEM(), rootCrl->toPEM());
+}
+
+TEST_F(CRLTest, testLoadCrlPemChain)
+{
+    auto crlList = mococrw::util::loadCrlPEMChain(crlPemChain);
+
+    //Issuer:C = PT,ST = Porto,L = Porto,O = TestOrganization,OU = TestOrgName,CN = TestCommonName
+    auto issuerName =crlList.at(0).getIssuerName();
+    EXPECT_EQ("TestCommonName", issuerName.commonName());
+    EXPECT_EQ("PT", issuerName.countryName());
+    EXPECT_EQ("Porto", issuerName.localityName());
+    EXPECT_EQ("Porto", issuerName.stateOrProvinceName());
+    EXPECT_EQ("TestOrganization", issuerName.organizationName());
+    EXPECT_EQ("TestOrgName", issuerName.organizationalUnitName());
+
+    //Issuer: C = PT, ST = Lisbon, L = Lisbon, O = TestOrg2, OU = OrgUnit2, CN = aCommonName2
+    issuerName =crlList.at(1).getIssuerName();
+    EXPECT_EQ("PT", issuerName.countryName());
+    EXPECT_EQ("TestOrg2", issuerName.organizationName());
+    EXPECT_EQ("OrgUnit2", issuerName.organizationalUnitName());
+    EXPECT_EQ("Lisbon", issuerName.localityName());
+    EXPECT_EQ("Lisbon", issuerName.stateOrProvinceName());
+    EXPECT_EQ("aCommonName2", issuerName.commonName());
+
 }

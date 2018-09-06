@@ -90,19 +90,13 @@ void OpenSSLWrapperTest::TearDown()
  */
 TEST_F(OpenSSLWrapperTest, keyMemoryManagement)
 {
-    EVP_PKEY allocatedKey;
     EXPECT_CALL(_mock(), SSL_EVP_PKEY_new())
-            .WillOnce(Return(nullptr)) /* first invocation will throw because allocation "fails"*/
-            .WillRepeatedly(Return(&allocatedKey)); /*subsequent invocations will succeed */
-
-    /* Since we wrap in a unique_ptr, expect a call to the "free" function */
-    EXPECT_CALL(_mock(), SSL_EVP_PKEY_free(&allocatedKey));
+            .WillOnce(Return(nullptr)); /* first invocation will throw because allocation "fails"*/
 
     EXPECT_CALL(_mock(), SSL_ERR_get_error()).WillOnce(Return(_defaultErrorCode));
     EXPECT_CALL(_mock(), SSL_ERR_error_string(_defaultErrorCode, nullptr));
 
     EXPECT_THROW(_EVP_PKEY_new(), OpenSSLException);
-    auto key = _EVP_PKEY_new();
 }
 
 /*
@@ -151,15 +145,9 @@ TEST_F(OpenSSLWrapperTest, keyGenTest)
             .WillOnce(Return(::testutils::somePkeyCtxPtr()));
     EXPECT_CALL(_mock(), SSL_EVP_PKEY_keygen_init(_)).WillOnce(Return(1));
 
-    EVP_PKEY someKey;
-
     // the keygen call is what we are interested in mostly
     EXPECT_CALL(_mock(), SSL_EVP_PKEY_keygen(_, _))
-            /* argument 1 is an out parameter, so we should return the right pointer
-             * in there. We verify below that this is the pointer passed to the
-             * unique ptr and hence returned by _EVP_PKEY_keygen()*/
-            .WillOnce(Return(-1))
-            .WillOnce(DoAll(SetArgPointee<1>(&someKey), Return(1)));
+            .WillOnce(Return(-1));
 
     auto ctx = _EVP_PKEY_CTX_new_id(EVP_PKEY_RSA);
     ASSERT_NO_THROW(_EVP_PKEY_keygen_init(ctx.get()));
@@ -167,9 +155,6 @@ TEST_F(OpenSSLWrapperTest, keyGenTest)
     // First time this should throw (mock returns value != 1)
     ASSERT_THROW(_EVP_PKEY_keygen(ctx.get()), OpenSSLException);
 
-    auto pkey = _EVP_PKEY_keygen(ctx.get());
-    /* make sure that our pointer found its way back to us */
-    ASSERT_EQ(&someKey, pkey.get());
 }
 
 /**
@@ -184,11 +169,11 @@ TEST_F(OpenSSLWrapperTest, keyGenTest)
  */
 TEST_F(OpenSSLWrapperTest, testAddEntryByNID)
 {
-    X509_NAME name;
+    X509_NAME* name = nullptr;
     constexpr int bufsize = 47;
     std::vector<unsigned char> buffer(bufsize);
     EXPECT_CALL(_mock(),
-                SSL_X509_NAME_add_entry_by_NID(&name,
+                SSL_X509_NAME_add_entry_by_NID(name,
                                                static_cast<int>(ASN1_NID::CommonName),
                                                static_cast<int>(ASN1_Name_Entry_Type::ASCIIString),
                                                buffer.data(),
@@ -198,7 +183,7 @@ TEST_F(OpenSSLWrapperTest, testAddEntryByNID)
             .WillOnce(Return(1));
 
     _X509_NAME_add_entry_by_NID(
-            &name, ASN1_NID::CommonName, ASN1_Name_Entry_Type::ASCIIString, buffer);
+            name, ASN1_NID::CommonName, ASN1_Name_Entry_Type::ASCIIString, buffer);
 }
 
 /*
@@ -215,33 +200,33 @@ MATCHER_P(IsSameCString, expectedString, "Expect same C-string")
 
 TEST_F(OpenSSLWrapperTest, testThatWritingPrivateKeyHandlesArgumentsCorrectly)
 {
-    BIO bio;
-    EVP_PKEY pkey;
-    EVP_CIPHER cipher;
+    BIO* bio = nullptr;
+    EVP_PKEY* pkey = nullptr;
+    EVP_CIPHER* cipher = nullptr;
     const auto pwd = "some password"s;
     EXPECT_CALL(_mock(),
                 SSL_PEM_write_bio_PKCS8PrivateKey(
-                        &bio,
-                        &pkey,
-                        &cipher,
+                        bio,
+                        pkey,
+                        cipher,
                         IsSameCString(pwd) /* make sure that we get the correct password */,
                         pwd.size(),
                         nullptr,
                         nullptr))
             .WillOnce(Return(1));
-    _PEM_write_bio_PKCS8PrivateKey(&bio, &pkey, &cipher, pwd);
+    _PEM_write_bio_PKCS8PrivateKey(bio, pkey, cipher, pwd);
 }
 
 TEST_F(OpenSSLWrapperTest, testThatX509ParsingThrowsOnNullptr)
 {
-    BIO bio;
+    BIO* bio = nullptr;
     EXPECT_CALL(_mock(),
         SSL_PEM_read_bio_X509(
-            &bio,
+            bio,
             nullptr,
             nullptr,
             nullptr))
         .WillOnce(Return(nullptr));
-    EXPECT_THROW(_PEM_read_bio_X509(&bio), OpenSSLException);
+    EXPECT_THROW(_PEM_read_bio_X509(bio), OpenSSLException);
 }
 
