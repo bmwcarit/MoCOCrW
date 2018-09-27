@@ -25,6 +25,7 @@ set(LIBRARY_SOURCES
     key_usage.cpp
     openssl_lib.cpp
     openssl_wrap.cpp
+    signature.cpp
     subject_key_identifier.cpp
     util.cpp
     x509.cpp
@@ -44,7 +45,9 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/key_usage.h
     mococrw/openssl_lib.h
     mococrw/openssl_wrap.h
+    mococrw/padding_mode.h
     mococrw/sign_params.h
+    mococrw/signature.h
     mococrw/subject_key_identifier.h
     mococrw/util.h
     mococrw/util.h

@@ -62,6 +62,16 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/basic_constraints.cpp"
                             "${SRC_DIR}/crl.cpp"
                              ${REAL_SOURCES})
+   add_executable(signaturetests test_signature.cpp
+                            "${SRC_DIR}/key.cpp"
+                            "${SRC_DIR}/csr.cpp"
+                            "${SRC_DIR}/ca.cpp"
+                            "${SRC_DIR}/x509.cpp"
+                            "${SRC_DIR}/key_usage.cpp"
+                            "${SRC_DIR}/asn1time.cpp"
+                            "${SRC_DIR}/crl.cpp"
+                            "${SRC_DIR}/hash.cpp"
+                             ${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
@@ -76,6 +86,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(verificationtests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(dntests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
     target_link_libraries(catests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
+    target_link_libraries(signaturetests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${OPENSSL_LIBRARIES})
 
     add_test(OpenSSLTest openssltest)
 
@@ -108,6 +119,11 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_test(
         NAME CATests
         COMMAND catests
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
+    )
+    add_test(
+        NAME SignatureTests
+        COMMAND signaturetests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
     )
 

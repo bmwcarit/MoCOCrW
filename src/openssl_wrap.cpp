@@ -160,6 +160,17 @@ void _EVP_MD_CTX_init(EVP_MD_CTX* ctx) {
  * The ENGINE parameter is currently unused, which is why we have not wrapped this data-type (yet).
  *
  */
+SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new(EVP_PKEY *pkey)
+{
+    return SSL_EVP_PKEY_CTX_Ptr{
+            OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_new, pkey, nullptr)};
+}
+
+
+/**
+ * The ENGINE parameter is currently unused, which is why we have not wrapped this data-type (yet).
+ *
+ */
 SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new_id(int id)
 {
     return SSL_EVP_PKEY_CTX_Ptr{
@@ -956,6 +967,58 @@ void _X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, time_t time)
 {
     lib::OpenSSLLib::SSL_X509_STORE_CTX_set_time(ctx, 0 /* Time flags? Not used within OpenSSL */,
                                                  time);
+}
+
+void _EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_sign, ctx, sig, siglen, tbs, tbslen);
+}
+
+void _EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_sign_init, ctx);
+}
+
+void _EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_verify_init, ctx);
+}
+
+void _EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+                     const unsigned char *sig, size_t siglen,
+                     const unsigned char *tbs, size_t tbslen)
+{
+   OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_verify,
+                                             ctx,
+                                             sig, siglen,
+                                             tbs, tbslen);
+}
+
+void _EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding, ctx, pad);
+}
+
+void _EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md, ctx, md);
+}
+void _EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen, ctx, len);
+}
+void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md, ctx, md);
+}
+
+void* _OPENSSL_malloc(int num)
+{
+    return lib::OpenSSLLib::SSL_OPENSSL_malloc(num);
+}
+void _CRYPTO_malloc_init()
+{
+    return lib::OpenSSLLib::SSL_CRYPTO_malloc_init();
 }
 
 }  // ::openssl

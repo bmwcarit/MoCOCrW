@@ -32,7 +32,7 @@ public:
 
 void UtilTest::SetUp()
 {
-};
+}
 
 TEST_F(UtilTest, toHexLessThanSixteen)
 {
