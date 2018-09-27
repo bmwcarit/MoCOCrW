@@ -1,1 +1,5 @@
+# IDE files
+CMakeLists.txt.user
+cmake-build-*
 build
+.idea
