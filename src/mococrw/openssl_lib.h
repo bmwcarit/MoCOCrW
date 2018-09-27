@@ -82,6 +82,7 @@ public:
     static int SSL_BN_bn2bin(const BIGNUM* a, unsigned char* to) noexcept;
     static ASN1_INTEGER* SSL_ASN1_INTEGER_new() noexcept;
     static void SSL_ASN1_INTEGER_free(ASN1_INTEGER* a) noexcept;
+    static void* SSL_OPENSSL_malloc(int num) noexcept;
     static void SSL_OPENSSL_free(void* addr) noexcept;
     static char* SSL_BN_bn2dec(const BIGNUM* a) noexcept;
     static void SSL_BN_free(BIGNUM* a) noexcept;
@@ -115,6 +116,7 @@ public:
     static void SSL_EVP_PKEY_free(EVP_PKEY* ptr) noexcept;
     static int SSL_EVP_PKEY_keygen(EVP_PKEY_CTX* ctx, EVP_PKEY** ppkey) noexcept;
     static int SSL_EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx) noexcept;
+    static EVP_PKEY_CTX* SSL_EVP_PKEY_CTX_new(EVP_PKEY *pkey, ENGINE* engine) noexcept;
     static EVP_PKEY_CTX* SSL_EVP_PKEY_CTX_new_id(int id, ENGINE* engine) noexcept;
     static void SSL_EVP_PKEY_CTX_free(EVP_PKEY_CTX* ptr) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbits) noexcept;
@@ -250,6 +252,23 @@ public:
                                       ENGINE* e,
                                       EVP_PKEY* pkey) noexcept;
 
+    /* Signatures */
+    static int SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
+                                 unsigned char *sig,
+                                 size_t *siglen,
+                                 const unsigned char *tbs,
+                                 size_t tbslen) noexcept;
+    static int SSL_EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx) noexcept;
+    static int SSL_EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx) noexcept;
+    static int SSL_EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+                                   const unsigned char *sig,
+                                   size_t siglen,
+                                   const unsigned char *tbs,
+                                   size_t tbslen) noexcept;
+    static int SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noexcept;
+    static int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
+    static int SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept;
+    static int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
 };
 }  //::lib
 }  //::openssl

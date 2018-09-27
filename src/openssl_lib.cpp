@@ -81,6 +81,10 @@ int OpenSSLLib::SSL_EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx) noexcept
     return EVP_PKEY_keygen_init(ctx);
 }
 
+EVP_PKEY_CTX* OpenSSLLib::SSL_EVP_PKEY_CTX_new(EVP_PKEY *pkey, ENGINE* engine) noexcept
+{
+    return EVP_PKEY_CTX_new(pkey, engine);
+}
 
 EVP_PKEY_CTX* OpenSSLLib::SSL_EVP_PKEY_CTX_new_id(int id, ENGINE* engine) noexcept
 {
@@ -513,6 +517,10 @@ char* OpenSSLLib::SSL_BN_bn2dec(const BIGNUM* a) noexcept
 {
     return BN_bn2dec(a);
 }
+void* OpenSSLLib::SSL_OPENSSL_malloc(int num) noexcept
+{
+    return OPENSSL_malloc(num);
+}
 void OpenSSLLib::SSL_OPENSSL_free(void* addr) noexcept
 {
     OPENSSL_free(addr);
@@ -630,6 +638,44 @@ int OpenSSLLib::SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) noexcept
     return EVP_MD_CTX_reset(ctx);
 }
 
+/* Signatures */
+int OpenSSLLib::SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen) noexcept
+{
+    return EVP_PKEY_sign(ctx, sig, siglen, tbs, tbslen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return EVP_PKEY_sign_init(ctx);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return EVP_PKEY_verify_init(ctx);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+                           const unsigned char *sig, size_t siglen,
+                           const unsigned char *tbs, size_t tbslen) noexcept
+{
+    return EVP_PKEY_verify(ctx, sig, siglen, tbs, tbslen);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noexcept
+{
+    return EVP_PKEY_CTX_set_rsa_padding(ctx, pad);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) noexcept
+{
+    return EVP_PKEY_CTX_set_signature_md(ctx, md);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept
+{
+    return EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+{
+    return EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw
