@@ -20,11 +20,13 @@ set(LIBRARY_SOURCES
     crl.cpp
     csr.cpp
     distinguished_name.cpp
+    hash.cpp
     key.cpp
     key_usage.cpp
-    openssl_wrap.cpp
     openssl_lib.cpp
+    openssl_wrap.cpp
     subject_key_identifier.cpp
+    util.cpp
     x509.cpp
 )
 
@@ -37,12 +39,14 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/distinguished_name.h
     mococrw/error.h
     mococrw/extension.h
+    mococrw/hash.h
     mococrw/key.h
     mococrw/key_usage.h
     mococrw/openssl_lib.h
     mococrw/openssl_wrap.h
     mococrw/sign_params.h
     mococrw/subject_key_identifier.h
+    mococrw/util.h
     mococrw/util.h
     mococrw/x509.h
 )

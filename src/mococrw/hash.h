@@ -17,6 +17,8 @@
  * #L%
  */
 #pragma once
+#include <vector>
+#include <map>
 
 #include "mococrw/openssl_wrap.h"
 
