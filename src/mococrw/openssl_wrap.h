@@ -969,8 +969,10 @@ time_t _asn1TimeToTimeT(const ASN1_TIME *time);
 
 enum class RSAPaddingMode
 {
+    NONE = RSA_NO_PADDING,
     PKCS1 = RSA_PKCS1_PADDING,
-    PSS = RSA_PKCS1_PSS_PADDING
+    PSS = RSA_PKCS1_PSS_PADDING,
+    OAEP = RSA_PKCS1_OAEP_PADDING
 };
 
 /**
@@ -1012,6 +1014,56 @@ void _EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len);
  * Sets the mgf1
  */
 void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
+
+/**
+ * Initializes the context for an encryption operation
+ */
+void _EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx);
+
+/**
+ * Encrypts a message
+ */
+void _EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out, size_t *outlen,
+                       const unsigned char *in, size_t inlen);
+
+/**
+ * Initializes the context for an decryption operation
+ */
+void _EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx);
+
+/**
+ * Decrypts a message
+ */
+void _EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out, size_t *outlen,
+                       const unsigned char *in, size_t inlen);
+
+/**
+ * Sets the OAEP hashing function
+ */
+void _EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
+
+/**
+ * Sets the OAEP label
+ */
+void _EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen);
+
+/**
+ * Gets the OAEP label
+ */
+int _EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l);
+
+/**
+ * Returns the size of an RSA Key
+ */
+int _RSA_size(const RSA *r);
+
+/**
+ * Returns the size of a message digest
+ */
+int _EVP_MD_size(const EVP_MD *md);
+
 
 /**
  * Allocates memory

@@ -166,7 +166,6 @@ SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new(EVP_PKEY *pkey)
             OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_new, pkey, nullptr)};
 }
 
-
 /**
  * The ENGINE parameter is currently unused, which is why we have not wrapped this data-type (yet).
  *
@@ -1008,10 +1007,65 @@ void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md, ctx, md);
 }
 
+
+void _EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_encrypt_init, ctx);
+}
+
+void _EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out, size_t *outlen,
+                       const unsigned char *in, size_t inlen)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_encrypt,
+                                       ctx, out, outlen,
+                                       in, inlen);
+}
+
+void _EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_decrypt_init, ctx);
+}
+
+void _EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out, size_t *outlen,
+                       const unsigned char *in, size_t inlen)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_decrypt,
+                                       ctx, out, outlen,
+                                       in, inlen);
+}
+
+void _EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md)
+{
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md, ctx, md);
+}
+
+void _EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen)
+{
+    OpensslCallIsNonNegative::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label, ctx, l, llen);
+}
+
+int _EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l)
+{
+    return OpensslCallIsNonNegative::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_get_rsa_oaep_label, ctx, l);
+}
+
+int _RSA_size(const RSA *r)
+{
+    return lib::OpenSSLLib::SSL_RSA_size(r);
+}
+
+int _EVP_MD_size(const EVP_MD *md)
+{
+    return lib::OpenSSLLib::SSL_EVP_MD_size(md);
+}
+
 void* _OPENSSL_malloc(int num)
 {
-    return lib::OpenSSLLib::SSL_OPENSSL_malloc(num);
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_OPENSSL_malloc, num);
 }
+
 void _CRYPTO_malloc_init()
 {
     return lib::OpenSSLLib::SSL_CRYPTO_malloc_init();
