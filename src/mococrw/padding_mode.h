@@ -41,6 +41,28 @@ public:
 };
 
 /**
+ * @brief NoPadding
+ *
+ * This class defines the parameters specific to the RSA no padding mode.
+ */
+class NoPadding: public RSAPadding {
+public:
+    virtual ~NoPadding() = default;
+
+    /**
+    * @brief Get the padding mode
+    *
+    * Getter method for the padding mode.
+    *
+    * @return \ref openssl::RSAPaddingMode::NONE
+    */
+    openssl::RSAPaddingMode getPadding() const override
+    {
+        return openssl::RSAPaddingMode::NONE;
+    }
+};
+
+/**
  * @brief PKCSPadding
  *
  * This class defines the parameters specific to the PKCS1 padding mode.
@@ -180,6 +202,96 @@ private:
      * @brief Default value for the salt length
      */
     static const int c_defaultSaltLength = 20;
+};
+
+/**
+ * @brief OAEPPadding
+ *
+ * This class defines the parameters specific to the OAEP padding mode:
+ * - Hashing function
+ * - Masking function
+ * - Label
+ * 
+ * @warning: Because of the currently used implementation of OpenSSL (1.0.2), the label size should
+ *           be limited to maximum positive value of an integer (INT_MAX). This is a known bug that
+ *           was fixed in OpenSSL v1.1
+ *
+ * All parameters have default values, and the label parameter is optional.
+ */
+class OAEPPadding: public RSAPadding {
+public:
+    OAEPPadding(openssl::DigestTypes hashing = openssl::DigestTypes::SHA256,
+                    openssl::DigestTypes masking = openssl::DigestTypes::SHA256,
+                    std::vector<uint8_t> label={})
+        : _hashingFunction{hashing}
+        , _maskingFunction{masking}
+        , _label{label}
+    {
+    }
+
+    virtual ~OAEPPadding() = default;
+
+    /**
+     * @brief Get the hashing function
+     *
+     * Getter method for the hashing function.
+     *
+     * @return The hashing function
+     */
+    openssl::DigestTypes getHashingFunction() const
+    {
+        return _hashingFunction;
+    }
+
+    /**
+     * @brief Get the masking function
+     *
+     * Getter method for the masking function.
+     *
+     * @return The masking function
+     */
+    openssl::DigestTypes getMaskingFunction() const
+    {
+        return _maskingFunction;
+    }
+
+    /**
+     * @brief Get the OAEP label
+     *
+     * Getter method for the OAEP label.
+     *
+     * @return The OAEP label
+     */
+    std::vector<uint8_t> getLabel() const
+    {
+        return _label;
+    }
+
+    /**
+     * @brief Get the padding mode
+     *
+     * Getter method for the padding mode.
+     *
+     * @return \ref openssl::RSAPaddingMode::OAEP
+     */
+    openssl::RSAPaddingMode getPadding() const override
+    {
+        return openssl::RSAPaddingMode::OAEP;
+    }
+
+private:
+    /**
+     * @brief The masking algorithm to be used
+     */
+    openssl::DigestTypes _hashingFunction;
+    /**
+     * @brief The mgf1 to be used
+     */
+    openssl::DigestTypes _maskingFunction;
+    /**
+     * @brief The label
+     */
+    std::vector<uint8_t> _label;
 };
 
 }
