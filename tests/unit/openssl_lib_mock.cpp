@@ -717,7 +717,10 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len)
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len);
 }
-
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
+}
 int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt_init(ctx);
@@ -741,10 +744,6 @@ int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt(ctx,
                                                                           out, outlen,
                                                                           in, inlen);
-}
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_padding(ctx, pad);
 }
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
 {
