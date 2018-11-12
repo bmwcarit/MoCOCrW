@@ -30,66 +30,35 @@ using namespace std::string_literals;
 
 using namespace mococrw;
 
-
-
-
-class AsymmetricEncryptionTest : public ::testing::Test
-{
-public:
-    /// \brief Structure to hold a private/public key pair
-    struct KeyPair
-    {
-        std::string _publicKey;
-        std::string _privateKey;
-    };
-
-    /// \brief Structure to hold the nominal data set
-    struct NominalDataSet
-    {
-        // inputs
-        std::string _message;
-        std::vector<uint8_t> _encrypted;
-        std::string _publicKey;
-        std::string _privateKey;
-        openssl::RSAPaddingMode _paddingMode;
-        openssl::DigestTypes _hashing;
-        openssl::DigestTypes _masking;
-        std::vector<uint8_t> _label;
-    };
-
-    /// \brief Structure to hold the data set used to test the message size
-    struct MessageSizeDataSet
-    {
-        // inputs
-        std::string _message;
-        std::string _publicKey;
-        std::string _privateKey;
-        openssl::RSAPaddingMode _paddingMode;
-        openssl::DigestTypes _hashing;
-        openssl::DigestTypes _masking;
-        std::vector<uint8_t> _label;
-        // expected outputs
-        bool _expectThrow;
-    };
-
-protected:
-    /// \brief Creates a shared pointer for a RSA padding based on the given inputs. Simplifies the
-    /// tests by taking advantage of polymorphism
-    std::shared_ptr<RSAPadding> createPadding(const openssl::RSAPaddingMode &mode,
-                                              const openssl::DigestTypes &hashing,
-                                              const openssl::DigestTypes &masking,
-                                              const std::vector<uint8_t> &label);
-
-    static const std::vector<NominalDataSet> nominalDataSet;
-    static const std::vector<MessageSizeDataSet> messageSizeDataSet;
-    static const std::vector<NominalDataSet> encryptionInvalidParametersDataSet;
-
-    static const KeyPair keyPairs1024bit;
-    static const KeyPair keyPairs2048bit;
+/// \brief Structure to hold a private/public key pair
+struct KeyPair {
+    std::string _publicKey;
+    std::string _privateKey;
 };
 
+/// \brief Structure to hold the input data set for the test cases
+struct NominalDataSet {
+    // inputs
+    std::string _message;
+    std::vector <uint8_t> _encrypted;
+    std::string _publicKey;
+    std::string _privateKey;
+    openssl::RSAPaddingMode _paddingMode;
+    openssl::DigestTypes _hashing;
+    openssl::DigestTypes _masking;
+    std::vector <uint8_t> _label;
+};
+
+class AsymmetricEncryptionTest : public ::testing::Test,
+                                 public ::testing::WithParamInterface<NominalDataSet>{
+public:
+    static const std::vector<NominalDataSet> nominalDataSet;
+};
+
+/// \brief Creates a shared pointer for a RSA padding based on the given inputs. Simplifies the
+/// tests by taking advantage of polymorphism
 std::shared_ptr<RSAPadding>
-AsymmetricEncryptionTest::createPadding(const openssl::RSAPaddingMode &mode,
+createPadding(const openssl::RSAPaddingMode &mode,
                                         const openssl::DigestTypes &hashing,
                                         const openssl::DigestTypes &masking,
                                         const std::vector<uint8_t> &label)
@@ -108,7 +77,7 @@ AsymmetricEncryptionTest::createPadding(const openssl::RSAPaddingMode &mode,
 }
 
 /// \brief RSA 1024-bit Pair public/private key
-const AsymmetricEncryptionTest::KeyPair AsymmetricEncryptionTest::keyPairs1024bit
+const KeyPair keyPairs1024bit
 {
     {
         "-----BEGIN PUBLIC KEY-----\n"
@@ -139,7 +108,7 @@ const AsymmetricEncryptionTest::KeyPair AsymmetricEncryptionTest::keyPairs1024bi
 };
 
 /// \brief RSA 2048-bit Pair public/private key
-const AsymmetricEncryptionTest::KeyPair AsymmetricEncryptionTest::keyPairs2048bit
+const KeyPair keyPairs2048bit
 {
     {
         "-----BEGIN PUBLIC KEY-----\n"
@@ -185,7 +154,7 @@ const AsymmetricEncryptionTest::KeyPair AsymmetricEncryptionTest::keyPairs2048bi
 };
 
 /// \brief Data set used to test successful (nominal) use-cases, both encryption and decryption
-const std::vector<AsymmetricEncryptionTest::NominalDataSet>
+const std::vector<NominalDataSet>
 AsymmetricEncryptionTest::nominalDataSet
 {
     // PKCS1 1024-bit RSA key data set
@@ -472,9 +441,181 @@ AsymmetricEncryptionTest::nominalDataSet
     }
 };
 
+/**
+ * @brief Tests the nominal scenarios of the decryption functionality. The nominal encryption data
+ * set was generated using the openssl pkeyutl cli, thus here we decrypt a previous known and
+ * encrypted message and check if we get the original known message.
+ */
+TEST_P(AsymmetricEncryptionTest, testSuccessfulDecryption)
+{
+    auto data = GetParam();
+    const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
+    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+                                                            data._hashing,
+                                                            data._masking,
+                                                            data._label);
+    const auto message = AsymmetricEncryption::decrypt(privateKey,
+                                                           *(padding.get()),
+                                                           data._encrypted);
+    EXPECT_EQ(data._message, message.toString());
+}
+
+/**
+ * @brief Tests the nominal scenarios of the encryption functionality. This test relies on the
+ * fully tested and working decryption functionality. It encrypts a known message, decrypts it and
+ * checks if the output matches the original known message.
+ */
+TEST_P(AsymmetricEncryptionTest, testSuccessfulEncryption)
+{
+    auto data = GetParam();
+    const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
+    const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
+    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+                                                            data._hashing,
+                                                            data._masking,
+                                                            data._label);
+    const auto encryptedMessage = AsymmetricEncryption::encrypt(publicKey,
+                                                                    *(padding.get()),
+                                                                    data._message);
+    const auto message = AsymmetricEncryption::decrypt(privateKey,
+                                                           *(padding.get()),
+                                                           encryptedMessage);
+    EXPECT_EQ(data._message, message.toString());
+}
+
+INSTANTIATE_TEST_CASE_P(testSuccessfulEncryption, AsymmetricEncryptionTest,
+                        testing::ValuesIn(AsymmetricEncryptionTest::nominalDataSet));
+
+/**
+ * @brief Tests the encryption functionality with invalid parameters.
+ *
+ * The following use cases are covered:
+ * - unsupported padding (PSS)
+ */
+TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
+{
+    // Check the encryption with an unsupported padding mode (PSS).
+    // Uses one of the entries from the nominal data set as inputs. It is irrelevant for the purpose
+    // of this test which entry is used.
+    auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(nominalDataSet[0]._publicKey);
+    const auto unsupportedPaddingMode = PSSPadding();
+
+    EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey,
+                                               unsupportedPaddingMode,
+                                               nominalDataSet[0]._message),
+                 MoCOCrWException);
+}
+
+/**
+ * @brief Tests the decryption functionality with invalid parameters.
+ *
+ * The following use cases are covered:
+ * - unsupported padding (PSS)
+ */
+TEST_F(AsymmetricEncryptionTest, testDecryptionInvalidParameters)
+{
+
+    // Check the decryption with an unsupported padding mode (PSS).
+    // Uses one of the entries from the nominal data set as inputs. It is irrelevant for the purpose
+    // of this test which entry is used.
+    const auto privateKey
+            = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(nominalDataSet[0]._privateKey, "");
+    const auto unsupportedPaddingMode = PSSPadding();
+
+    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey,
+                                               unsupportedPaddingMode,
+                                               nominalDataSet[0]._encrypted),
+                 MoCOCrWException);
+}
+
+/**
+ * @brief Tests the decryption functionality with wrong parameters.
+ *
+ * The following use cases are covered:
+ * - wrong padding mode (message encrypted with another padding)
+ * - wrong hashing
+ * - wrong masking
+ * - wrong label
+ * - wrong private key
+ */
+TEST_F(AsymmetricEncryptionTest, testDecryptionWrongParameters)
+{
+    // OAEP 1024-bit RSA key data set, hashing SHA256, masking SHA256
+    NominalDataSet data {
+            "Lorem ipsum dolor sit amet, consectetur",
+            {
+                    0x40, 0x6B, 0x15, 0x44, 0xDF, 0x62, 0xCD, 0x33, 0x80, 0x13, 0x24, 0xFC, 0xC2, 0xAE,
+                    0x18, 0x4D, 0x2F, 0xD6, 0x32, 0x16, 0xA3, 0x86, 0x1F, 0x66, 0x15, 0xF8, 0x09, 0xE0,
+                    0xAB, 0x1E, 0x56, 0xC0, 0x4E, 0x35, 0x37, 0x11, 0x82, 0x07, 0xBD, 0xBF, 0xC8, 0x68,
+                    0xBF, 0xF6, 0xF2, 0x61, 0xCC, 0x71, 0xBC, 0x38, 0x5A, 0x88, 0x1D, 0xFB, 0x1D, 0x98,
+                    0x97, 0xAE, 0xBE, 0xF8, 0xE3, 0xDB, 0x02, 0x05, 0x8C, 0xE9, 0x16, 0x16, 0x32, 0x7E,
+                    0x8D, 0x99, 0x4F, 0x85, 0x63, 0x8B, 0x36, 0xA0, 0xBD, 0xD0, 0xA4, 0x99, 0xA8, 0x01,
+                    0x22, 0xB4, 0x21, 0xD3, 0x0B, 0xC6, 0x63, 0xE0, 0xA9, 0x4C, 0xA8, 0x7F, 0xB3, 0x36,
+                    0x47, 0x64, 0x2F, 0x25, 0xB3, 0xF9, 0xBC, 0x51, 0xA7, 0x7D, 0x91, 0x4F, 0xA6, 0xDE,
+                    0x57, 0x52, 0xF9, 0x24, 0x9C, 0x18, 0x76, 0xFC, 0xE4, 0xC0, 0x86, 0x67, 0x30, 0xA6,
+                    0x60, 0x1B
+            },
+            keyPairs1024bit._publicKey,
+            keyPairs1024bit._privateKey,
+            openssl::RSAPaddingMode::OAEP,
+            openssl::DigestTypes::SHA256,
+            openssl::DigestTypes::SHA256,
+            {}
+    };
+
+    // Step 1: Check the decryption with a wrong padding mode.
+    const auto privateKey  = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
+    const auto wrongPaddingMode = PKCSPadding();
+    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongPaddingMode, data._encrypted),
+                 MoCOCrWException);
+
+    // Step 2: Check the decryption with a wrong hashing
+    const auto wrongHashing = OAEPPadding(openssl::DigestTypes::SHA512, data._masking, data._label);
+    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongHashing, data._encrypted),
+                 MoCOCrWException);
+
+    // Step 3: Check the decryption with a wrong masking
+    const auto wrongMasking = OAEPPadding(data._hashing, openssl::DigestTypes::SHA512, data._label);
+    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongMasking, data._encrypted),
+                 MoCOCrWException);
+
+    // Step 4: Check the decryption with a wrong label
+    const auto wrongLabel = OAEPPadding(data._hashing, data._masking, {0xAA, 0xBB, 0xCC, 0xDD});
+    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongLabel, data._encrypted),
+                 MoCOCrWException);
+
+    // Step 5: Check the decryption with a wrong key
+    const auto wrongPrivateKey
+            = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(keyPairs2048bit._privateKey, "");
+    const auto paddingMode = OAEPPadding(data._hashing, data._masking, data._label);
+    EXPECT_THROW(AsymmetricEncryption::decrypt(wrongPrivateKey, paddingMode, data._encrypted),
+                 MoCOCrWException);
+}
+
+/// \brief Structure to hold the data set used to test the message size
+struct MessageSizeDataSet
+{
+    // inputs
+    std::string _message;
+    std::string _publicKey;
+    std::string _privateKey;
+    openssl::RSAPaddingMode _paddingMode;
+    openssl::DigestTypes _hashing;
+    openssl::DigestTypes _masking;
+    std::vector<uint8_t> _label;
+    // expected outputs
+    bool _expectThrow;
+};
+
+class AsymmetricEncryptionSizeTest : public ::testing::Test,
+                                     public ::testing::WithParamInterface<MessageSizeDataSet>{
+public:
+    static const std::vector<MessageSizeDataSet> messageSizeDataSet;
+};
+
 /// \brief Data set used to test the message size limits use-cases, encrytion functionality
-const std::vector<AsymmetricEncryptionTest::MessageSizeDataSet>
-AsymmetricEncryptionTest::messageSizeDataSet =
+const std::vector<MessageSizeDataSet>
+AsymmetricEncryptionSizeTest::messageSizeDataSet
 {
     // PKCS, 1024-bit key, empty message
     {
@@ -756,50 +897,6 @@ AsymmetricEncryptionTest::messageSizeDataSet =
 };
 
 /**
- * @brief Tests the nominal scenarios of the decryption functionality. The nominal encryption data
- * set was generated using the openssl pkeyutl cli, thus here we decrypt a previous known and
- * encrypted message and check if we get the original known message.
- */
-TEST_F(AsymmetricEncryptionTest, testSuccessfulDecryption)
-{
-    for (const auto &data : nominalDataSet) {
-        const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-        std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
-                                                            data._hashing,
-                                                            data._masking,
-                                                            data._label);
-        const auto message = AsymmetricEncryption::decrypt(privateKey,
-                                                           *(padding.get()),
-                                                           data._encrypted);
-        EXPECT_EQ(data._message, message.toString());
-    }
-}
-
-/**
- * @brief Tests the nominal scenarios of the encryption functionality. This test relies on the
- * fully tested and working decryption functionality. It encrypts a known message, decrypts it and
- * checks if the output matches the original known message.
- */
-TEST_F(AsymmetricEncryptionTest, testSuccessfulEncryption)
-{
-    for (const auto &data : nominalDataSet) {
-        const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
-        const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-        std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
-                                                            data._hashing,
-                                                            data._masking,
-                                                            data._label);
-        const auto encryptedMessage = AsymmetricEncryption::encrypt(publicKey,
-                                                                    *(padding.get()),
-                                                                    data._message);
-        const auto message = AsymmetricEncryption::decrypt(privateKey,
-                                                           *(padding.get()),
-                                                           encryptedMessage);
-        EXPECT_EQ(data._message, message.toString());
-    }
-}
-
-/**
  * @brief Tests the size limits of the message to encrypt.
  *
  * The following use cases are covered:
@@ -825,180 +922,21 @@ TEST_F(AsymmetricEncryptionTest, testSuccessfulEncryption)
  * - NO PADDING, 2048-bit key, max message size     (256)
  * - NO PADDING, 2048-bit key, max message size + 1 (257)
  */
-TEST_F(AsymmetricEncryptionTest, testMessageSize)
+TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
 {
-    for (const auto &data : messageSizeDataSet) {
-        const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
-        std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+    auto data = GetParam();
+    const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
+    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
                                                             data._hashing,
                                                             data._masking,
                                                             data._label);
-        if (data._expectThrow) {
-            EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message),
+    if (data._expectThrow) {
+        EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message),
                          MoCOCrWException);
-        } else {
-            EXPECT_NO_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message));
-        }
+    } else {
+        EXPECT_NO_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message));
     }
 }
 
-
-/**
- * @brief Tests the encryption functionality with invalid parameters.
- *
- * The following use cases are covered:
- * - unsupported padding (PSS)
- */
-TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
-{
-    // Check the encryption with an unsupported padding mode (PSS).
-    // Uses one of the entries from the nominal data set as inputs. It is irrelevant for the purpose
-    // of this test which entry is used.
-    auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(nominalDataSet[0]._publicKey);
-    const auto unsupportedPaddingMode = PSSPadding();
-
-    EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey,
-                                               unsupportedPaddingMode,
-                                               nominalDataSet[0]._message),
-                 MoCOCrWException);
-}
-
-/**
- * @brief Tests the decryption functionality with invalid parameters.
- *
- * The following use cases are covered:
- * - unsupported padding (PSS)
- */
-TEST_F(AsymmetricEncryptionTest, testDecryptionInvalidParameters)
-{
-
-    // Check the decryption with an unsupported padding mode (PSS).
-    // Uses one of the entries from the nominal data set as inputs. It is irrelevant for the purpose
-    // of this test which entry is used.
-    const auto privateKey
-            = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(nominalDataSet[0]._privateKey, "");
-    const auto unsupportedPaddingMode = PSSPadding();
-
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey,
-                                               unsupportedPaddingMode,
-                                               nominalDataSet[0]._encrypted),
-                 MoCOCrWException);
-}
-
-/**
- * @brief Tests the decryption functionality with wrong parameters.
- *
- * The following use cases are covered:
- * - wrong padding mode (message encrypted with another padding)
- * - wrong hashing
- * - wrong masking
- * - wrong label
- * - wrong private key
- */
-TEST_F(AsymmetricEncryptionTest, testDecryptionWrongParameters)
-{
-    // OAEP 1024-bit RSA key data set, hashing SHA256, masking SHA256
-    NominalDataSet data {
-        "Lorem ipsum dolor sit amet, consectetur",
-        {
-            0x40, 0x6B, 0x15, 0x44, 0xDF, 0x62, 0xCD, 0x33, 0x80, 0x13, 0x24, 0xFC, 0xC2, 0xAE,
-            0x18, 0x4D, 0x2F, 0xD6, 0x32, 0x16, 0xA3, 0x86, 0x1F, 0x66, 0x15, 0xF8, 0x09, 0xE0,
-            0xAB, 0x1E, 0x56, 0xC0, 0x4E, 0x35, 0x37, 0x11, 0x82, 0x07, 0xBD, 0xBF, 0xC8, 0x68,
-            0xBF, 0xF6, 0xF2, 0x61, 0xCC, 0x71, 0xBC, 0x38, 0x5A, 0x88, 0x1D, 0xFB, 0x1D, 0x98,
-            0x97, 0xAE, 0xBE, 0xF8, 0xE3, 0xDB, 0x02, 0x05, 0x8C, 0xE9, 0x16, 0x16, 0x32, 0x7E,
-            0x8D, 0x99, 0x4F, 0x85, 0x63, 0x8B, 0x36, 0xA0, 0xBD, 0xD0, 0xA4, 0x99, 0xA8, 0x01,
-            0x22, 0xB4, 0x21, 0xD3, 0x0B, 0xC6, 0x63, 0xE0, 0xA9, 0x4C, 0xA8, 0x7F, 0xB3, 0x36,
-            0x47, 0x64, 0x2F, 0x25, 0xB3, 0xF9, 0xBC, 0x51, 0xA7, 0x7D, 0x91, 0x4F, 0xA6, 0xDE,
-            0x57, 0x52, 0xF9, 0x24, 0x9C, 0x18, 0x76, 0xFC, 0xE4, 0xC0, 0x86, 0x67, 0x30, 0xA6,
-            0x60, 0x1B
-        },
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        openssl::RSAPaddingMode::OAEP,
-        openssl::DigestTypes::SHA256,
-        openssl::DigestTypes::SHA256,
-        {}
-    };
-
-    // Step 1: Check the decryption with a wrong padding mode.
-    const auto privateKey  = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-    const auto wrongPaddingMode = PKCSPadding();
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongPaddingMode, data._encrypted),
-                 MoCOCrWException);
-
-    // Step 2: Check the decryption with a wrong hashing
-    const auto wrongHashing = OAEPPadding(openssl::DigestTypes::SHA512, data._masking, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongHashing, data._encrypted),
-                 MoCOCrWException);
-
-    // Step 3: Check the decryption with a wrong masking
-    const auto wrongMasking = OAEPPadding(data._hashing, openssl::DigestTypes::SHA512, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongMasking, data._encrypted),
-                 MoCOCrWException);
-
-    // Step 4: Check the decryption with a wrong label
-    const auto wrongLabel = OAEPPadding(data._hashing, data._masking, {0xAA, 0xBB, 0xCC, 0xDD});
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongLabel, data._encrypted),
-                 MoCOCrWException);
-
-    // Step 5: Check the decryption with a wrong key
-    const auto wrongPrivateKey
-            = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(keyPairs2048bit._privateKey, "");
-    const auto paddingMode = OAEPPadding(data._hashing, data._masking, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(wrongPrivateKey, paddingMode, data._encrypted),
-                 MoCOCrWException);
-}
-
-/**
- * @brief Tests the CryptoData class
- * The following use-cases are covered:
- * - constructors
- * - assignment operators
- * - operator<<
- */
-TEST_F(AsymmetricEncryptionTest, testCryptoData)
-{
-    std::string inputStr{"Lorem ipsum dolor sit amet, consectetur"};
-    std::vector<uint8_t> inputVec{
-        0x4C, 0x6F, 0x72, 0x65, 0x6D, 0x20, 0x69, 0x70, 0x73, 0x75, 0x6D, 0x20, 0x64, 0x6F, 0x6C,
-        0x6F, 0x72, 0x20, 0x73, 0x69, 0x74, 0x20, 0x61, 0x6D, 0x65, 0x74, 0x2C, 0x20, 0x63, 0x6F,
-        0x6E, 0x73, 0x65, 0x63, 0x74, 0x65, 0x74, 0x75, 0x72
-    };
-    std::string inputHex{
-        "4c6f72656d20697073756d20646f6c6f722073697420616d65742c20636f6e7365637465747572"
-    };
-
-    // Step 1: Tests constructor with std::string
-    AsymmetricEncryption::CryptoData sutStr(inputStr);
-    EXPECT_EQ(inputStr, sutStr.toString());
-    EXPECT_EQ(inputVec, sutStr.toByteArray());
-    EXPECT_EQ(inputHex, sutStr.toHex());
-
-
-    // Step 2: Tests constructor with std::vector
-    AsymmetricEncryption::CryptoData sutVec(inputVec);
-    EXPECT_EQ(inputVec, sutVec.toByteArray());
-    EXPECT_EQ(inputStr, sutVec.toString());
-    EXPECT_EQ(inputHex, sutVec.toHex());
-
-    // Step 3: Tests assignment operators
-    sutVec = inputStr;
-    EXPECT_EQ(inputVec, sutVec.toByteArray());
-    EXPECT_EQ(inputStr, sutVec.toString());
-    sutStr = inputVec;
-    EXPECT_EQ(inputStr, sutVec.toString());
-    EXPECT_EQ(inputVec, sutVec.toByteArray());
-
-    // Step 4: Tests operator<<
-    std::stringstream ss;
-    ss << sutStr;
-    EXPECT_EQ(inputStr, ss.str());
-    ss.str(std::string());
-    ss << sutVec;
-    EXPECT_EQ(inputStr, ss.str());
-}
-
-
-
-
-
+INSTANTIATE_TEST_CASE_P(testMessageSize, AsymmetricEncryptionSizeTest,
+                        testing::ValuesIn(AsymmetricEncryptionSizeTest::messageSizeDataSet));
