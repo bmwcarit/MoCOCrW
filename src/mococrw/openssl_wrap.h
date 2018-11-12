@@ -1075,7 +1075,6 @@ int _RSA_size(const RSA *r);
  */
 int _EVP_MD_size(const EVP_MD *md);
 
-
 /**
  * Allocates memory
  */

@@ -236,11 +236,11 @@ public:
                                const unsigned char *sig, size_t siglen,
                                const unsigned char *tbs, size_t tbslen) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) = 0;
-    
-virtual int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) = 0;
+    virtual int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) = 0;
 
+    /* Encryption */
     virtual int SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) = 0;
     virtual int SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
                                     unsigned char *out, size_t *outlen,
@@ -249,7 +249,6 @@ virtual int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* m
     virtual int SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
                                     unsigned char *out, size_t *outlen,
                                     const unsigned char *in, size_t inlen) = 0;
-
     virtual int SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l,
                                                     int llen) = 0;
@@ -449,13 +448,10 @@ public:
     MOCK_METHOD5(SSL_EVP_PKEY_decrypt, int(EVP_PKEY_CTX *ctx,
                                            unsigned char *out, size_t *outlen,
                                            const unsigned char *in, size_t inlen));
-
-
     MOCK_METHOD2(SSL_EVP_PKEY_CTX_set_rsa_oaep_md, int(EVP_PKEY_CTX *ctx, const EVP_MD *md));
     MOCK_METHOD3(SSL_EVP_PKEY_CTX_set_rsa_oaep_label, int(EVP_PKEY_CTX *ctx, unsigned char *l,
                                                           int llen));
     MOCK_METHOD2(SSL_EVP_PKEY_CTX_get_rsa_oaep_label, int(EVP_PKEY_CTX *ctx, unsigned char *l));
-
     MOCK_METHOD1(SSL_RSA_size, int(const RSA *r));
     MOCK_METHOD1(SSL_EVP_MD_size, int(const EVP_MD *md));
 };

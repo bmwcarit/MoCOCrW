@@ -18,7 +18,9 @@
  */
 #pragma once
 
+#include <openssl/evp.h>
 #include "key.h"
+#include "openssl_wrap.h"
 
 namespace mococrw {
 /**
@@ -38,6 +40,14 @@ public:
      * Virtual getter method for the padding mode.
      */
     virtual openssl::RSAPaddingMode getPadding() const = 0;
+
+    /**
+     * @brief Get maximum data size that can encrypted using the PKCS padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    virtual int getDataMaxSize(const AsymmetricPublicKey& key) const = 0;
+
 };
 
 /**
@@ -59,6 +69,17 @@ public:
     openssl::RSAPaddingMode getPadding() const override
     {
         return openssl::RSAPaddingMode::NONE;
+    }
+
+    /**
+    * @brief Get maximum data size that can encrypted, which is the same as
+    * the the key when not using padding
+    * @param key RSA public key that will be used for encryption
+    * @return the maximum size of the data that can be encrypted in bytes.
+    */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa);
     }
 };
 
@@ -103,12 +124,27 @@ public:
         return _hashingFunction;
     }
 
+    /**
+     * @brief Get maximum data size that can encrypted using the PKCS padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa) - c_pkcsMaxSizeSOverhead;
+    }
+
 private:
     /**
      * @brief The masking algorithm to be used. Not necessary for encryption, only when using the
      * signature facility.
      */
     openssl::DigestTypes _hashingFunction;
+
+    /**
+     * @brief Size overhead added by the PKCS padding on the RSA encryption
+     */
+    static const int c_pkcsMaxSizeSOverhead = 11;
 };
 
 /**
@@ -180,6 +216,19 @@ public:
     int getSaltLength() const
     {
         return _saltLength;
+    }
+
+private:
+    /**
+     * @brief Unused function for PSS because this padding mode is only used for signatures
+     * @param Unused
+     * @return -1.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        /*Ignore unused parameter*/
+        std::ignore = key;
+        return -1;
     }
 
 private:
@@ -277,6 +326,17 @@ public:
     openssl::RSAPaddingMode getPadding() const override
     {
         return openssl::RSAPaddingMode::OAEP;
+    }
+
+    /**
+     * @brief Get maximum data size that can encrypted using the OAEP padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa) -
+                (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_hashingFunction)) - 2);
     }
 
 private:

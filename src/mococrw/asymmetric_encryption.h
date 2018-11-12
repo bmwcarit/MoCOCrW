@@ -34,10 +34,6 @@ class AsymmetricEncryption
 public:
     AsymmetricEncryption() = delete;
 
-private:
-    std::vector<uint8_t> message;
-
-public:
     /**
      * @brief CryptoData
      * 
@@ -98,7 +94,14 @@ public:
 
 
 private:
-    static const int c_pkcsMaxSizeSubtract = 11;
+
+    /**
+     * Sets specific context configurations when the asymmetric encryption uses the OAEP padding
+     * @param oaepPaddingMode OAEP padding mode object
+     * @param keyCtx OpennSSL context of the RSA key
+     */
+    static void configOaepCtx(const OAEPPadding& oaepPaddingMode,
+                              openssl::SSL_EVP_PKEY_CTX_Ptr& keyCtx);
 };
 
 } // namespace mococrw
