@@ -49,6 +49,22 @@ struct SSLDeleter
 };
 
 /**
+ * Template to wrap the OpenSSL_free function
+ * into a functor so that a std::unique_ptr
+ * can use them.
+ */
+template <class P>
+struct SSLFree
+{
+  void operator()(P* ptr)
+  {
+    if (ptr) {
+        lib::OpenSSLLib::SSL_OPENSSL_free(ptr);
+    }
+  }
+};
+
+/**
  * An Exception for OpenSSL errors.
  *
  * This exception is thrown by all methods when an OpenSSL error occurs.
@@ -189,6 +205,17 @@ SSL_EVP_PKEY_Ptr _EVP_PKEY_new();
  * @throw OpenSSLException when no object could be created.
  */
 SSL_X509_REQ_Ptr _X509_REQ_new();
+
+/**
+ * Create an EVP_PKEY_CTX instance for the given key.
+ *
+ * @throw OpenSSLException when the object could not be created.
+ *
+ * Note that the OpenSSL call has a second parameter of type ENGINE*, which is optional.
+ * The ENGINE parameter is currently unused, which is why this parameter has not been included
+ * (thankfully C++ supports overloading which is why it can always be added later).
+ */
+SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new(EVP_PKEY *pkey);
 
 /**
  * Create an EVP_PKEY_CTX instance for the given ID. The IDs come from OpenSSLs native headers.
@@ -950,6 +977,59 @@ void _X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, std::time_t time);
  * @throw OpenSSLException if the ASN1_TIME doesn't fit into a time_t.
  */
 time_t _asn1TimeToTimeT(const ASN1_TIME *time);
+
+enum class RSAPaddingMode
+{
+    PKCS1 = RSA_PKCS1_PADDING,
+    PSS = RSA_PKCS1_PSS_PADDING
+};
+
+/**
+ * Signs a message
+ */
+void _EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen);
+
+/**
+ * Initializes the context for a signature
+ */
+void _EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx);
+
+/**
+ * Initializes the context for a RSA signature verification
+ */
+void _EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx);
+
+/**
+ * Performs a RSA signature verification
+ */
+void _EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+                      const unsigned char *sig, size_t siglen,
+                      const unsigned char *tbs, size_t tbslen);
+
+/**
+ * Sets the RSA padding
+ */
+void _EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad);
+
+/**
+ * Sets the masking algorithm
+ */
+void _EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md);
+/**
+ * Sets the salt length
+ */
+void _EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len);
+/**
+ * Sets the mgf1
+ */
+void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
+
+/**
+ * Allocates memory
+ */
+void* _OPENSSL_malloc(int num);
+
+void _CRYPTO_malloc_init();
 
 }  //::openssl
 }  //::mococrw
