@@ -634,6 +634,46 @@ int OpenSSLLib::SSL_EVP_MD_CTX_cleanup(EVP_MD_CTX* ctx) noexcept
 {
     return EVP_MD_CTX_cleanup(ctx);
 }
+int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return EVP_PKEY_encrypt_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+                                     unsigned char *out, size_t *outlen,
+                                     const unsigned char *in, size_t inlen) noexcept
+{
+    return EVP_PKEY_encrypt(ctx, out, outlen, in, inlen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return EVP_PKEY_decrypt_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+                                     unsigned char *out, size_t *outlen,
+                                     const unsigned char *in, size_t inlen) noexcept
+{
+    return EVP_PKEY_decrypt(ctx, out, outlen, in, inlen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+{
+    return EVP_PKEY_CTX_set_rsa_oaep_md(ctx, md);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen) noexcept
+{
+    return EVP_PKEY_CTX_set0_rsa_oaep_label(ctx, l, llen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept
+{
+    return EVP_PKEY_CTX_get0_rsa_oaep_label(ctx, l);
+}
+int OpenSSLLib::SSL_RSA_size(const RSA *r) noexcept
+{
+    return RSA_size(r);
+}
+int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD *md) noexcept
+{
+    return EVP_MD_size(md);
+}
 
 /* Signatures */
 int OpenSSLLib::SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen) noexcept
@@ -665,6 +705,7 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_M
 {
     return EVP_PKEY_CTX_set_signature_md(ctx, md);
 }
+
 int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept
 {
     return EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len);

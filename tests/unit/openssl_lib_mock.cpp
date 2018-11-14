@@ -726,6 +726,53 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
 }
+int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+                               unsigned char *out, size_t *outlen,
+                               const unsigned char *in, size_t inlen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt(ctx,
+                                                                          out, outlen,
+                                                                          in, inlen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+                               unsigned char *out, size_t *outlen,
+                               const unsigned char *in, size_t inlen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt(ctx,
+                                                                          out, outlen,
+                                                                          in, inlen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, md);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l,
+                                                int llen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_oaep_label(ctx,
+                                                                                         l, llen);
+}
+int OpenSSLLib::SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_get_rsa_oaep_label(ctx, l);
+}
+int OpenSSLLib::SSL_RSA_size(const RSA *r) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_RSA_size(r);
+}
+int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD *md) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_size(md);
+}
+
 }  //::lib
 }  //::openssl
 }  //::mococrw

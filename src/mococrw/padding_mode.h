@@ -18,7 +18,9 @@
  */
 #pragma once
 
+#include <openssl/evp.h>
 #include "key.h"
+#include "openssl_wrap.h"
 
 namespace mococrw {
 /**
@@ -38,6 +40,47 @@ public:
      * Virtual getter method for the padding mode.
      */
     virtual openssl::RSAPaddingMode getPadding() const = 0;
+
+    /**
+     * @brief Get maximum data size that can encrypted using the PKCS padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    virtual int getDataMaxSize(const AsymmetricPublicKey& key) const = 0;
+
+};
+
+/**
+ * @brief NoPadding
+ *
+ * This class defines the parameters specific to the RSA no padding mode.
+ */
+class NoPadding: public RSAPadding {
+public:
+    virtual ~NoPadding() = default;
+
+    /**
+    * @brief Get the padding mode
+    *
+    * Getter method for the padding mode.
+    *
+    * @return \ref openssl::RSAPaddingMode::NONE
+    */
+    openssl::RSAPaddingMode getPadding() const override
+    {
+        return openssl::RSAPaddingMode::NONE;
+    }
+
+    /**
+    * @brief Get maximum data size that can encrypted, which is the same as
+    * the the key when not using padding
+    * @param key RSA public key that will be used for encryption
+    * @return the maximum size of the data that can be encrypted in bytes.
+    */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa);
+    }
 };
 
 /**
@@ -81,12 +124,27 @@ public:
         return _hashingFunction;
     }
 
+    /**
+     * @brief Get maximum data size that can encrypted using the PKCS padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa) - c_pkcsMaxSizeSOverhead;
+    }
+
 private:
     /**
      * @brief The masking algorithm to be used. Not necessary for encryption, only when using the
      * signature facility.
      */
     openssl::DigestTypes _hashingFunction;
+
+    /**
+     * @brief Size overhead added by the PKCS padding on the RSA encryption
+     */
+    static const int c_pkcsMaxSizeSOverhead = 11;
 };
 
 /**
@@ -162,6 +220,19 @@ public:
 
 private:
     /**
+     * @brief Unused function for PSS because this padding mode is only used for signatures
+     * @param Unused
+     * @return -1.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        /*Ignore unused parameter*/
+        std::ignore = key;
+        return -1;
+    }
+
+private:
+    /**
      * @brief The masking algorithm to be used. Not necessary for encryption.
      */
     openssl::DigestTypes _hashingFunction;
@@ -180,6 +251,107 @@ private:
      * @brief Default value for the salt length
      */
     static const int c_defaultSaltLength = 20;
+};
+
+/**
+ * @brief OAEPPadding
+ *
+ * This class defines the parameters specific to the OAEP padding mode:
+ * - Hashing function
+ * - Masking function
+ * - Label
+ * 
+ * @warning: Because of the currently used implementation of OpenSSL (1.0.2), the label size should
+ *           be limited to maximum positive value of an integer (INT_MAX). This is a known bug that
+ *           was fixed in OpenSSL v1.1
+ *
+ * All parameters have default values, and the label parameter is optional.
+ */
+class OAEPPadding: public RSAPadding {
+public:
+    OAEPPadding(openssl::DigestTypes hashing = openssl::DigestTypes::SHA256,
+                    openssl::DigestTypes masking = openssl::DigestTypes::SHA256,
+                    std::vector<uint8_t> label={})
+        : _hashingFunction{hashing}
+        , _maskingFunction{masking}
+        , _label{label}
+    {
+    }
+
+    virtual ~OAEPPadding() = default;
+
+    /**
+     * @brief Get the hashing function
+     *
+     * Getter method for the hashing function.
+     *
+     * @return The hashing function
+     */
+    openssl::DigestTypes getHashingFunction() const
+    {
+        return _hashingFunction;
+    }
+
+    /**
+     * @brief Get the masking function
+     *
+     * Getter method for the masking function.
+     *
+     * @return The masking function
+     */
+    openssl::DigestTypes getMaskingFunction() const
+    {
+        return _maskingFunction;
+    }
+
+    /**
+     * @brief Get the OAEP label
+     *
+     * Getter method for the OAEP label.
+     *
+     * @return The OAEP label
+     */
+    std::vector<uint8_t> getLabel() const
+    {
+        return _label;
+    }
+
+    /**
+     * @brief Get the padding mode
+     *
+     * Getter method for the padding mode.
+     *
+     * @return \ref openssl::RSAPaddingMode::OAEP
+     */
+    openssl::RSAPaddingMode getPadding() const override
+    {
+        return openssl::RSAPaddingMode::OAEP;
+    }
+
+    /**
+     * @brief Get maximum data size that can encrypted using the OAEP padding
+     * @param key RSA public key that will be used for encryption
+     * @return the maximum size of the data that can be encrypted in bytes.
+     */
+    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    {
+        return openssl::_RSA_size(key.internal()->pkey.rsa) -
+                (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_hashingFunction)) - 2);
+    }
+
+private:
+    /**
+     * @brief The masking algorithm to be used
+     */
+    openssl::DigestTypes _hashingFunction;
+    /**
+     * @brief The mgf1 to be used
+     */
+    openssl::DigestTypes _maskingFunction;
+    /**
+     * @brief The label
+     */
+    std::vector<uint8_t> _label;
 };
 
 }
