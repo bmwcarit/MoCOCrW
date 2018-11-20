@@ -62,6 +62,7 @@ public:
     const std::string &organizationName() const { return _organizationName; }
     const std::string &pkcs9EmailAddress() const { return _pkcs9EmailAddress; }
     const std::string &serialNumber() const { return _serialNumber; }
+    const std::string &givenName() const { return _givenName; }
     /**
      * Populate an X509_NAME instance.
      *
@@ -89,6 +90,7 @@ private:
     std::string _organizationName;
     std::string _pkcs9EmailAddress;
     std::string _serialNumber;
+    std::string _givenName;
 };
 
 class DistinguishedName::Builder
@@ -112,6 +114,8 @@ public:
     Builder &pkcs9EmailAddress(T &&name);
     template <class T>
     Builder &serialNumber(T &&name);
+    template <class T>
+    Builder &givenName(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
 
@@ -176,6 +180,13 @@ template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::serialNumber(T &&name)
 {
     _dn._serialNumber = std::forward<T>(name);
+    return *this;
+}
+
+template <class T>
+DistinguishedName::Builder &DistinguishedName::Builder::givenName(T &&name)
+{
+    _dn._givenName = std::forward<T>(name);
     return *this;
 }
 
