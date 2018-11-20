@@ -47,6 +47,7 @@ void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr &subject) const
     _addString(subject, organizationName(), ASN1_NID::OrganizationName);
     _addString(subject, pkcs9EmailAddress(), ASN1_NID::Pkcs9EmailAddress);
     _addString(subject, serialNumber(), ASN1_NID::SerialNumber);
+    _addString(subject, givenName(), ASN1_NID::GivenName);
 }
 
 std::string _getEntryByNIDAsString(X509_NAME *x509, ASN1_NID nid)
@@ -77,6 +78,7 @@ DistinguishedName DistinguishedName::fromX509Name(X509_NAME *x509)
     builder.organizationName(_getEntryByNIDAsString(x509, ASN1_NID::OrganizationName));
     builder.pkcs9EmailAddress(_getEntryByNIDAsString(x509, ASN1_NID::Pkcs9EmailAddress));
     builder.serialNumber(_getEntryByNIDAsString(x509, ASN1_NID::SerialNumber));
+    builder.givenName(_getEntryByNIDAsString(x509, ASN1_NID::GivenName));
     return builder.build();
 }
 
