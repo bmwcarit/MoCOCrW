@@ -52,6 +52,7 @@ protected:
     static const std::string _pemChainOfThree;
     std::string _pemChainNoNewlines;
     static const std::string _pemChainInvalid;
+    static const std::string _certWithGivenName;
 
     X509Certificate _cert = X509Certificate::fromPEM(_pemString);
 
@@ -306,6 +307,27 @@ TMgis07hulAnaaBCrb1xiGFYC/tGcJ+558nycS4XiFjU0Nsh1zzubTum51ry+fSz
 E6sliUj/gfWDpEur75FEoG9gYhRl3rI3Rj34al2DP5no7J2KCrq59lK3WI+vByYM
 uRZLQUBt1w+r1qEakvSIoinjrmS616qfkOBPHJEkvQ==
 -----END CERTIFICATE-----)"};
+
+const std::string X509Test::_certWithGivenName{
+R"(-----BEGIN CERTIFICATE-----
+MIIC6TCCAo+gAwIBAgIJAN6EkERSsPfKMAoGCCqGSM49BAMCMIHOMQswCQYDVQQG
+EwJERTEQMA4GA1UECAwHbmViZW5hbjENMAsGA1UEBwwEb2JlbjEQMA4GA1UECgwH
+TGludXhBRzEVMBMGA1UECwwMTGludXhTdXBwb3J0MSIwIAYJKoZIhvcNAQkBFhNz
+dXBwb3J0QGV4YW1wbGUuY29tMSkwJwYDVQQFEyAwOEUzNkRENTAxOTQxNDMyMzU4
+QUZFODI1NkJDNkVGRDESMBAGA1UEAwwJSW1BVGVhcG90MRIwEAYDVQQqDAlHaXZl
+bk5hbWUwHhcNMTgxMTE5MTA1ODE3WhcNMjgxMTE2MTA1ODE3WjCBzjELMAkGA1UE
+BhMCREUxEDAOBgNVBAgMB25lYmVuYW4xDTALBgNVBAcMBG9iZW4xEDAOBgNVBAoM
+B0xpbnV4QUcxFTATBgNVBAsMDExpbnV4U3VwcG9ydDEiMCAGCSqGSIb3DQEJARYT
+c3VwcG9ydEBleGFtcGxlLmNvbTEpMCcGA1UEBRMgMDhFMzZERDUwMTk0MTQzMjM1
+OEFGRTgyNTZCQzZFRkQxEjAQBgNVBAMMCUltQVRlYXBvdDESMBAGA1UEKgwJR2l2
+ZW5OYW1lMFowFAYHKoZIzj0CAQYJKyQDAwIIAQEHA0IABGSm7I5r5lx58NEUdL4y
+cmGNhzvxm+YitaQMiAaBIC+fmd3/J5DWtEvtpXDc68wqBImN6uoL/cNfIES703Y3
+xJGjUzBRMB0GA1UdDgQWBBSvUgPk/0OgqCjq51t0uFte9/uUvzAfBgNVHSMEGDAW
+gBSvUgPk/0OgqCjq51t0uFte9/uUvzAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49
+BAMCA0gAMEUCIFMm751uiLYek33gkcLHyCMdXntcwXUdgoEtOuq04Yr7AiEAk62k
+0Ct1NJmoJM1Hb88ID7WRHzwrkn5YLsc57UOKMYo=
+-----END CERTIFICATE-----)"
+};
 
 TEST_F(X509Test, testParsingX509CertificateFromPem)
 {
@@ -612,5 +634,23 @@ TEST_F(X509Test, testExpiredCertificateIsNotCA)
     /*Check an expired non CA certificate*/
     EXPECT_FALSE(_root1_expired->isCA())
         << "X509Certificate::isCA(): Certificate is not a CA";
+}
+
+TEST_F(X509Test, testGivenNameGetter)
+{
+    auto _given_name_cert = X509Certificate::fromPEM(_certWithGivenName);
+
+    using ::testing::Eq;
+    auto subject = _given_name_cert.getSubjectDistinguishedName();
+
+    ASSERT_THAT(subject.commonName(), Eq("ImATeapot"));
+    ASSERT_THAT(subject.countryName(), Eq("DE"));
+    ASSERT_THAT(subject.localityName(), Eq("oben"));
+    ASSERT_THAT(subject.stateOrProvinceName(), Eq("nebenan"));
+    ASSERT_THAT(subject.organizationalUnitName(), Eq("LinuxSupport"));
+    ASSERT_THAT(subject.organizationName(), Eq("LinuxAG"));
+    ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("support@example.com"));
+    ASSERT_THAT(subject.serialNumber(), Eq("08E36DD501941432358AFE8256BC6EFD"));
+    ASSERT_THAT(subject.givenName(), Eq("GivenName"));
 }
 
