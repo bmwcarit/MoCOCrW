@@ -53,6 +53,10 @@ protected:
     std::string _pemChainNoNewlines;
     static const std::string _pemChainInvalid;
     static const std::string _certWithGivenName;
+    static const std::string _eccRootKeyPem;
+    static const std::string _eccIntermediateKeyPem;
+    static const std::string _eccUserKeyPem;
+    static const std::string _pemChainEcc;
 
     X509Certificate _cert = X509Certificate::fromPEM(_pemString);
 
@@ -70,6 +74,10 @@ protected:
     std::unique_ptr<X509Certificate> _year9999;
 
     std::unique_ptr<AsymmetricPublicKey> _root1_pubkey;
+
+    std::unique_ptr<X509Certificate> _eccRoot;
+    std::unique_ptr<X509Certificate> _eccIntermediate;
+    std::unique_ptr<X509Certificate> _eccUser;
 };
 
 void X509Test::SetUp()
@@ -96,6 +104,11 @@ void X509Test::SetUp()
         std::remove_if(_pemChainNoNewlines.begin(), _pemChainNoNewlines.end(),
                        [] (auto c) { return c == '\n'; }),
         _pemChainNoNewlines.end());
+
+    _eccRoot = std::make_unique<X509Certificate>(loadCertFromFile("eccRootCertificate.pem"));
+    _eccIntermediate = std::make_unique<X509Certificate>(loadCertFromFile("eccIntermediateCertificate.pem"));
+    _eccUser = std::make_unique<X509Certificate>(loadCertFromFile("eccUserCertificate.pem"));
+
 }
 
 const std::string X509Test::_pemString{R"(-----BEGIN CERTIFICATE-----
@@ -123,40 +136,42 @@ a+nduZ+dBBL7f+jPnCV6y0uRJVQZ3IinoZGeZyFazfq4tWraIotE7STkQpoiM8TG
 4vj2kM+h9miQEbYAyg6z4uwoiK4eqOvwJdqTxjHufDbRK1WmdrieU8psr6lebWP+
 KuAcbGt8ba8eeJrDJoBKRB6y4K/LM7Z/Ajq4548PduDyFuKqC2qlw0LAWUbQprPX
 2EI7Tw==
------END CERTIFICATE-----)"};
+-----END CERTIFICATE-----)"
+};
 
 const std::string X509Test::_shortSerialPemString{
-        "-----BEGIN CERTIFICATE-----\n"
-        "MIICOTCCAeOgAwIBAgIBDDANBgkqhkiG9w0BAQsFADB8MQswCQYDVQQGEwJERTEb\n"
-        "MBkGA1UECAwSQmFkZW4tV3VlcnR0ZW1iZXJnMQwwCgYDVQQHDANVbG0xGDAWBgNV\n"
-        "BAoMD0JNVyBDYXIgSVQgR21iSDENMAsGA1UECwwESkMtNzEZMBcGA1UEAwwQVGVz\n"
-        "dCBDZXJ0aWZpY2F0ZTAeFw0xNzA3MjUxMjAyNTJaFw0xODA3MjUxMjAyNTJaMHwx\n"
-        "CzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcxDDAKBgNV\n"
-        "BAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQLDARKQy03\n"
-        "MRkwFwYDVQQDDBBUZXN0IENlcnRpZmljYXRlMFwwDQYJKoZIhvcNAQEBBQADSwAw\n"
-        "SAJBAPBv9TuHRI+t28ONKkKspleukIcGmHx/zDBpoPYRUU5VzT3nNPLbxD2MOxfI\n"
-        "Tv6r+8ielFOrnabK/6LcLadin20CAwEAAaNQME4wHQYDVR0OBBYEFBBwzzzDSMfC\n"
-        "uuL/aoaa9HwgPUefMB8GA1UdIwQYMBaAFBBwzzzDSMfCuuL/aoaa9HwgPUefMAwG\n"
-        "A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADQQBFBuE9h4TrimeKhqbCPEmkUlX0\n"
-        "cS0ri/kzH2BN2lM1Jt+NdPeMTGnkIiLwPoIaPSFeTZjz5Ka0mpq2wClzk2Ci\n"
-        "-----END CERTIFICATE-----\n"};
+R"(-----BEGIN CERTIFICATE-----
+MIICOTCCAeOgAwIBAgIBDDANBgkqhkiG9w0BAQsFADB8MQswCQYDVQQGEwJERTEb
+MBkGA1UECAwSQmFkZW4tV3VlcnR0ZW1iZXJnMQwwCgYDVQQHDANVbG0xGDAWBgNV
+BAoMD0JNVyBDYXIgSVQgR21iSDENMAsGA1UECwwESkMtNzEZMBcGA1UEAwwQVGVz
+dCBDZXJ0aWZpY2F0ZTAeFw0xNzA3MjUxMjAyNTJaFw0xODA3MjUxMjAyNTJaMHwx
+CzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcxDDAKBgNV
+BAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQLDARKQy03
+MRkwFwYDVQQDDBBUZXN0IENlcnRpZmljYXRlMFwwDQYJKoZIhvcNAQEBBQADSwAw
+SAJBAPBv9TuHRI+t28ONKkKspleukIcGmHx/zDBpoPYRUU5VzT3nNPLbxD2MOxfI
+Tv6r+8ielFOrnabK/6LcLadin20CAwEAAaNQME4wHQYDVR0OBBYEFBBwzzzDSMfC
+uuL/aoaa9HwgPUefMB8GA1UdIwQYMBaAFBBwzzzDSMfCuuL/aoaa9HwgPUefMAwG
+A1UdEwQFMAMBAf8wDQYJKoZIhvcNAQELBQADQQBFBuE9h4TrimeKhqbCPEmkUlX0
+cS0ri/kzH2BN2lM1Jt+NdPeMTGnkIiLwPoIaPSFeTZjz5Ka0mpq2wClzk2Ci
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_negativeSerialPemString{
-        "-----BEGIN CERTIFICATE-----\n"
-        "MIICQzCCAe2gAwIBAgIB1jANBgkqhkiG9w0BAQsFADCBgDELMAkGA1UEBhMCREUx\n"
-        "GzAZBgNVBAgMEkJhZGVuLVd1ZXJ0dGVtYmVyZzEMMAoGA1UEBwwDVWxtMRgwFgYD\n"
-        "VQQKDA9CTVcgQ2FyIElUIEdtYkgxDTALBgNVBAsMBEpDLTcxHTAbBgNVBAMMFE5l\n"
-        "Z2F0aXZlIFNlcmlhbCBUZXN0MB4XDTE3MDcyNTEyMTE1NVoXDTE4MDcyNTEyMTE1\n"
-        "NVowgYAxCzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcx\n"
-        "DDAKBgNVBAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQL\n"
-        "DARKQy03MR0wGwYDVQQDDBROZWdhdGl2ZSBTZXJpYWwgVGVzdDBcMA0GCSqGSIb3\n"
-        "DQEBAQUAA0sAMEgCQQDXKboXa5QW0I7JknewmLQqRTOp0QcDsrck3THEeaSBRNyb\n"
-        "04uQFZGftdsuC2b9jr1k8NCiuy3Su81tn4ku1dIPAgMBAAGjUDBOMB0GA1UdDgQW\n"
-        "BBRu6KAISE1V4jhYuiyb3iEZTf2ijDAfBgNVHSMEGDAWgBRu6KAISE1V4jhYuiyb\n"
-        "3iEZTf2ijDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA0EAENPsu/If+1Ir\n"
-        "YMjWHTmu7K7pwJxYg8QBdfhVbnc5qHK+sZk1zHh+ng7bW1QZIvitKhW8hnUiwz3O\n"
-        "wvM4cGGE+Q==\n"
-        "-----END CERTIFICATE-----\n"};
+R"(-----BEGIN CERTIFICATE-----
+MIICQzCCAe2gAwIBAgIB1jANBgkqhkiG9w0BAQsFADCBgDELMAkGA1UEBhMCREUx
+GzAZBgNVBAgMEkJhZGVuLVd1ZXJ0dGVtYmVyZzEMMAoGA1UEBwwDVWxtMRgwFgYD
+VQQKDA9CTVcgQ2FyIElUIEdtYkgxDTALBgNVBAsMBEpDLTcxHTAbBgNVBAMMFE5l
+Z2F0aXZlIFNlcmlhbCBUZXN0MB4XDTE3MDcyNTEyMTE1NVoXDTE4MDcyNTEyMTE1
+NVowgYAxCzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcx
+DDAKBgNVBAcMA1VsbTEYMBYGA1UECgwPQk1XIENhciBJVCBHbWJIMQ0wCwYDVQQL
+DARKQy03MR0wGwYDVQQDDBROZWdhdGl2ZSBTZXJpYWwgVGVzdDBcMA0GCSqGSIb3
+DQEBAQUAA0sAMEgCQQDXKboXa5QW0I7JknewmLQqRTOp0QcDsrck3THEeaSBRNyb
+04uQFZGftdsuC2b9jr1k8NCiuy3Su81tn4ku1dIPAgMBAAGjUDBOMB0GA1UdDgQW
+BBRu6KAISE1V4jhYuiyb3iEZTf2ijDAfBgNVHSMEGDAWgBRu6KAISE1V4jhYuiyb
+3iEZTf2ijDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA0EAENPsu/If+1Ir
+YMjWHTmu7K7pwJxYg8QBdfhVbnc5qHK+sZk1zHh+ng7bW1QZIvitKhW8hnUiwz3O
+wvM4cGGE+Q==
+-----END CERTIFICATE-----)"
+};
 
 // This is root1, root1.int1, root1.int1.cert1
 
@@ -244,7 +259,8 @@ qzdsUzZtraSqwvoTmOrmvhzzaNBglZpFhScGqVQsZYbMEKbSkNWbGj+E/0GoAjPp
 FM8GVeGdLPfBfpDybV6RlgAFmuRt6SKdJ1eZvyp6bJfLN8RaoKMXh7ZTkCyOrUhO
 3qCuAUn21XS9k7vu6kJZRP8p7gBZb9nLnj/PIlP4ZrrgLfpZr0WkKDDCOZKeId/4
 i1WWJ4xDbDzyjalWgQI=
------END CERTIFICATE-----)"};
+-----END CERTIFICATE-----)"
+};
 
 const std::string X509Test::_pemChainInvalid{
 R"(-----BEGIN CERTIFICATE-----
@@ -306,7 +322,8 @@ WI/ur6MJMEtfZGruLfU7XL970mcWMdwUh/MqSc7ffEA2Pj6aLnffmvqxdMEhuhTu
 TMgis07hulAnaaBCrb1xiGFYC/tGcJ+558nycS4XiFjU0Nsh1zzubTum51ry+fSz
 E6sliUj/gfWDpEur75FEoG9gYhRl3rI3Rj34al2DP5no7J2KCrq59lK3WI+vByYM
 uRZLQUBt1w+r1qEakvSIoinjrmS616qfkOBPHJEkvQ==
------END CERTIFICATE-----)"};
+-----END CERTIFICATE-----)"
+};
 
 const std::string X509Test::_certWithGivenName{
 R"(-----BEGIN CERTIFICATE-----
@@ -326,6 +343,86 @@ xJGjUzBRMB0GA1UdDgQWBBSvUgPk/0OgqCjq51t0uFte9/uUvzAfBgNVHSMEGDAW
 gBSvUgPk/0OgqCjq51t0uFte9/uUvzAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49
 BAMCA0gAMEUCIFMm751uiLYek33gkcLHyCMdXntcwXUdgoEtOuq04Yr7AiEAk62k
 0Ct1NJmoJM1Hb88ID7WRHzwrkn5YLsc57UOKMYo=
+-----END CERTIFICATE-----)"
+};
+
+const std::string X509Test::_eccRootKeyPem{
+R"(-----BEGIN PRIVATE KEY-----
+MIHCAgEAMBAGByqGSM49AgEGBSuBBAAkBIGqMIGnAgEBBDQAF2zFhKyxJiI7bGvG
+Mw9rq7DUvrqTDJMHeRttpsZc0i9tFbvmaT2J5U39/RkseDha2b87oWwDagAEAAdj
+oVwkpy9CPA8RU3sd0aXV/XnHw5nE7HgINd6ApxCaknRebk4Vgbgz04588YqjqQpQ
+TAA+hxkUt1ZInurAHTt/ECQpvt1YOTBgNigakbLzq1LsbbyLWJsH5diall6Is+lg
+y2Mu1EA=
+-----END PRIVATE KEY-----)"
+};
+
+const std::string X509Test::_eccIntermediateKeyPem{
+R"(-----BEGIN PRIVATE KEY-----
+MIHCAgEAMBAGByqGSM49AgEGBSuBBAAkBIGqMIGnAgEBBDQAAQuTNqP1ipk57oZm
+FcB1ZCEYY4R6Y6V51DA+taE2zBuvpejV8ePjASYNdjewoYxxwkuHoWwDagAEACOv
+gIc+P+nKb1cZh0ikhhG7z+WbGJivBM97H+8PdiZio4Zk8P659OLtiGh0EZ/xG7YB
+UAHUnp3pkDj5/jZ6ufhbiN96zpXf83vvtqI1Nhf9Ej0rAyVs5vpSjp8P97KDNuS6
+btCxINI=
+-----END PRIVATE KEY-----)"
+};
+
+const std::string X509Test::_eccUserKeyPem{
+R"(-----BEGIN PRIVATE KEY-----
+MIHCAgEAMBAGByqGSM49AgEGBSuBBAAkBIGqMIGnAgEBBDQAcas1glPO4GSllQ1E
+3xy9ufqi4IuymIvc2A4OpEYu3Eo/sPxuQhpwmuobglnQvyRH7TrsoWwDagAEABGO
+oeaF7FX5VB0JFELIUPO+8cD3LmlioJR9ckUhbPUhxza4bflUQYXOuLFaZ3LncVsF
+7ADykWyFcm2oQ4mPM0sp6D8WUBkbqG4t7Q2RP9CZrGH7hTcdEDy6LgHkDtjLG3eM
+PwSgThU=
+-----END PRIVATE KEY-----)"
+};
+
+const std::string X509Test::_pemChainEcc{
+R"(-----BEGIN CERTIFICATE-----
+MIICXDCCAd2gAwIBAgIJAIIti+pyO05eMAoGCCqGSM49BAMCMFwxCzAJBgNVBAYT
+AlBUMQ4wDAYDVQQIDAVQb3J0bzEOMAwGA1UEBwwFUG9ydG8xITAfBgNVBAoMGElu
+dGVybmV0IFdpZGdpdHMgUHR5IEx0ZDEKMAgGA1UEAwwBQTAeFw0xODExMjkxOTQ0
+MThaFw0xOTExMjkxOTQ0MThaMFwxCzAJBgNVBAYTAlBUMQ4wDAYDVQQIDAVQb3J0
+bzEOMAwGA1UEBwwFUG9ydG8xITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5
+IEx0ZDEKMAgGA1UEAwwBQTB+MBAGByqGSM49AgEGBSuBBAAkA2oABAAHY6FcJKcv
+QjwPEVN7HdGl1f15x8OZxOx4CDXegKcQmpJ0Xm5OFYG4M9OOfPGKo6kKUEwAPocZ
+FLdWSJ7qwB07fxAkKb7dWDkwYDYoGpGy86tS7G28i1ibB+XYmpZeiLPpYMtjLtRA
+o2MwYTAdBgNVHQ4EFgQUba0P7fHnmLen9HYoILCBwp01X3AwHwYDVR0jBBgwFoAU
+ba0P7fHnmLen9HYoILCBwp01X3AwDwYDVR0TAQH/BAUwAwEB/zAOBgNVHQ8BAf8E
+BAMCAYYwCgYIKoZIzj0EAwIDbQAwagIzf9lXvPqvXNBormiFLHguXdZRVH4BeTnd
+AbQZ6ouNSt8R2kENgI1NQAOFvAu4ozwdebIoAjM1y9kcKfvhdPySULLNWThOG5qv
+g4kKHAXMlMO6sWRbfjZcupG2CjRWcowfv14jsB8D/go=
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIICXjCCAd+gAwIBAgICEAAwCgYIKoZIzj0EAwIwXDELMAkGA1UEBhMCUFQxDjAM
+BgNVBAgMBVBvcnRvMQ4wDAYDVQQHDAVQb3J0bzEhMB8GA1UECgwYSW50ZXJuZXQg
+V2lkZ2l0cyBQdHkgTHRkMQowCAYDVQQDDAFBMCIYDzIwMTAwMTAxMDAwMDAwWhgP
+MjA0NTAxMDEwMDAwMDBaMF4xCzAJBgNVBAYTAlBUMQ8wDQYDVQQIDAZMaXNib24x
+DzANBgNVBAcMBkxpc2JvbjEhMB8GA1UECgwYSW50ZXJuZXQgV2lkZ2l0cyBQdHkg
+THRkMQowCAYDVQQDDAFCMH4wEAYHKoZIzj0CAQYFK4EEACQDagAEACOvgIc+P+nK
+b1cZh0ikhhG7z+WbGJivBM97H+8PdiZio4Zk8P659OLtiGh0EZ/xG7YBUAHUnp3p
+kDj5/jZ6ufhbiN96zpXf83vvtqI1Nhf9Ej0rAyVs5vpSjp8P97KDNuS6btCxINKj
+ZjBkMB0GA1UdDgQWBBSCc34AMYWV0fzPjMntuZumg8tASjAfBgNVHSMEGDAWgBRt
+rQ/t8eeYt6f0diggsIHCnTVfcDASBgNVHRMBAf8ECDAGAQH/AgEAMA4GA1UdDwEB
+/wQEAwIBhjAKBggqhkjOPQQDAgNtADBqAjNDhS00P5ZqSsKzP/TgahO9R53hsEsl
+scoDEGE17WYgbY/qPzcrHwcl50UYteDS1zHGKS8CMy91h7PAoqTkj4k9/9uUgDo8
+VqVeNrZnQNjlqvqDuWlkuMEJDfxZFGNhLNXUJQ3WGeR2mw==
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIICtjCCAjegAwIBAgICEAEwCgYIKoZIzj0EAwIwXjELMAkGA1UEBhMCUFQxDzAN
+BgNVBAgMBkxpc2JvbjEPMA0GA1UEBwwGTGlzYm9uMSEwHwYDVQQKDBhJbnRlcm5l
+dCBXaWRnaXRzIFB0eSBMdGQxCjAIBgNVBAMMAUIwIhgPMjAxMDAxMDEwMDAwMDBa
+GA8yMDQ1MDEwMTAwMDAwMFowXjELMAkGA1UEBhMCREUxDzANBgNVBAgMBk11bmlj
+aDEPMA0GA1UEBwwGTXVuaWNoMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0
+eSBMdGQxCjAIBgNVBAMMAUMwfjAQBgcqhkjOPQIBBgUrgQQAJANqAAQAEY6h5oXs
+VflUHQkUQshQ877xwPcuaWKglH1yRSFs9SHHNrht+VRBhc64sVpncudxWwXsAPKR
+bIVybahDiY8zSynoPxZQGRuobi3tDZE/0JmsYfuFNx0QPLouAeQO2Msbd4w/BKBO
+FaOBuzCBuDAJBgNVHRMEAjAAMBEGCWCGSAGG+EIBAQQEAwIHgDAzBglghkgBhvhC
+AQ0EJhYkT3BlblNTTCBHZW5lcmF0ZWQgQ2xpZW50IENlcnRpZmljYXRlMB0GA1Ud
+DgQWBBQw1qaByB+Yyvz06/5PALaAao/f/TAfBgNVHSMEGDAWgBSCc34AMYWV0fzP
+jMntuZumg8tASjAOBgNVHQ8BAf8EBAMCBeAwEwYDVR0lBAwwCgYIKwYBBQUHAwIw
+CgYIKoZIzj0EAwIDbQAwagIzcpeeAf2n/fWLzeRVjX7R+/oWuB6OkzOrHI0UsVLT
+GDp3DIfB0qcz4hCd2B2SXAS2GcrpAjMvVbewrWuwJhVvgjlwhdzpO6AS65zzuwFb
+//1lXAyymwh7s+tNhq36qxiNKr5i4DncVqI=
 -----END CERTIFICATE-----)"
 };
 
@@ -430,8 +527,7 @@ TEST_F(X509Test, test1970EdgeCaseAsn1DateShort)
 {
     // Not Before: Jan  1 00:01:00 1970 GMT
     // Not After : May 16 00:01:00 9952 GMT
-
-
+    
     auto notBeforeAsn1 = _year1970->getNotBeforeAsn1();
     auto notAfterAsn1 = _year1970->getNotAfterAsn1();
 
@@ -490,11 +586,22 @@ TEST_F(X509Test, test9999EdgeCaseAsn1DateLong)
 TEST_F(X509Test, testIfPubkeyIsCorrectlyExtractedFromCertificate)
 {
     EXPECT_EQ(_root1->getPublicKey(), *_root1_pubkey);
+
+    auto rootPrivKey = AsymmetricKeypair::readPrivateKeyFromPEM(_eccRootKeyPem, "");
+    EXPECT_EQ(_eccRoot->getPublicKey().publicKeyToPem(), rootPrivKey.publicKeyToPem());
+
+    auto intPrivKey = AsymmetricKeypair::readPrivateKeyFromPEM(_eccIntermediateKeyPem, "");
+    EXPECT_EQ(_eccIntermediate->getPublicKey().publicKeyToPem(), intPrivKey.publicKeyToPem());
+
+    auto usrPrivKey = AsymmetricKeypair::readPrivateKeyFromPEM(_eccUserKeyPem, "");
+    EXPECT_EQ(_eccUser->getPublicKey().publicKeyToPem(), usrPrivKey.publicKeyToPem());
 }
 
 TEST_F(X509Test, testIfPubkeyDoesNotMatchOtherCertificate)
 {
     EXPECT_NE(_root2->getPublicKey(), *_root1_pubkey);
+
+    EXPECT_NE(_eccRoot->getPublicKey().publicKeyToPem(), _root1_pubkey->publicKeyToPem());
 }
 
 TEST_F(X509Test, testLoadX509Chain)
@@ -511,6 +618,21 @@ TEST_F(X509Test, testLoadX509Chain)
                   _root1_int1->getSubjectDistinguishedName());
         EXPECT_EQ(pemChain[2].getSubjectDistinguishedName(),
                   _root1_int1_cert1->getSubjectDistinguishedName());
+    });
+
+
+    EXPECT_NO_THROW({
+        auto pemChain = util::loadPEMChain(_pemChainEcc);
+
+        EXPECT_EQ(pemChain.size(), 3);
+
+        // check that the correct certificates are loaded in the correctorder
+        EXPECT_EQ(pemChain[0].getSubjectDistinguishedName(),
+                  _eccRoot->getSubjectDistinguishedName());
+        EXPECT_EQ(pemChain[1].getSubjectDistinguishedName(),
+                  _eccIntermediate->getSubjectDistinguishedName());
+        EXPECT_EQ(pemChain[2].getSubjectDistinguishedName(),
+                  _eccUser->getSubjectDistinguishedName());
     });
 }
 
@@ -598,6 +720,10 @@ TEST_F(X509Test, testRootCertificateIsCA)
 
     EXPECT_TRUE(_root2->isCA())
         << "X509Certificate::isCA(): Root2 certificate is a CA";
+
+    EXPECT_TRUE(_eccRoot->isCA())
+        << "X509Certificate::isCA(): EccRoot certificate is a CA";
+
 }
 
 TEST_F(X509Test, testIntermediateCertificateIsCA)
@@ -610,6 +736,9 @@ TEST_F(X509Test, testIntermediateCertificateIsCA)
 
     EXPECT_TRUE(_root2_int1->isCA())
         << "X509Certificate::isCA(): Root2 Intermediate Certificate is a CA";
+
+    EXPECT_TRUE(_eccIntermediate->isCA())
+        << "X509Certificate::isCA(): eccIntermediate Intermediate Certificate is a CA";
 }
 
 TEST_F(X509Test, testClientCertificateIsNotCA)
@@ -622,6 +751,9 @@ TEST_F(X509Test, testClientCertificateIsNotCA)
 
     EXPECT_FALSE(_root2_int1_cert1->isCA())
         << "X509Certificate::isCA(): Root2 Client Certificate is not a CA";
+
+    EXPECT_FALSE(_eccUser->isCA())
+        << "X509Certificate::isCA(): eccUser Client Certificate is not a CA";
 }
 
 TEST_F(X509Test, testExpiredCertificateIsNotCA)
