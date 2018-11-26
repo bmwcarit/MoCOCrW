@@ -214,6 +214,7 @@ public:
     virtual const EVP_MD* SSL_EVP_sha256() = 0;
     virtual const EVP_MD* SSL_EVP_sha384() = 0;
     virtual const EVP_MD* SSL_EVP_sha512() = 0;
+    virtual const EVP_MD* SSL_EVP_sha1() = 0;
 
     /* X509 Certificate validation */
     virtual X509_STORE* SSL_X509_STORE_new() = 0;
@@ -393,6 +394,7 @@ public:
     MOCK_METHOD0(SSL_EVP_sha256, const EVP_MD*());
     MOCK_METHOD0(SSL_EVP_sha384, const EVP_MD*());
     MOCK_METHOD0(SSL_EVP_sha512, const EVP_MD*());
+    MOCK_METHOD0(SSL_EVP_sha1, const EVP_MD*());
     MOCK_METHOD7(SSL_PEM_write_bio_PKCS8PrivateKey,
                  int(BIO*, EVP_PKEY*, const EVP_CIPHER*, char*, int, pem_password_cb*, void*));
     MOCK_METHOD2(SSL_PEM_write_bio_PUBKEY, int(BIO*, EVP_PKEY*));
