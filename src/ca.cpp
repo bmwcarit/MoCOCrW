@@ -50,11 +50,6 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
 {
     auto basicConstraints = signParams.extension<BasicConstraintsExtension>();
 
-    /* Temporary guard, ECC support will be added in the near future*/
-    if (privateKey.getType() != AsymmetricKey::KeyTypes::RSA){
-        throw MoCOCrWException("CA creation is only supported with RSA keys");
-    }
-
     if (basicConstraints == nullptr) {
         throw MoCOCrWException("Signing parameters for a CA must include X509v3 basic extension");
     }

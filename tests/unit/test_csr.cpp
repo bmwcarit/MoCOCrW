@@ -27,19 +27,36 @@
 using namespace mococrw;
 using namespace mococrw::openssl;
 
-class CSRTest : public ::testing::Test
+
+/// \brief Structure to hold a private/public key pair
+struct keyWithSize {
+    AsymmetricKeypair keypair;
+    unsigned int keySize;
+};
+
+class CSRTest : public ::testing::Test,
+                public ::testing::WithParamInterface<keyWithSize>
 {
 public:
-    void SetUp() override;
+    static void SetUpTestCase();
     void TearDown() override;
-protected:
-    std::unique_ptr<DistinguishedName> _distinguishedName;
-    std::unique_ptr<AsymmetricKeypair> _keypair;
+    static std::vector<keyWithSize> _asymmetricKeys;
 
+protected:
+    static std::unique_ptr<DistinguishedName> _distinguishedName;
+    static std::unique_ptr<AsymmetricKeypair> _rsaKeypair;
+    static std::unique_ptr<AsymmetricKeypair> _eccKeypair;
     constexpr static auto _pemFile = "csr.pem";
 };
 
-void CSRTest::SetUp()
+std::vector<keyWithSize> CSRTest::_asymmetricKeys
+{
+    {AsymmetricKeypair::generateRSA(), 1024},
+    {AsymmetricKeypair::generateECC(), 256}
+};
+std::unique_ptr<DistinguishedName> CSRTest::_distinguishedName;
+
+void CSRTest::SetUpTestCase()
 {
     _distinguishedName = std::make_unique<DistinguishedName>(DistinguishedName::Builder()
                                         .commonName("ImATeapot")
@@ -51,7 +68,6 @@ void CSRTest::SetUp()
                                         .stateOrProvinceName("nebenan")
                                         .serialNumber("08E36DD501941432358AFE8256BC6EFD")
                                         .build());
-    _keypair = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generateRSA());
 }
 
 void CSRTest::TearDown()
@@ -59,29 +75,33 @@ void CSRTest::TearDown()
     std::remove(_pemFile);
 }
 
-TEST_F(CSRTest, testCreateCSR)
+TEST_P(CSRTest, testCreateCSR)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
+
     auto pemString = csr.toPem();
     auto pubKey = csr.getPublicKey();
     // Smoke test to verify that a realistic amount of output
     // is generated
-    ASSERT_GE(pemString.size(), 1024);
+    ASSERT_GE(pemString.size(), data.keySize);
 
-    ASSERT_GE(1024, pubKey.publicKeyToPem().size());
+    ASSERT_GE(data.keySize, pubKey.publicKeyToPem().size());
 }
 
-TEST_F(CSRTest, testGetName)
+TEST_P(CSRTest, testGetName)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
     auto name = csr.getSubjectName();
 
     EXPECT_EQ(name, *_distinguishedName);
 }
 
-TEST_F(CSRTest, testCreateCsrFromPem)
+TEST_P(CSRTest, testCreateCsrFromPem)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
     auto pemString = csr.toPem();
     auto pubKey = csr.getPublicKey();
     auto name = csr.getSubjectName();
@@ -97,10 +117,10 @@ TEST_F(CSRTest, testCreateCsrFromPem)
     EXPECT_EQ(*_distinguishedName, nameCheck);
 }
 
-
-TEST_F(CSRTest, testCreateCsrFromPemFile)
+TEST_P(CSRTest, testCreateCsrFromPemFile)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
     auto pemString = csr.toPem();
     auto pubKey = csr.getPublicKey();
     auto name = csr.getSubjectName();
@@ -135,16 +155,18 @@ TEST_F(CSRTest, testCreateCsrFromNonPemFileThrows)
     ASSERT_THROW(CertificateSigningRequest::fromPEMFile(_pemFile), openssl::OpenSSLException);
 }
 
-TEST_F(CSRTest, testVerifyCsrSuccess)
+TEST_P(CSRTest, testVerifyCsrSuccess)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
     EXPECT_NO_THROW(csr.verify());
 }
 
-TEST_F(CSRTest, testVerifyCsrFromPemSuccess)
+TEST_P(CSRTest, testVerifyCsrFromPemSuccess)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
     std::string pemString = csr.toPem();
 
@@ -153,9 +175,10 @@ TEST_F(CSRTest, testVerifyCsrFromPemSuccess)
     EXPECT_NO_THROW(csrFromPem.verify());
 }
 
-TEST_F(CSRTest, testVerifyCsrFail)
+TEST_P(CSRTest, testVerifyCsrFail)
 {
-    CertificateSigningRequest csr{*_distinguishedName, *_keypair};
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
     std::string pemString = csr.toPem();
     auto idx = pemString.find_first_of('1');
@@ -164,3 +187,6 @@ TEST_F(CSRTest, testVerifyCsrFail)
     CertificateSigningRequest csrFromPem = CertificateSigningRequest::fromPEM(pemString);
     EXPECT_THROW(csrFromPem.verify(), MoCOCrWException);
 }
+
+INSTANTIATE_TEST_CASE_P(CSRTest, CSRTest,
+                        testing::ValuesIn(CSRTest::_asymmetricKeys));
