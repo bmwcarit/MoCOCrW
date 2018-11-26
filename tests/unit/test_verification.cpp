@@ -67,6 +67,10 @@ protected:
     std::unique_ptr<CertificateRevocationList> _root3_int1_int11_emptycrl;
     std::unique_ptr<X509Certificate> _root3_int1_cert12;
 
+    std::unique_ptr<X509Certificate> _eccRoot;
+    std::unique_ptr<X509Certificate> _eccIntermediate;
+    std::unique_ptr<X509Certificate> _eccUser;
+    std::unique_ptr<X509Certificate> _eccExpiredCert;
 };
 
 void VerificationTest::SetUp()
@@ -103,6 +107,12 @@ void VerificationTest::SetUp()
     _root3_int1_int11 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.int11.pem"));
     _root3_int1_int11_emptycrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.int1.int11.crl_empty.pem"));
     _root3_int1_cert12 = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.cert12.pem"));
+
+    _eccRoot = std::make_unique<X509Certificate>(loadCertFromFile("eccRootCertificate.pem"));
+    _eccIntermediate = std::make_unique<X509Certificate>(loadCertFromFile("eccIntermediateCertificate.pem"));
+    _eccUser = std::make_unique<X509Certificate>(loadCertFromFile("eccUserCertificate.pem"));
+
+    _eccExpiredCert = std::make_unique<X509Certificate>(loadCertFromFile("eccExpiredcertificate.pem"));
 }
 
 using VerificationContext = mococrw::X509Certificate::VerificationContext;
@@ -115,12 +125,35 @@ TEST_F(VerificationTest, testSimpleCertValidation)
     ASSERT_NO_THROW(_root1_cert1->verify(trustStore, intermediateCAs));
 }
 
+TEST_F(VerificationTest, testSimpleCertValidationEcc)
+{
+    std::vector<X509Certificate> trustStore{*_eccRoot.get()};
+    std::vector<X509Certificate> intermediateCAs{};
+
+    ASSERT_NO_THROW(_eccIntermediate->verify(trustStore, intermediateCAs));
+}
+
 TEST_F(VerificationTest, testExpiredCertValidationFails)
 {
     std::vector<X509Certificate> trustStore{*_root1.get()};
     std::vector<X509Certificate> intermediateCAs{};
 
     ASSERT_THROW(_root1_expired->verify(trustStore, intermediateCAs), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testExpiredEccCertValidationFails)
+{
+    std::vector<X509Certificate> trustStore{*_eccRoot.get()};
+    std::vector<X509Certificate> intermediateCAs{};
+    EXPECT_THROW({
+        try {
+            _eccExpiredCert->verify(trustStore, intermediateCAs);
+        }
+        catch (const MoCOCrWException &e) {
+            EXPECT_STREQ("certificate has expired", e.what());
+                throw;
+        }
+    }, MoCOCrWException);
 }
 
 TEST_F(VerificationTest, testPastCertValidationSucceedsWithTimeSetAccordingly)
@@ -209,6 +242,14 @@ TEST_F(VerificationTest, testVerificationWorksWithIntermediateInTruststore)
     ASSERT_NO_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs));
 }
 
+TEST_F(VerificationTest, testVerificationWorksWithIntermediateInTruststoreEcc)
+{
+    std::vector<X509Certificate> trustStore{*_eccIntermediate.get()};
+    std::vector<X509Certificate> intermediateCAs{};
+
+    ASSERT_NO_THROW(_eccUser->verify(trustStore, intermediateCAs));
+}
+
 TEST_F(VerificationTest, testChainVerificationLen1Works)
 {
     std::vector<X509Certificate> trustStore{*_root1.get()};
@@ -217,12 +258,28 @@ TEST_F(VerificationTest, testChainVerificationLen1Works)
     ASSERT_NO_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs));
 }
 
+TEST_F(VerificationTest, testChainVerificationLen1WorksEcc)
+{
+    std::vector<X509Certificate> trustStore{*_eccRoot.get()};
+    std::vector<X509Certificate> intermediateCAs{*_eccIntermediate.get()};
+
+    ASSERT_NO_THROW(_eccUser->verify(trustStore, intermediateCAs));
+}
+
 TEST_F(VerificationTest, testChainVerificationFailsWithWrongIntermediate)
 {
     std::vector<X509Certificate> trustStore{*_root1.get()};
     std::vector<X509Certificate> intermediateCAs{*_root1_int2.get()};
 
     ASSERT_THROW(_root1_int1_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testChainVerificationFailsWithWrongIntermediateEcc)
+{
+    std::vector<X509Certificate> trustStore{*_eccRoot.get()};
+    std::vector<X509Certificate> intermediateCAs{*_root1_int2.get()};
+
+    ASSERT_THROW(_eccUser->verify(trustStore, intermediateCAs), MoCOCrWException);
 }
 
 TEST_F(VerificationTest, testVerficationsFailsWithEmptyTruststoreButRootAsIntermediate)
@@ -282,6 +339,14 @@ TEST_F(VerificationTest, testCompleteChainVerificationFailsWithWrongRoot)
     ASSERT_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs), MoCOCrWException);
 }
 
+TEST_F(VerificationTest, testCompleteChainVerificationFailsWithWrongRootEcc)
+{
+    std::vector<X509Certificate> trustStore{*_root2.get()};
+    std::vector<X509Certificate> intermediateCAs{*_eccRoot.get(), *_eccIntermediate.get()};
+
+    ASSERT_THROW(_eccUser->verify(trustStore, intermediateCAs), MoCOCrWException);
+}
+
 TEST_F(VerificationTest, testOpenSSLPartialVerificationWithIntermediateInTruststoreWorks)
 {
     std::vector<X509Certificate> trustStore{*_root1_int1.get()};
@@ -299,13 +364,23 @@ TEST_F(VerificationTest, testVerificationWorksWithUnusedElementsInChainParam)
     ASSERT_NO_THROW(_root1_int1_int11_cert1->verify(trustStore, intermediateCAs));
 }
 
+TEST_F(VerificationTest, testVerificationWorksWithUnusedElementsInChainParamEcc)
+{
+    std::vector<X509Certificate> trustStore{*_eccRoot.get()};
+    std::vector<X509Certificate> intermediateCAs{*_eccIntermediate.get(), *_root1_int1.get(),
+                                                 *_root1_int2.get()};
+
+    ASSERT_NO_THROW(_eccUser->verify(trustStore, intermediateCAs));
+}
+
 TEST_F(VerificationTest, testVerificationWorksWithBothRootsInTruststore)
 {
-    std::vector<X509Certificate> trustStore{*_root1.get(), *_root2.get()};
+    std::vector<X509Certificate> trustStore{*_root1.get(), *_root2.get(), *_eccRoot.get()};
     std::vector<X509Certificate> intermediateCAs{};
 
     ASSERT_NO_THROW(_root1_int1->verify(trustStore, intermediateCAs));
     ASSERT_NO_THROW(_root2_int1->verify(trustStore, intermediateCAs));
+    ASSERT_NO_THROW(_eccIntermediate->verify(trustStore, intermediateCAs));
 }
 
 /*
@@ -328,6 +403,15 @@ TEST_F(VerificationTest, testVerificationFailsWithNonSelfSignedRootAndFlag)
        .enforceSelfSignedRootCertificate();
 
     ASSERT_THROW(_root1_int1_cert1->verify(ctx), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationFailsWithNonSelfSignedRootAndFlagEcc)
+{
+    VerificationContext ctx;
+    ctx.addTrustedCertificate(*_eccIntermediate.get())
+            .enforceSelfSignedRootCertificate();
+
+    ASSERT_THROW(_eccUser->verify(ctx), MoCOCrWException);
 }
 
 TEST_F(VerificationTest, testSimpleVerificationOfRevokedCertificateFails)
