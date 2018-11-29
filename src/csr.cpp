@@ -29,6 +29,11 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
                                                      const AsymmetricKeypair &keypair)
         : _req{openssl::_X509_REQ_new()}
 {
+    /* Temporary guard, ECC support will be added in the near future*/
+    if(keypair.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("CSR is only supported using RSA keys");
+    }
+
     /* setup x509 version number */
     _X509_REQ_set_version(_req.get(), 0L);
 

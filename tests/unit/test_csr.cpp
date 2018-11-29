@@ -51,7 +51,7 @@ void CSRTest::SetUp()
                                         .stateOrProvinceName("nebenan")
                                         .serialNumber("08E36DD501941432358AFE8256BC6EFD")
                                         .build());
-    _keypair = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generate());
+    _keypair = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generateRSA());
 }
 
 void CSRTest::TearDown()

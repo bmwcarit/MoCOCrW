@@ -40,23 +40,16 @@ public:
     {
     }
 
-/*
- * If we support more than RSA keys at some point, this will become necessary
- * When that happens, we will also need to expose these paramters via the Spec class
- */
-#if 0
-    enum class Types : int { RSA = EVP_PKEY_RSA, };
+    /**
+     * Supported asymmetric key types.
+     */
+    enum class KeyTypes : int { RSA = EVP_PKEY_RSA, ECC = EVP_PKEY_EC };
 
-    Types getType() const  { return reinterpret_cast<Types>(EVP_PKEY_type(_key.get()->type)); }
-private:
-    //note that this unique_ptr will not compile because of the incompleteness of type Spec, but
-    //this is just to hint at what is to come
-    std::unique_ptr<Spec> _spec = nullptr;
+    KeyTypes getType() const  { return static_cast<KeyTypes>(openssl::_EVP_PKEY_type(_key.get())); }
 
-    //this we then want to call from the constructor
-    void _createSpecFromPKEY() { switch(getType()) .... }
+    int getKeySize() const { return EVP_PKEY_bits(_key.get());}
 
-#endif
+    std::unique_ptr<Spec> getKeySpec() const;
 
     inline const openssl::SSL_EVP_PKEY_SharedPtr& internal() const { return _key; }
     inline openssl::SSL_EVP_PKEY_SharedPtr& internal() { return _key; }
@@ -77,14 +70,50 @@ public:
     {
     }
 
+    /**
+     * Converts the asymmetric public key to the PKCS8 format that can be written in a PEM file.
+     * @return public key in PKCS format
+     * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
+     */
     std::string publicKeyToPem() const;
+    /**
+     * Reads an asymmetric public key from a PEM string and creates an @ref AsymmetricPublicKey
+     * object. Can be considered a factory method for the class.
+     * @param pem string to be read.
+     * @return the AsymmetricPublicKey object created form the PEM string
+     * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
+     */
     static AsymmetricPublicKey readPublicKeyFromPEM(const std::string& pem);
 
+    /**
+     * Getters for the internal openSSL object.
+     */
     inline EVP_PKEY* internal() { return _key.internal().get(); }
     inline const EVP_PKEY* internal() const { return _key.internal().get(); }
 
-    inline bool operator==(const AsymmetricPublicKey &rhs) const
-    {
+    /**
+     * Gets the type of the asymmetric key or key pair, @see AsymmetricKey::KeyTypes for the
+     * supported types.
+     * @return the type of the asymmetric key.
+     * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
+     */
+    AsymmetricKey::KeyTypes getType() const  { return _key.getType(); }
+
+    /**
+     * Gets the specification of the asymmetric key in usage
+     *
+     * @return the specification of the key in use.
+     * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
+     */
+    std::unique_ptr<AsymmetricKey::Spec> getKeySpec() const  { return _key.getKeySpec(); }
+
+    /**
+     * Gets the size of the Asymmetric key in bits
+     * @return the size of the key in bits
+     */
+    int getKeySize() const { return _key.getKeySize();}
+
+    inline bool operator==(const AsymmetricPublicKey &rhs) const {
         return openssl::_EVP_PKEY_cmp(internal(), rhs.internal());
     }
     inline bool operator!=(const AsymmetricPublicKey &rhs) const {
@@ -103,7 +132,7 @@ protected:
  *
  * NOTE: This class is the equivalent of a private key,
  * because private keys always hold the corresponding
- * pulbic keys, whereas public keys really only contain
+ * public keys, whereas public keys really only contain
  * the public key.
  */
 class AsymmetricKeypair : public AsymmetricPublicKey
@@ -121,7 +150,7 @@ public:
     }
 
     /**
-     * Generate an asymmetric keypair with default Spec.
+     * Generate a RSA asymmetric keypair with default Spec.
      *
      * Currently, a default-spec is an RSASpec with 2048
      * bit modulus. (@see RSASpec)
@@ -129,17 +158,41 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL
      *      indicates an error
      */
+    [[deprecated("Replaced by generateRSA for improved clarity")]]
     static AsymmetricKeypair generate();
 
     /**
      * Generate an asymmetric keypair with given Spec.
      *
      * @see RSASpec
+     * @see ECCSpec
      *
      * @throws This method may throw an OpenSSLException if OpenSSL
      *      indicates an error
      */
     static AsymmetricKeypair generate(const AsymmetricKey::Spec&);
+
+    /**
+     * Generate a RSA asymmetric keypair with default Spec.
+     *
+     * Currently, a default-spec is an RSASpec with 2048
+     * bit modulus. (@see RSASpec)
+     *
+     * @throws This method may throw an OpenSSLException if OpenSSL
+     *      indicates an error
+     */
+    static AsymmetricKeypair generateRSA();
+
+    /**
+     * Generate an ECC asymmetric keypair with default Spec.
+     *
+     * Currently, a default-spec is an ECCspec with a PRIME_256v1 curve
+     * (aka NIST P-256 or secp256r1).
+     *
+     * @throws This method may throw an OpenSSLException if OpenSSL
+     *      indicates an error
+     */
+    static AsymmetricKeypair generateECC();
 
     /**
      * Serialize the asymmetric keypair encrypted with the given password.
@@ -180,15 +233,20 @@ public:
      *
      * Implementations should override this method
      * to encapsulate the specifics of how to generate
-     * the various types of keys (RSA, DSA, DH).
+     * the various types of keys (RSA and ECC).
      *
      */
     virtual AsymmetricKey generate() const = 0;
 };
-
+/**
+ * RSA specification used to hold the necessary parameters to generate a RSA key pair.
+ */
 class RSASpec final : public AsymmetricKey::Spec
 {
 public:
+    /**
+     * Default RSA key size in case none is specified by the used
+     */
     static constexpr unsigned int defaultSize = 2048;
     explicit RSASpec(unsigned int numBits) : _numBits{numBits} {}
     RSASpec() : RSASpec{defaultSize} {}
@@ -197,4 +255,23 @@ public:
 private:
     unsigned int _numBits;
 };
+
+/**
+ * ECC specification used to hold the necessary parameters to generate a ECC key pair.
+ */
+class ECCSpec final : public AsymmetricKey::Spec
+{
+public:
+    /**
+     * Default elliptic curve to be used in case none is specified by the user.
+     */
+    static constexpr openssl::ellipticCurveNid defaultCurveNid = openssl::ellipticCurveNid::PRIME_256v1;
+    explicit ECCSpec(openssl::ellipticCurveNid curveNid) : _curveNid{curveNid} {}
+    ECCSpec() : ECCSpec{defaultCurveNid} {}
+    inline openssl::ellipticCurveNid curve() const { return _curveNid; }
+    AsymmetricKey generate() const override;
+private:
+    openssl::ellipticCurveNid _curveNid;
+};
+
 }

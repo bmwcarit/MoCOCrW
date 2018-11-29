@@ -32,6 +32,10 @@ std::vector<uint8_t> SignatureUtils::create(AsymmetricPrivateKey &privateKey,
 {
     std::vector<uint8_t> messageDigest;
 
+    if(privateKey.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("Functionality is only supported for RSA keys");
+    }
+
     try {
         messageDigest = digestMessage(message, getHashing(padding));
     }
@@ -50,6 +54,10 @@ std::vector<uint8_t> SignatureUtils::create(AsymmetricPrivateKey &privateKey,
     const auto keyCtx = _EVP_PKEY_CTX_new(privateKey.internal());
     std::unique_ptr<unsigned char, SSLFree<unsigned char>> sig;
     size_t siglen;
+
+    if(privateKey.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("Functionality is only supported for RSA keys");
+    }
 
     try {
         if (!keyCtx.get()) {
@@ -87,6 +95,10 @@ void SignatureUtils::verify(AsymmetricPublicKey &publicKey,
 {
     std::vector<uint8_t> messageDigest;
 
+    if(publicKey.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("Functionality is only supported for RSA keys");
+    }
+
     try {
         messageDigest = digestMessage(message, getHashing(padding));
         verify(publicKey, padding, signature, messageDigest);
@@ -102,6 +114,10 @@ void SignatureUtils::verify(AsymmetricPublicKey &publicKey,
                             const std::vector<uint8_t> messageDigest)
 {
     const auto keyCtx = _EVP_PKEY_CTX_new(publicKey.internal());
+
+    if(publicKey.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("Functionality is only supported for RSA keys");
+    }
 
     try {
         _EVP_PKEY_verify_init(keyCtx.get());
