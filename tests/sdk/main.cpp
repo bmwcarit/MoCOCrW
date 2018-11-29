@@ -67,7 +67,7 @@ int main(int, char **)
                       .stateOrProvinceName("nebenan")
                       .serialNumber("08E36DD501941432358AFE8256BC6EFD")
                       .build();
-    auto keypair = AsymmetricKeypair::generate();
+    auto keypair = AsymmetricKeypair::generateRSA();
     CertificateSigningRequest csr{dn, keypair};
     auto pemString = csr.toPem();
     auto publicKey = csr.getPublicKey();
