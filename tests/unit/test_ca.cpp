@@ -62,7 +62,7 @@ protected:
 
 void CATest::SetUp()
 {
-    _rootKey = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generate());
+    _rootKey = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generateRSA());
 
     _certDetails = std::make_unique<DistinguishedName>(DistinguishedName::Builder{}
                  .organizationalUnitName("Car IT")
@@ -240,7 +240,7 @@ TEST_F(CATest, testCAContents)
 
 TEST_F(CATest, testSignedCSRHasCorrectFields)
 {
-    CertificateSigningRequest csr{*_certDetails, AsymmetricKeypair::generate()};
+    CertificateSigningRequest csr{*_certDetails, AsymmetricKeypair::generateRSA()};
     X509Certificate cert = _ca->signCSR(csr);
     testValiditySpan(cert, _signParams.certificateValidity(), Asn1Time::now());
     EXPECT_EQ(csr.getPublicKey(), cert.getPublicKey());
@@ -254,36 +254,36 @@ TEST_F(CATest, testCanSignCACertificates)
     //Adjust CA to generate CA certificates
     _ca = std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootCert, *_rootKey);
 
-    auto keypair = AsymmetricKeypair::generate();
+    auto keypair = AsymmetricKeypair::generateRSA();
     CertificateSigningRequest csr{*_certDetails, keypair};
     X509Certificate cert = _ca->signCSR(csr);
     CertificateAuthority newCA(_signParams, 0, cert, keypair);
-    csr = CertificateSigningRequest{*_secondaryCertDetails, AsymmetricKeypair::generate()};
+    csr = CertificateSigningRequest{*_secondaryCertDetails, AsymmetricKeypair::generateRSA()};
     X509Certificate secondaryCert = newCA.signCSR(csr);
     ASSERT_NO_THROW(secondaryCert.verify({*_rootCert}, {cert}));
 }
 
 TEST_F(CATest, testSignedNoCACertificatesCantSignOtherCertificates)
 {
-    auto keypair = AsymmetricKeypair::generate();
+    auto keypair = AsymmetricKeypair::generateRSA();
     CertificateSigningRequest csr{*_certDetails, keypair};
     X509Certificate cert = _ca->signCSR(csr);
     // The newly created certificate has CA=false
     CertificateAuthority newCA(_signParams, 0, cert, keypair);
-    csr = CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generate()};
+    csr = CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()};
     // The signing fails because the certificate has CA=false
     ASSERT_THROW(newCA.signCSR(csr), MoCOCrWException);
 }
 
 TEST_F(CATest, testInitializeCAWithNonMatchingKey)
 {
-    EXPECT_THROW(CertificateAuthority(_signParams, 0, *_rootCert, AsymmetricKeypair::generate()),
+    EXPECT_THROW(CertificateAuthority(_signParams, 0, *_rootCert, AsymmetricKeypair::generateRSA()),
                  MoCOCrWException);
 }
 
 TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
 {
-    auto keypair = AsymmetricKeypair::generate();
+    auto keypair = AsymmetricKeypair::generateRSA();
     CertificateSigningRequest csr{*_certDetails, keypair};
     X509Certificate cert = _ca->signCSR(csr);
 
@@ -327,7 +327,7 @@ TEST_F(CATest, testIssueLongLivedCertificate)
     _ca = std::make_unique<CertificateAuthority>(_signParams, 0, *_rootCert, *_rootKey);
 
     X509Certificate cert = _ca->signCSR(CertificateSigningRequest{*_certDetails,
-                                                       AsymmetricKeypair::generate()});
+                                                       AsymmetricKeypair::generateRSA()});
 
     testValiditySpan(cert, validityTime, Asn1Time::now());
 
@@ -350,7 +350,7 @@ TEST_F(CATest, DISABLED_testIssueCertificateInFarFuture)
     _ca = std::make_unique<CertificateAuthority>(_signParams, 0, *_rootCert, *_rootKey);
 
     X509Certificate cert = _ca->signCSR(CertificateSigningRequest{*_certDetails,
-                                                       AsymmetricKeypair::generate()});
+                                                       AsymmetricKeypair::generateRSA()});
 
     testValiditySpan(cert, validityTime, validFrom);
 
