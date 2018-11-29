@@ -21,6 +21,7 @@
 #include <openssl/evp.h>
 #include "key.h"
 #include "openssl_wrap.h"
+#include "error.h"
 
 namespace mococrw {
 /**
@@ -46,7 +47,7 @@ public:
      * @param key RSA public key that will be used for encryption
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    virtual int getDataMaxSize(const AsymmetricPublicKey& key) const = 0;
+    virtual int getDataBlockSize(const AsymmetricPublicKey &key) const = 0;
 
 };
 
@@ -73,13 +74,15 @@ public:
 
     /**
     * @brief Get maximum data size that can encrypted, which is the same as
-    * the the key when not using padding
+    * the the key when not using padding. Since we're not using any type of
+    * padding, the data to encrypt need to have exactly the same size of
+    * the key used
     * @param key RSA public key that will be used for encryption
     * @return the maximum size of the data that can be encrypted in bytes.
     */
-    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    int getDataBlockSize(const AsymmetricPublicKey &key) const override
     {
-        return openssl::_RSA_size(key.internal()->pkey.rsa);
+        return key.getKeySize()/8;
     }
 };
 
@@ -129,9 +132,9 @@ public:
      * @param key RSA public key that will be used for encryption
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    int getDataBlockSize(const AsymmetricPublicKey &key) const override
     {
-        return openssl::_RSA_size(key.internal()->pkey.rsa) - c_pkcsMaxSizeSOverhead;
+        return key.getKeySize()/8 - c_pkcsMaxSizeSOverhead;
     }
 
 private:
@@ -224,12 +227,7 @@ private:
      * @param Unused
      * @return -1.
      */
-    int getDataMaxSize(const AsymmetricPublicKey& key) const override
-    {
-        /*Ignore unused parameter*/
-        std::ignore = key;
-        return -1;
-    }
+    int getDataBlockSize(const AsymmetricPublicKey &) const override { return -1; }
 
 private:
     /**
@@ -260,7 +258,7 @@ private:
  * - Hashing function
  * - Masking function
  * - Label
- * 
+ *
  * @warning: Because of the currently used implementation of OpenSSL (1.0.2), the label size should
  *           be limited to maximum positive value of an integer (INT_MAX). This is a known bug that
  *           was fixed in OpenSSL v1.1
@@ -333,10 +331,10 @@ public:
      * @param key RSA public key that will be used for encryption
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    int getDataMaxSize(const AsymmetricPublicKey& key) const override
+    int getDataBlockSize(const AsymmetricPublicKey &key) const override
     {
-        return openssl::_RSA_size(key.internal()->pkey.rsa) -
-                (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_hashingFunction)) - 2);
+        return key.getKeySize()/8 -
+                (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_hashingFunction))) - 2;
     }
 
 private:

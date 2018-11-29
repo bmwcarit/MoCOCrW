@@ -82,6 +82,10 @@ std::vector<uint8_t> AsymmetricEncryption::encrypt(AsymmetricPublicKey key,
     SSL_RSA_ENCRYPTION_DATA_Ptr encryptedMessage{nullptr};
     size_t encryptedMessageLen{0};
 
+    if(key.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw mococrw::MoCOCrWException("Asymmetric encryption only supports RSA keys");
+    }
+
     try {
         const auto paddingMode = pad.getPadding();
         if (paddingMode != RSAPaddingMode::PKCS1  &&
@@ -95,7 +99,12 @@ std::vector<uint8_t> AsymmetricEncryption::encrypt(AsymmetricPublicKey key,
             throw MoCOCrWException("Encryption context is empty");
         }
 
-        int maxSize{pad.getDataMaxSize(key)};
+        int maxSize{pad.getDataBlockSize(key)};
+        /* Validate message size when not using padding*/
+        if (pad.getPadding() == RSAPaddingMode::NONE &&
+            maxSize != static_cast<int>(message.toByteArray().size())){
+            throw MoCOCrWException("Message size is different from the key size");
+        }
         /* Validate message size */
         if (static_cast<int>(message.toByteArray().size()) > maxSize) {
             throw MoCOCrWException("Message too long for RSA key size");
@@ -139,6 +148,10 @@ AsymmetricEncryption::CryptoData AsymmetricEncryption::decrypt(AsymmetricPrivate
 {
     size_t decryptedMessageLen{0};
     SSL_RSA_ENCRYPTION_DATA_Ptr decryptedMessage{nullptr};
+
+    if (key.getType() != AsymmetricKey::KeyTypes::RSA){
+        throw MoCOCrWException("Asymmetric decryption is only supported for RSA Keys");
+    }
 
     try {
         const auto paddingMode = pad.getPadding();
