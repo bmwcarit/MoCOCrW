@@ -491,6 +491,7 @@ INSTANTIATE_TEST_CASE_P(testSuccessfulEncryption, AsymmetricEncryptionTest,
  *
  * The following use cases are covered:
  * - unsupported padding (PSS)
+ * - ECC Key
  */
 TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
 {
@@ -504,6 +505,12 @@ TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
                                                unsupportedPaddingMode,
                                                nominalDataSet[0]._message),
                  MoCOCrWException);
+
+    auto eccKey = AsymmetricKeypair::generateECC();
+    EXPECT_THROW(AsymmetricEncryption::encrypt(eccKey,
+                                               OAEPPadding{},
+                                               nominalDataSet[0]._message),
+                 MoCOCrWException);
 }
 
 /**
@@ -511,6 +518,7 @@ TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
  *
  * The following use cases are covered:
  * - unsupported padding (PSS)
+ * - ECC key
  */
 TEST_F(AsymmetricEncryptionTest, testDecryptionInvalidParameters)
 {
@@ -524,6 +532,12 @@ TEST_F(AsymmetricEncryptionTest, testDecryptionInvalidParameters)
 
     EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey,
                                                unsupportedPaddingMode,
+                                               nominalDataSet[0]._encrypted),
+                 MoCOCrWException);
+
+    auto eccKey = AsymmetricKeypair::generateECC();
+    EXPECT_THROW(AsymmetricEncryption::decrypt(eccKey,
+                                               OAEPPadding{},
                                                nominalDataSet[0]._encrypted),
                  MoCOCrWException);
 }
@@ -604,6 +618,7 @@ struct MessageSizeDataSet
     openssl::DigestTypes _masking;
     std::vector<uint8_t> _label;
     // expected outputs
+    std::string _exceptionText;
     bool _expectThrow;
 };
 
@@ -626,6 +641,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // PKCS, 1024-bit key, max message size (117)
@@ -639,6 +655,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // PKCS, 1024-bit key, max message size + 1 (118)
@@ -652,6 +669,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // PKCS, 2048-bit key, empty message
@@ -663,6 +681,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // PKCS, 2048-bit key, max message size (245)
@@ -678,6 +697,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // PKCS, 2048-bit key, max message size + 1 (246)
@@ -693,6 +713,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // OAEP, 1024-bit key, hashing SHA256, masking SHA256, empty message
@@ -704,6 +725,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // OAEP, 1024-bit key, hashing SHA256, masking SHA256, max message size (62)
@@ -716,6 +738,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // OAEP, 1024-bit key, hashing SHA256, masking SHA256, max message size + 1 (63)
@@ -728,6 +751,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // OAEP, 1024-bit key, hashing SHA512, masking SHA256, max message size (-2)
@@ -739,6 +763,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA512,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // OAEP, 2048-bit key, hashing SHA256, masking SHA256, empty message
@@ -750,6 +775,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // OAEP, 2048-bit key, hashing SHA256, masking SHA256, max message size (190)
@@ -764,6 +790,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // OAEP, 2048-bit key, hashing SHA256, masking SHA256, max message size + 1 (191)
@@ -778,6 +805,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // OAEP, 2048-bit key, hashing SHA512, masking SHA256, max message size (126)
@@ -791,6 +819,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA512,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // OAEP, 2048-bit key, hashing SHA512, masking SHA256, max message size + 1 (127)
@@ -804,6 +833,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA512,
         openssl::DigestTypes::SHA256,
         {},
+        "Message too long for RSA key size",
         true
     },
     // NO PADDING, 1024-bit key, max message size - 1 (127)
@@ -817,6 +847,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message size is different from the key size",
         true
     },
     // NO PADDING, 1024-bit key, max message size (128)
@@ -830,6 +861,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // NO PADDING, 1024-bit key, max message size + 1 (129)
@@ -843,6 +875,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message size is different from the key size",
         true
     },
     // NO PADDING, 2048-bit key, max message size - 1 (255)
@@ -859,6 +892,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message size is different from the key size",
         true
     },
     // NO PADDING, 2048-bit key, max message size (256)
@@ -875,6 +909,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "",
         false
     },
     // NO PADDING, 2048-bit key, max message size + 1 (257)
@@ -891,6 +926,7 @@ AsymmetricEncryptionSizeTest::messageSizeDataSet
         openssl::DigestTypes::SHA256,
         openssl::DigestTypes::SHA256,
         {},
+        "Message size is different from the key size",
         true
     },
 
@@ -931,8 +967,15 @@ TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
                                                             data._masking,
                                                             data._label);
     if (data._expectThrow) {
-        EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message),
-                         MoCOCrWException);
+        EXPECT_THROW({
+            try {
+                AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message);
+            }
+            catch (const MoCOCrWException &e) {//this tests that it has the correct message
+                EXPECT_STREQ(data._exceptionText.c_str(), e.what());
+                throw;
+            }
+            }, MoCOCrWException);
     } else {
         EXPECT_NO_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message));
     }
@@ -940,3 +983,21 @@ TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
 
 INSTANTIATE_TEST_CASE_P(testMessageSize, AsymmetricEncryptionSizeTest,
                         testing::ValuesIn(AsymmetricEncryptionSizeTest::messageSizeDataSet));
+
+TEST_F(AsymmetricEncryptionSizeTest, testGetMessageSize)
+{
+    auto key1024 = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(keyPairs1024bit._publicKey);
+    auto key2048 = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(keyPairs2048bit._publicKey);
+
+    OAEPPadding oeapPad{};
+    EXPECT_EQ(oeapPad.getDataBlockSize(key1024), 62);
+    EXPECT_EQ(oeapPad.getDataBlockSize(key2048), 190);
+
+    PKCSPadding pkcsPadding{};
+    EXPECT_EQ(pkcsPadding.getDataBlockSize(key1024), 1024/8 - 11);
+    EXPECT_EQ(pkcsPadding.getDataBlockSize(key2048), 2048/8 - 11);
+
+    NoPadding noPadding{};
+    EXPECT_EQ(noPadding.getDataBlockSize(key1024), 1024/8);
+    EXPECT_EQ(noPadding.getDataBlockSize(key2048), 2048/8);
+}
