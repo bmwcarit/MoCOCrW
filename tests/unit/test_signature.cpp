@@ -64,7 +64,7 @@ protected:
 
 void SignatureTest::SetUp()
 {
-    _keyPair = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generate());
+    _keyPair = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generateRSA());
 
     _root1_pubkey = std::make_unique<AsymmetricPublicKey>(loadPubkeyFromFile("root1.pubkey.pem"));
     _root1_cert = std::make_unique<X509Certificate>(loadCertFromFile("signCertificate.pem"));

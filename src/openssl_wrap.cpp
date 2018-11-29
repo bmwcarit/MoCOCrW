@@ -202,6 +202,50 @@ void _EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbits)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_keygen_bits, ctx, mbits);
 }
 
+void _EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_paramgen_init, ctx);
+}
+
+SSL_EVP_PKEY_Ptr _EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx)
+{
+    EVP_PKEY* ptr{nullptr};
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_paramgen, ctx, &ptr);
+    return SSL_EVP_PKEY_Ptr{ptr};
+}
+
+void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid)
+{
+    OpensslCallIsNonNegative::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid,
+                                          ctx, nid);
+}
+
+void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc)
+{
+    OpensslCallIsNonNegative::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_param_enc,
+                                          ctx, param_enc);
+}
+
+const EC_GROUP* _EC_KEY_get0_group(const EC_KEY *key)
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_KEY_get0_group, key);
+}
+
+int _EC_GROUP_get_curve_name(const EC_GROUP *group)
+{
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EC_GROUP_get_curve_name, group);
+}
+
+int _EVP_PKEY_type(const EVP_PKEY* key)
+{
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_type, key->type);
+}
+
+int _EVP_PKEY_size(EVP_PKEY *pkey)
+{
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_size, pkey);
+}
+
 bool _EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b)
 {
     int result = lib::OpenSSLLib::SSL_EVP_PKEY_cmp(a,b);

@@ -108,6 +108,45 @@ int OpenSSLLib::SSL_EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b) noexcept
     return EVP_PKEY_cmp(a,b);
 }
 
+int OpenSSLLib::SSL_EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx) noexcept
+{
+    return EVP_PKEY_paramgen_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey) noexcept
+{
+    return EVP_PKEY_paramgen(ctx, ppkey);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid) noexcept
+{
+    return EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx, nid);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc) noexcept
+{
+    return EVP_PKEY_CTX_set_ec_param_enc(ctx, param_enc);
+}
+
+const EC_GROUP* OpenSSLLib::SSL_EC_KEY_get0_group(const EC_KEY *key) noexcept
+{
+    return EC_KEY_get0_group(key);
+}
+
+int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept
+{
+    return EC_GROUP_get_curve_name(group);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_type(int type) noexcept
+{
+    return EVP_PKEY_type(type);
+}
+
+int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept
+{
+    return EVP_PKEY_size(pkey);
+}
+
 /* Reference counting magic */
 int OpenSSLLib::SSL_CRYPTO_add(int *pointer, int amount, int type) noexcept {
     return CRYPTO_add(pointer, amount, type);

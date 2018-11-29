@@ -254,6 +254,67 @@ void _EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx);
  */
 void _EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbits);
 
+/**
+ * Initializes the key context so we can set the appropriate parameters for the key generation
+ * @param ctx [out] initialized context
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+void _EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx);
+
+/**
+ * Generates the parameters to be used on the key generation.
+ * @param ctx context for parameter generation
+ * @return the generated parameters to be used on the key generation
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+SSL_EVP_PKEY_Ptr _EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx);
+
+ /**
+  * Set the the elliptic curve used to generate the key pair
+  *
+  * @param ctx [in, out] pkey context created to generate the the key.
+  * @param nid [in] Identifier of the curve to be used.
+  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+  */
+void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid);
+
+ /**
+  * Sets the the elliptic curve parameter encoding when generating
+  * EC parameters or an EC key
+  *
+  * @param ctx [in, out] pkey EC parameter or key context
+  * @param param_enc [in] Type of parameter encoding to be used
+  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+  */
+void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc);
+
+/**
+ * Gets the EC group of a given EC key
+ */
+const EC_GROUP* _EC_KEY_get0_group(const EC_KEY *key);
+
+/**
+ * Gets the NID of the elliptic curve used to generate the EC key.
+ */
+int _EC_GROUP_get_curve_name(const EC_GROUP *group);
+
+/**
+ * Gets the type of a give PKey oject.
+ *
+ * @param key to retrieve the type from
+ * @return Returns the PKEY type being used
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+int _EVP_PKEY_type(const EVP_PKEY* key);
+
+/**
+ * Gets the size in bytes of a pkey object
+ * @param pkey key to get size from
+ * @return the size of provided key
+ * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
+ */
+int _EVP_PKEY_size(EVP_PKEY *pkey);
+
 /*
  * Thread safe modification of OpenSSL object reference counters.
  *
@@ -1082,6 +1143,23 @@ int _EVP_MD_size(const EVP_MD *md);
 void* _OPENSSL_malloc(int num);
 
 void _CRYPTO_malloc_init();
+
+enum class ellipticCurveNid
+{
+    PRIME_192v1 = NID_X9_62_prime192v1,
+    PRIME_256v1 = NID_X9_62_prime256v1,
+
+    SECP_224r1 = NID_secp224r1,
+    SECP_384r1 = NID_secp384r1,
+    SECP_521r1 = NID_secp521r1,
+
+    SECT_283k1 = NID_sect283k1,
+    SECT_283r1 = NID_sect283r1,
+    SECT_409k1 = NID_sect409k1,
+    SECT_409r1 = NID_sect409r1,
+    SECT_571k1 = NID_sect571k1,
+    SECT_571r1 = NID_sect571r1,
+};
 
 }  //::openssl
 }  //::mococrw
