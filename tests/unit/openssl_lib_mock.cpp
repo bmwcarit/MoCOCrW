@@ -312,9 +312,19 @@ void OpenSSLLib::SSL_EVP_MD_CTX_destroy(EVP_MD_CTX* ptr) noexcept
     OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_CTX_destroy(ptr);
 }
 
+const EVP_MD* OpenSSLLib::SSL_EVP_sha1() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha1();
+}
+
 const EVP_MD* OpenSSLLib::SSL_EVP_sha256() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha256();
+}
+
+const EVP_MD* OpenSSLLib::SSL_EVP_sha384() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha512();
 }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha512() noexcept
