@@ -205,7 +205,9 @@ public:
     static EVP_PKEY* SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept;
     static int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept;
 
+    static const EVP_MD* SSL_EVP_sha1() noexcept;
     static const EVP_MD* SSL_EVP_sha256() noexcept;
+    static const EVP_MD* SSL_EVP_sha384() noexcept;
     static const EVP_MD* SSL_EVP_sha512() noexcept;
 
     /* X509_NAME */
