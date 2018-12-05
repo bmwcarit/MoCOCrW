@@ -414,8 +414,12 @@ void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx)
 const EVP_MD* _getMDPtrFromDigestType(DigestTypes type)
 {
     switch (type) {
+        case DigestTypes::SHA1:
+            return lib::OpenSSLLib::SSL_EVP_sha1();
         case DigestTypes::SHA256:
             return lib::OpenSSLLib::SSL_EVP_sha256();
+        case DigestTypes::SHA384:
+            return lib::OpenSSLLib::SSL_EVP_sha384();
         case DigestTypes::SHA512:
             return lib::OpenSSLLib::SSL_EVP_sha512();
         default:
