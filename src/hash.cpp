@@ -24,8 +24,22 @@ namespace mococrw
 {
 using namespace openssl;
 
+static const std::string SHA1 = "sha1";
 static const std::string SHA256 = "sha256";
+static const std::string SHA384 = "sha384";
 static const std::string SHA512 = "sha512";
+
+std::vector<uint8_t> sha1(const uint8_t* message, size_t length) {
+    return Hash::sha1().update(message, length).digest();
+}
+
+std::vector<uint8_t> sha1(const std::string &message) {
+    return Hash::sha1().update(message).digest();
+}
+
+std::vector<uint8_t> sha1(const std::vector<uint8_t> &message) {
+    return Hash::sha1().update(message).digest();
+}
 
 std::vector<uint8_t> sha256(const uint8_t* message, size_t length) {
    return Hash::sha256().update(message, length).digest();
@@ -37,6 +51,18 @@ std::vector<uint8_t> sha256(const std::string &message) {
 
 std::vector<uint8_t> sha256(const std::vector<uint8_t> &message) {
     return Hash::sha256().update(message).digest();
+}
+
+std::vector<uint8_t> sha384(const uint8_t* message, size_t length) {
+    return Hash::sha384().update(message, length).digest();
+}
+
+std::vector<uint8_t> sha384(const std::string &message) {
+    return Hash::sha384().update(message).digest();
+}
+
+std::vector<uint8_t> sha384(const std::vector<uint8_t> &message) {
+    return Hash::sha384().update(message).digest();
 }
 
 std::vector<uint8_t> sha512(const uint8_t* message, size_t length) {
@@ -52,7 +78,9 @@ std::vector<uint8_t> sha512(const std::vector<uint8_t> &message) {
 }
 
 const std::map<DigestTypes, size_t> Hash::lengthInBytes = {
+    { DigestTypes::SHA1, 160 / 8 },
     { DigestTypes::SHA256, 256 / 8 },
+    { DigestTypes::SHA384, 384 / 8 },
     { DigestTypes::SHA512, 512 / 8 }
 };
 
@@ -63,8 +91,16 @@ Hash::Hash(const DigestTypes digestType) : _digestType(digestType) {
     _EVP_DigestInit_ex(_digestCtx.get(), digestFn, NULL);
 }
 
+Hash Hash::sha1() {
+    return Hash{DigestTypes::SHA1};
+}
+
 Hash Hash::sha256() {
     return Hash{DigestTypes::SHA256};
+}
+
+Hash Hash::sha384() {
+    return Hash{DigestTypes::SHA384};
 }
 
 Hash Hash::sha512() {
