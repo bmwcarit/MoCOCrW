@@ -89,7 +89,7 @@ TEST_F(HashTest, sha512SingleUpdateString)
     EXPECT_THAT(utility::toHex(Hash::sha512().update("foo").digest()), Eq(sha512_foo));
 }
 
-TEST_F(HashTest, sha1256MultipleUpdatesString)
+TEST_F(HashTest, sha1MultipleUpdatesString)
 {
     EXPECT_THAT(utility::toHex(Hash::sha1().update("foo").update("bar").digest()),
                 Eq(sha1_foobar));

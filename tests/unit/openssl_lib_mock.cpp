@@ -324,7 +324,7 @@ const EVP_MD* OpenSSLLib::SSL_EVP_sha256() noexcept
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha384() noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha512();
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha384();
 }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha512() noexcept
