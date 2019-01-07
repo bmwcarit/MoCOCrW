@@ -28,11 +28,16 @@ using namespace openssl;
 
 // ECC
 void SignatureUtils::setUpContext(EVP_PKEY_CTX *ctx,
-                                  const OperationType &operation)
+                                  const OperationType &operation,
+                                  const DigestTypes &digestType)
 {
-    (operation == OperationType::Sign) ? _EVP_PKEY_sign_init(ctx) : _EVP_PKEY_verify_init(ctx);
+    if (operation == OperationType::Sign) {
+        _EVP_PKEY_sign_init(ctx);
+    } else {
+        _EVP_PKEY_verify_init(ctx);
+    }
 
-    _EVP_PKEY_CTX_set_signature_md(ctx, _getMDPtrFromDigestType(openssl::DigestTypes::SHA1));
+    _EVP_PKEY_CTX_set_signature_md(ctx, _getMDPtrFromDigestType(digestType));
 }
 
 // RSA
@@ -40,7 +45,11 @@ void SignatureUtils::setUpContext(EVP_PKEY_CTX *ctx,
                                   const RSAPadding &padding,
                                   const OperationType &operation)
 {
-    (operation == OperationType::Sign) ? _EVP_PKEY_sign_init(ctx) : _EVP_PKEY_verify_init(ctx);
+    if (operation == OperationType::Sign) {
+        _EVP_PKEY_sign_init(ctx);
+    } else {
+        _EVP_PKEY_verify_init(ctx);
+    }
 
     _EVP_PKEY_CTX_set_rsa_padding(ctx, static_cast<int>(padding.getPadding()));
     _EVP_PKEY_CTX_set_signature_md(ctx, _getMDPtrFromDigestType(getHashing(padding)));
@@ -66,7 +75,6 @@ void SignatureUtils::create(EVP_PKEY_CTX *ctx,
                    reinterpret_cast<const unsigned char *>(messageDigest.data()),
                    messageDigest.size());
 
-    _CRYPTO_malloc_init();
     sig.reset(static_cast<unsigned char *>(_OPENSSL_malloc(siglen)));
     _EVP_PKEY_sign(ctx,
                    sig.get(),
@@ -90,22 +98,7 @@ void SignatureUtils::verify(EVP_PKEY_CTX *ctx,
 
 /*********************************** ECC specialization  ***********************************/
 std::vector<uint8_t> SignatureUtils::ECC::create(AsymmetricPrivateKey &privateKey,
-                                                 const openssl::DigestTypes &digestType,
-                                                 const std::string &message)
-{
-    std::vector<uint8_t> messageDigest;
-
-    try {
-        messageDigest = digestMessage(message, digestType);
-    }
-    catch (const OpenSSLException &e) {
-        throw MoCOCrWException(e.what());
-    }
-
-    return create(privateKey, messageDigest);
-}
-
-std::vector<uint8_t> SignatureUtils::ECC::create(AsymmetricPrivateKey &privateKey,
+                                                 const DigestTypes &digestType,
                                                  const std::vector<uint8_t> &messageDigest)
 {
     std::vector<uint8_t> signedMessage;
@@ -117,7 +110,7 @@ std::vector<uint8_t> SignatureUtils::ECC::create(AsymmetricPrivateKey &privateKe
             throw MoCOCrWException("Context is empty");
         }
 
-        SignatureUtils::setUpContext(keyCtx.get(), OperationType::Sign);
+        SignatureUtils::setUpContext(keyCtx.get(), OperationType::Sign, digestType);
         SignatureUtils::create(keyCtx.get(), messageDigest, signedMessage);
     }
     catch (const OpenSSLException &e) {
@@ -128,24 +121,8 @@ std::vector<uint8_t> SignatureUtils::ECC::create(AsymmetricPrivateKey &privateKe
 }
 
 void SignatureUtils::ECC::verify(AsymmetricPublicKey &publicKey,
-                                 const openssl::DigestTypes &digestType,
                                  const std::vector<uint8_t> &signature,
-                                 const std::string &message)
-{
-    std::vector<uint8_t> messageDigest;
-
-    try {
-        messageDigest = digestMessage(message, digestType);
-    }
-    catch (const OpenSSLException &e) {
-        throw MoCOCrWException(e.what());
-    }
-
-    verify(publicKey, signature, messageDigest);
-}
-
-void SignatureUtils::ECC::verify(AsymmetricPublicKey &publicKey,
-                                 const std::vector<uint8_t> &signature,
+                                 const DigestTypes &digestType,
                                  const std::vector<uint8_t> &messageDigest)
 {
     try {
@@ -155,7 +132,7 @@ void SignatureUtils::ECC::verify(AsymmetricPublicKey &publicKey,
             throw MoCOCrWException("Context is empty");
         }
 
-        SignatureUtils::setUpContext(keyCtx.get(), OperationType::Verify);
+        SignatureUtils::setUpContext(keyCtx.get(), OperationType::Verify, digestType);
         SignatureUtils::verify(keyCtx.get(), signature, messageDigest);
     }
     catch (const OpenSSLException &e) {
@@ -164,43 +141,15 @@ void SignatureUtils::ECC::verify(AsymmetricPublicKey &publicKey,
 }
 
 void SignatureUtils::ECC::verify(const X509Certificate &certificate,
-                                 const openssl::DigestTypes &digestType,
                                  const std::vector<uint8_t> &signature,
-                                 const std::string &message)
-{
-    auto key = certificate.getPublicKey();
-    verify(key, digestType, signature, message);
-}
-
-void SignatureUtils::ECC::verify(const X509Certificate &certificate,
-                                 const std::vector<uint8_t> &signature,
+                                 const DigestTypes &digestType,
                                  const std::vector<uint8_t> &messageDigest)
 {
     auto key = certificate.getPublicKey();
-    verify(key, signature, messageDigest);
+    verify(key, signature, digestType, messageDigest);
 }
 
 /*********************************** RSA specialization  ***********************************/
-std::vector<uint8_t> SignatureUtils::RSA::create(AsymmetricPrivateKey &privateKey,
-                                                 const RSAPadding &padding,
-                                                 const std::string &message)
-{
-    std::vector<uint8_t> messageDigest;
-
-    if(privateKey.getType() != AsymmetricKey::KeyTypes::RSA){
-        throw MoCOCrWException("Functionality is only supported for RSA keys");
-    }
-
-    try {
-        messageDigest = digestMessage(message, getHashing(padding));
-    }
-    catch (const OpenSSLException &e) {
-        throw MoCOCrWException(e.what());
-    }
-
-    return create(privateKey, padding, messageDigest);
-}
-
 std::vector<uint8_t> SignatureUtils::RSA::create(AsymmetricPrivateKey &privateKey,
                                                  const RSAPadding &padding,
                                                  const std::vector<uint8_t> &messageDigest)
@@ -225,26 +174,6 @@ std::vector<uint8_t> SignatureUtils::RSA::create(AsymmetricPrivateKey &privateKe
     }
 
     return signedMessage;
-}
-
-void SignatureUtils::RSA::verify(AsymmetricPublicKey &publicKey,
-                                 const RSAPadding &padding,
-                                 const std::vector<uint8_t> &signature,
-                                 const std::string &message)
-{
-    std::vector<uint8_t> messageDigest;
-
-    if(publicKey.getType() != AsymmetricKey::KeyTypes::RSA){
-        throw MoCOCrWException("Functionality is only supported for RSA keys");
-    }
-
-    try {
-        messageDigest = digestMessage(message, getHashing(padding));
-        verify(publicKey, padding, signature, messageDigest);
-    }
-    catch (const OpenSSLException &e) {
-        throw MoCOCrWException(e.what());
-    }
 }
 
 void SignatureUtils::RSA::verify(AsymmetricPublicKey &publicKey,
@@ -275,38 +204,10 @@ void SignatureUtils::RSA::verify(AsymmetricPublicKey &publicKey,
 void SignatureUtils::RSA::verify(const X509Certificate &certificate,
                                  const RSAPadding &padding,
                                  const std::vector<uint8_t> &signature,
-                                 const std::string &message)
-{
-    auto key = certificate.getPublicKey();
-    verify(key, padding, signature, message);
-}
-
-void SignatureUtils::RSA::verify(const X509Certificate &certificate,
-                                 const RSAPadding &padding,
-                                 const std::vector<uint8_t> &signature,
                                  const std::vector<uint8_t> &messageDigest)
 {
     auto key = certificate.getPublicKey();
     verify(key, padding, signature, messageDigest);
-}
-
-std::vector<uint8_t> SignatureUtils::digestMessage(const std::string &message,
-                                                   const DigestTypes &algorithm)
-{
-    switch (algorithm) {
-    case DigestTypes::SHA256:
-        return sha256(reinterpret_cast<const uint8_t *>(message.c_str()),
-                      reinterpret_cast<size_t>(message.length()));
-    case DigestTypes::SHA512:
-        return sha512(reinterpret_cast<const uint8_t *>(message.c_str()),
-                      reinterpret_cast<size_t>(message.length()));
-    case DigestTypes::SHA1:
-        return sha1(reinterpret_cast<const uint8_t *>(message.c_str()),
-                      reinterpret_cast<size_t>(message.length()));
-
-    default:
-        throw MoCOCrWException("Unknown digest type");
-    }
 }
 
 DigestTypes SignatureUtils::getHashing(const RSAPadding &padding)

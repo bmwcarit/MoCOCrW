@@ -557,10 +557,9 @@ void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx);
  */
 enum class DigestTypes {
     SHA1,
-    SHA256, // @MARCUS: Shouldn't there be some value initialization with openssl consts here?
+    SHA256,
     SHA384,
-    SHA512,
-    SHA1
+    SHA512
 };
 
 /**

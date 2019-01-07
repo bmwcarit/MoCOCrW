@@ -209,7 +209,6 @@ public:
     static const EVP_MD* SSL_EVP_sha256() noexcept;
     static const EVP_MD* SSL_EVP_sha384() noexcept;
     static const EVP_MD* SSL_EVP_sha512() noexcept;
-    static const EVP_MD* SSL_EVP_sha1() noexcept;
 
     /* X509_NAME */
     static X509_NAME* SSL_X509_NAME_new() noexcept;

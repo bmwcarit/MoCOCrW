@@ -44,45 +44,17 @@ public:
         /**
          * @brief Create an ECC signature
          *
-         * Creates an ECC signature for a plain text message based on a given private key.
-         *
-         * @param privateKey The private key to be used in the signature
-         * @param digestType The hash function to digest the message
-         * @param message The message to be hashed and signed
-         * @return The created signature of the message
-         * @throw MoCOCrWException if the sign operation fails.
-         */
-        static std::vector<uint8_t> create(AsymmetricPrivateKey &privateKey,
-                                           const openssl::DigestTypes &digestType,
-                                           const std::string &message);
-        /**
-         * @brief Create an ECC signature
-         *
          * Creates an ECC signature for a message digest based on a given private key.
          *
          * @param privateKey The private key to be used in the signature
+         * @param digestType Digest type used to digest the message
          * @param messageDigest The message digest
          * @return The created ECC signature of the message
          * @throw MoCOCrWException if the sign operation fails.
          */
         static std::vector<uint8_t> create(AsymmetricPrivateKey &privateKey,
+                                           const openssl::DigestTypes &digestType,
                                            const std::vector<uint8_t> &messageDigest);
-
-        /**
-         * @brief Verify a signature (ECC)
-         *
-         * Verifies a signature based on the signed message and a given public key.
-         *
-         * @param publicKey The public key to be used in the verification
-         * @param digestType The hash function to digest the message
-         * @param signature The signature to be verified
-         * @param message The plain text message the signature is verified with
-         * @throw MoCOCrWException if the verification fails.
-         */
-        static void verify(AsymmetricPublicKey &publicKey,
-                           const openssl::DigestTypes &digestType,
-                           const std::vector<uint8_t> &signature,
-                           const std::string &message);
 
         /**
          * @brief Verify a signature (ECC)
@@ -91,28 +63,14 @@ public:
          *
          * @param publicKey The public key to be used in the verification
          * @param signature The signature to be verified
+         * @param digestType Digest type used to digest the message
          * @param messageDigest The message digest the signature is verified with
          * @throw MoCOCrWException if the verification fails.
          */
         static void verify(AsymmetricPublicKey &publicKey,
                            const std::vector<uint8_t> &signature,
-                           const std::vector<uint8_t> &messageDigest);
-
-        /**
-         * @brief Verify a signature (ECC)
-         *
-         * Verifies a signature based on the signed message and a given X509 certificate.
-         *
-         * @param certificate A x509 certificate from which the public key will be extracted
-         * @param digestType The hash function to digest the message
-         * @param signature The signature to be verified
-         * @param message The plain text message the signature is verified with
-         * @throw MoCOCrWException if the verification fails.
-         */
-        static void verify(const X509Certificate &certificate,
                            const openssl::DigestTypes &digestType,
-                           const std::vector<uint8_t> &signature,
-                           const std::string &message);
+                           const std::vector<uint8_t> &messageDigest);
 
         /**
          * @brief Verify a signature (ECC)
@@ -121,11 +79,13 @@ public:
          *
          * @param certificate A x509 certificate from which the public key will be extracted
          * @param signature The signature to be verified
+         * @param digestType Digest type used to digest the message
          * @param messageDigest The message digest the signature is verified with
          * @throw MoCOCrWException if the verification fails.
          */
         static void verify(const X509Certificate &certificate,
                            const std::vector<uint8_t> &signature,
+                           const openssl::DigestTypes &digestType,
                            const std::vector<uint8_t> &messageDigest);
     };
 
@@ -136,21 +96,6 @@ public:
     {
     public:
         RSA() = delete;
-
-        /**
-         * @brief Create an RSA signature
-         *
-         * Creates an RSA signature for a plain text message based on a given private key and padding mode.
-         *
-         * @param privateKey The private key to be used in the signature
-         * @param padding The padding mode
-         * @param message The message to be hashed and signed
-         * @return The created signature of the message
-         * @throw MoCOCrWException if the sign operation fails.
-         */
-        static std::vector<uint8_t> create(AsymmetricPrivateKey &privateKey,
-                                           const RSAPadding &padding,
-                                           const std::string &message);
 
         /**
          * @brief Create an RSA signature
@@ -170,22 +115,6 @@ public:
         /**
          * @brief Verify a signature
          *
-         * Verifies a signature based on the signed message and a given public key and padding mode.
-         *
-         * @param publicKey The public key to be used in the verification
-         * @param padding The padding mode
-         * @param signature The signature to be verified
-         * @param message The plain text message the signature is verified with
-         * @throw MoCOCrWException if the verification fails.
-         */
-        static void verify(AsymmetricPublicKey &publicKey,
-                           const RSAPadding &padding,
-                           const std::vector<uint8_t> &signature,
-                           const std::string &message);
-
-        /**
-         * @brief Verify a signature
-         *
          * Verifies a signature based on the message digest and a given public key and padding mode.
          *
          * @param publicKey The public key to be used in the verification
@@ -198,23 +127,6 @@ public:
                            const RSAPadding &padding,
                            const std::vector<uint8_t> &signature,
                            const std::vector<uint8_t> &messageDigest);
-
-        /**
-         * @brief Verify a signature
-         *
-         * Verifies a signature based on the signed message and a given X509 certificate and padding
-         * mode.
-         *
-         * @param certificate A x509 certificate from which the public key will be extracted
-         * @param padding The padding mode
-         * @param signature The signature to be verified
-         * @param message The plain text message the signature is verified with
-         * @throw MoCOCrWException if the verification fails.
-         */
-        static void verify(const X509Certificate &certificate,
-                           const RSAPadding &padding,
-                           const std::vector<uint8_t> &signature,
-                           const std::string &message);
 
         /**
          * @brief Verify a signature
@@ -252,23 +164,12 @@ private:
      */
     static openssl::DigestTypes getHashing(const RSAPadding &padding);
 
-    /**
-     * @brief Digests a message
-     *
-     * Digests a message using a given algorithm.
-     *
-     * @param msg The message to be digested
-     * @param algorithm The algorithm to be used in the digest operation
-     * @throw MoCOCrWException if the algorithm isn't supported or the digest fails
-     */
-    static std::vector<uint8_t> digestMessage(const std::string &message,
-                                              const openssl::DigestTypes &algorithm);
-
     /*
      * Set up an EVP_PKEY_CTX for ECC-based signature and verification operations
      */
     static void setUpContext(EVP_PKEY_CTX *ctx,
-                             const OperationType &operation);
+                             const OperationType &operation,
+                             const openssl::DigestTypes &digestType);
 
     /*
      * Set up an EVP_PKEY_CTX for RSA-based signature and verification operations

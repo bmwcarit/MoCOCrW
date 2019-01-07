@@ -332,11 +332,6 @@ const EVP_MD* OpenSSLLib::SSL_EVP_sha512() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha512();
 }
 
-const EVP_MD *OpenSSLLib::SSL_EVP_sha1() noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha1();
-}
-
 int OpenSSLLib::SSL_PEM_write_bio_PKCS8PrivateKey(BIO* bp,
                                                   EVP_PKEY* x,
                                                   const EVP_CIPHER* enc,

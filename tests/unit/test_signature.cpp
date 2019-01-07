@@ -42,8 +42,6 @@ protected:
     std::unique_ptr<AsymmetricPublicKey> _root1_RsaPubkey;
     std::unique_ptr<X509Certificate> _root1_RsaCert;
 
-    static const std::string _testMessage;
-
     /* The SHA256 digest of the test message. */
     static const std::vector<uint8_t> _testMessageDigestSHA256;
     /* The SHA512 digest of the test message. */
@@ -90,8 +88,6 @@ const PKCSPadding SignatureTest::sha256PKCSPadding{DigestTypes::SHA256};
 const PKCSPadding SignatureTest::sha512PKCSPadding{DigestTypes::SHA512};
 const PSSPadding SignatureTest::sha256PSSPadding{DigestTypes::SHA256};
 const PSSPadding SignatureTest::sha512PSSPadding{DigestTypes::SHA512};
-
-const std::string SignatureTest::_testMessage{"Hello World!"};
 
 const std::string SignatureTest::_validEccCertificate{
 R"(-----BEGIN CERTIFICATE-----
@@ -217,7 +213,9 @@ const std::vector<uint8_t> SignatureTest::_validPKCS1SignatureSHA512{
         0x48, 0x6A, 0xCE, 0xC4, 0xD0, 0x0A, 0x26, 0x38, 0x17, 0xFE, 0x3D, 0x7B, 0xBE, 0x82, 0x83,
         0xFE, 0x98, 0x59, 0x01, 0x35, 0xBB, 0xB6, 0x60, 0xF7, 0xAA, 0x0E, 0x90, 0xF7, 0xDE, 0xA6,
         0xAA};
-
+/*
+ * All of the _testMessageDigest* variables contain the hashed "Hello World!" string
+ */
 const std::vector<uint8_t> SignatureTest::_testMessageDigestSHA256{
         0x7F, 0x83, 0xB1, 0x65, 0x7F, 0xF1, 0xFC, 0x53, 0xB9, 0x2D, 0xC1, 0x81, 0x48, 0xA1, 0xD6,
         0x5D, 0xFC, 0x2D, 0x4B, 0x1F, 0xA3, 0xD6, 0x77, 0x28, 0x4A, 0xDD, 0xD2, 0x00, 0x12, 0x6D,
@@ -233,24 +231,6 @@ const std::vector<uint8_t> SignatureTest::_testMessageDigestSHA512{
 const std::vector<uint8_t> SignatureTest::_testMessageDigestSHA1{
         0x2e, 0xf7, 0xbd, 0xe6, 0x08, 0xce, 0x54, 0x04, 0xe9, 0x7d, 0x5f, 0x04, 0x2f, 0x95, 0xf8,
         0x9f, 0x1c, 0x23, 0x28, 0x71};
-
-/**
- * @brief Tests whether the interface that requires a key, a plain text message and a padding mode
- * for creating a signature is outputing the correct PKCS1 signature by comparing it to a result
- * known to be correct.
- * - SHA256 hashing
- * - SHA512 hashing
- */
-TEST_F(SignatureTest, testSuccessfulRsaSignatureOfMessagePKCS1ComparedToKnownOutput)
-{
-    std::vector<uint8_t> signature;
-    auto key = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(_validRsaPrivateKey, "");
-
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(key, sha256PKCSPadding, _testMessage));
-    EXPECT_EQ(_validPKCS1SignatureSHA256, signature);
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(key, sha512PKCSPadding, _testMessage));
-    EXPECT_EQ(_validPKCS1SignatureSHA512, signature);
-}
 
 /**
  * @brief Tests whether the interface that requires a key, a message digest and a padding mode
@@ -282,12 +262,12 @@ TEST_F(SignatureTest, testSuccessfulRsaSignatureAndVerificationPKCS1)
     std::vector<uint8_t> signature;
 
     /* Sign and verify with SHA256 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PKCSPadding, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PKCSPadding, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PKCSPadding, _testMessageDigestSHA256));
+    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PKCSPadding, signature, _testMessageDigestSHA256));
 
     /* Sign and verify with SHA512 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha512PKCSPadding, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PKCSPadding, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha512PKCSPadding, _testMessageDigestSHA512));
+    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PKCSPadding, signature, _testMessageDigestSHA512));
 }
 
 /**
@@ -302,12 +282,12 @@ TEST_F(SignatureTest, testSuccessfulRsaSignatureAndVerificationPSSWithSHA256Mask
     std::vector<uint8_t> signature;
 
     /* Sign and verify with SHA256 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PSSPadding, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
+    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PSSPadding, signature, _testMessageDigestSHA256));
 
     /* Sign and verify with SHA512 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha512PSSPadding, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PSSPadding, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha512PSSPadding, _testMessageDigestSHA512));
+    EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PSSPadding, signature, _testMessageDigestSHA512));
 }
 
 /**
@@ -320,11 +300,11 @@ TEST_F(SignatureTest, testSuccessfulRsaSignatureAndVerificationPSSWithSHA512Mask
     EXPECT_NO_THROW(signature
                             = SignatureUtils::RSA::create(*_keyPairRsa,
                                                           PSSPadding(DigestTypes::SHA512, DigestTypes::SHA512),
-                                                          _testMessage));
+                                                          _testMessageDigestSHA512));
     EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa,
                                                 PSSPadding(DigestTypes::SHA512, DigestTypes::SHA512),
                                                 signature,
-                                                _testMessage));
+                                                _testMessageDigestSHA512));
 }
 
 /**
@@ -336,11 +316,11 @@ TEST_F(SignatureTest, testSuccessfulRsaSignatureAndVerificationPSSWithNonDefault
 
     EXPECT_NO_THROW(
             signature = SignatureUtils::RSA::create(
-                    *_keyPairRsa, PSSPadding(DigestTypes::SHA512, DigestTypes::SHA512, 13), _testMessage));
+                    *_keyPairRsa, PSSPadding(DigestTypes::SHA512, DigestTypes::SHA512, 13), _testMessageDigestSHA512));
     EXPECT_NO_THROW(SignatureUtils::RSA::verify(*_keyPairRsa,
                                                 PSSPadding(DigestTypes::SHA512, DigestTypes::SHA512, 13),
                                                 signature,
-                                                _testMessage));
+                                                _testMessageDigestSHA512));
 }
 
 /**
@@ -351,6 +331,7 @@ TEST_F(SignatureTest, testUnsuccessfulRsaSignatureWithInvalidDigestLengthPKCS1)
 {
     std::vector<uint8_t> signature;
     std::vector<uint8_t> messageDigest;
+    const std::string _testMessage{"Hello World!"};
 
     messageDigest = sha256(reinterpret_cast<const uint8_t *>(_testMessage.c_str()),
                            reinterpret_cast<size_t>(_testMessage.length()));
@@ -367,7 +348,7 @@ TEST_F(SignatureTest, testUnsuccessfulRsaSignatureWithInvalidSaltLength)
     /* Invalid case */
     ASSERT_THROW(SignatureUtils::RSA::create(*_keyPairRsa,
                                              PSSPadding(DigestTypes::SHA256, DigestTypes::SHA256, -200),
-                                             _testMessage),
+                                             _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -379,24 +360,17 @@ TEST_F(SignatureTest, testSuccessfulRsaVerificationWithValidPublicKey)
     auto key = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(_validRsaPublicKey);
 
     EXPECT_NO_THROW(
-            SignatureUtils::RSA::verify(key, sha256PKCSPadding, _validPKCS1SignatureSHA256, _testMessage));
+            SignatureUtils::RSA::verify(key, sha256PKCSPadding, _validPKCS1SignatureSHA256, _testMessageDigestSHA256));
 }
 
 /**
  * @brief Successful verification using a Certificate.
- * Cases:
- * - Verify with plain text message
- * - Verify with message digest
  */
 TEST_F(SignatureTest, testSuccessfulRsaVerificationWithCertificate)
 {
 
     /* Load certificate */
     _root1_RsaCert = std::make_unique<X509Certificate>(loadCertFromFile("signCertificate.pem"));
-
-    /* Verify with plain text message */
-    EXPECT_NO_THROW(SignatureUtils::RSA::verify(
-            *_root1_RsaCert, sha256PKCSPadding, _validPKCS1SignatureSHA256, _testMessage));
 
     /* Verify with message digest */
     EXPECT_NO_THROW(SignatureUtils::RSA::verify(
@@ -409,13 +383,13 @@ TEST_F(SignatureTest, testSuccessfulRsaVerificationWithCertificate)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongPublicKey)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
     /* Load Public Key file */
     _root1_RsaPubkey = std::make_unique<AsymmetricPublicKey>(loadPubkeyFromFile("root1.pubkey.pem"));
 
     /* Using different public key */
-    ASSERT_THROW(SignatureUtils::RSA::verify(*_root1_RsaPubkey, sha256PSSPadding, signature, _testMessage),
+    ASSERT_THROW(SignatureUtils::RSA::verify(*_root1_RsaPubkey, sha256PSSPadding, signature, _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -425,9 +399,9 @@ TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongPublicKey)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongPadding)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
-    ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PKCSPadding, signature, _testMessage),
+    ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha256PKCSPadding, signature, _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -437,9 +411,9 @@ TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongPadding)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongHashingFunction)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
-    ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PSSPadding, signature, _testMessage),
+    ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa, sha512PSSPadding, signature, _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -449,12 +423,12 @@ TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongHashingFunction)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongMaskingFunction)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
     ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa,
                                              PSSPadding(DigestTypes::SHA256, DigestTypes::SHA512),
                                              signature,
-                                             _testMessage),
+                                             _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -464,12 +438,12 @@ TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongMaskingFunction)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongSaltLength)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
     ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa,
                                              PSSPadding(DigestTypes::SHA256, DigestTypes::SHA256, 2),
                                              signature,
-                                             _testMessage),
+                                             _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -479,14 +453,14 @@ TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithWrongSaltLength)
 TEST_F(SignatureTest, testUnsuccessfulRsaVerificationWithModifiedSignature)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::RSA::create(*_keyPairRsa, sha256PSSPadding, _testMessageDigestSHA256));
 
     /* The signature is modified and should now be invalid. */
     std::random_shuffle(signature.begin(), signature.end());
     ASSERT_THROW(SignatureUtils::RSA::verify(*_keyPairRsa,
                                              PSSPadding(DigestTypes::SHA256, DigestTypes::SHA256),
                                              signature,
-                                             _testMessage),
+                                             _testMessageDigestSHA256),
                  MoCOCrWException);
 }
 
@@ -497,17 +471,17 @@ TEST_F(SignatureTest, testSuccessfulEccSignatureAndVerification)
 {
     std::vector<uint8_t> signature;
 
+    /* Sign and verify with SHA1 hashing */
+    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, DigestTypes::SHA1, _testMessageDigestSHA1));
+    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, signature, DigestTypes::SHA1, _testMessageDigestSHA1));
+
     /* Sign and verify with SHA256 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, openssl::DigestTypes::SHA256, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, openssl::DigestTypes::SHA256, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, DigestTypes::SHA256, _testMessageDigestSHA256));
+    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, signature, DigestTypes::SHA256, _testMessageDigestSHA256));
 
     /* Sign and verify with SHA512 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, openssl::DigestTypes::SHA512, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, openssl::DigestTypes::SHA512, signature, _testMessage));
-
-    /* Sign and verify with SHA1 hashing */
-    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, openssl::DigestTypes::SHA1, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, openssl::DigestTypes::SHA1, signature, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, DigestTypes::SHA512, _testMessageDigestSHA512));
+    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, signature, DigestTypes::SHA512, _testMessageDigestSHA512));
 }
 
 /**
@@ -519,8 +493,8 @@ TEST_F(SignatureTest, testSuccessfulEccVerificationWithValidEccPublicKey)
     auto publicKey = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(_validEccPublicKey);
 
     ASSERT_EQ(publicKey.getType(), AsymmetricKey::KeyTypes::ECC);
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(publicKey, openssl::DigestTypes::SHA1, _validEccSignatureSHA1, _testMessage));
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(publicKey, _validEccSignatureSHA1, _testMessageDigestSHA1));
+    EXPECT_NO_THROW(SignatureUtils::ECC::verify(
+          publicKey, _validEccSignatureSHA1, DigestTypes::SHA1, _testMessageDigestSHA1));
 }
 
 /**
@@ -529,31 +503,25 @@ TEST_F(SignatureTest, testSuccessfulEccVerificationWithValidEccPublicKey)
 TEST_F(SignatureTest, testUnsuccessfulEccVerificationWithInvalidSignature)
 {
     std::vector<uint8_t> signature;
-    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, openssl::DigestTypes::SHA1, _testMessage));
+    EXPECT_NO_THROW(signature = SignatureUtils::ECC::create(*_keyPairEcc, DigestTypes::SHA1, _testMessageDigestSHA1));
 
     /* The signature is modified and should now be invalid. */
     std::random_shuffle(signature.begin(), signature.end());
-    ASSERT_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, openssl::DigestTypes::SHA1, signature, _testMessage),
+    ASSERT_THROW(SignatureUtils::ECC::verify(*_keyPairEcc, signature, DigestTypes::SHA1, _testMessageDigestSHA1),
                  MoCOCrWException);
 }
 
 /**
  * @brief Successful verification using an ECC Certificate.
- * Cases:
- * - Verify with plain text message
- * - Verify with message digest
  */
 TEST_F(SignatureTest, testSuccessfulEccVerificationWithCertificate)
 {
     /* Load certificate */
     _root1_RsaCert = std::make_unique<X509Certificate>(X509Certificate::fromPEM(_validEccCertificate));
 
-    /* Verify with plain text message */
-    EXPECT_NO_THROW(SignatureUtils::ECC::verify(*_root1_RsaCert, openssl::DigestTypes::SHA1, _validEccSignatureSHA1, _testMessage));
-
     /* Verify with message digest */
     EXPECT_NO_THROW(SignatureUtils::ECC::verify(
-            *_root1_RsaCert, _validEccSignatureSHA1, _testMessageDigestSHA1));
+            *_root1_RsaCert, _validEccSignatureSHA1, DigestTypes::SHA1, _testMessageDigestSHA1));
 }
 
 /**
@@ -564,6 +532,9 @@ TEST_F(SignatureTest, testUnsuccessfulEccVerificationWithWrongPublicKey)
     auto publicKey = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(_invalidEccPublicKey);
 
     ASSERT_EQ(publicKey.getType(), AsymmetricKey::KeyTypes::ECC);
-    ASSERT_THROW(SignatureUtils::ECC::verify(publicKey, openssl::DigestTypes::SHA1, _validEccSignatureSHA1, _testMessage),
+    ASSERT_THROW(SignatureUtils::ECC::verify(publicKey,
+                                             _validEccSignatureSHA1,
+                                             DigestTypes::SHA1,
+                                             _testMessageDigestSHA1),
                  MoCOCrWException);
 }
