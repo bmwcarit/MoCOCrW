@@ -24,7 +24,7 @@
 
 #include "IOUtils.h"
 
-#include "asymmetric_encryption.cpp"
+#include "asymmetric_crypto_ctx.cpp"
 
 using namespace std::string_literals;
 
@@ -57,20 +57,20 @@ public:
 
 /// \brief Creates a shared pointer for a RSA padding based on the given inputs. Simplifies the
 /// tests by taking advantage of polymorphism
-std::shared_ptr<RSAPadding>
+std::unique_ptr<RSAPadding>
 createPadding(const openssl::RSAPaddingMode &mode,
                                         const openssl::DigestTypes &hashing,
                                         const openssl::DigestTypes &masking,
                                         const std::vector<uint8_t> &label)
 {
-    std::shared_ptr<RSAPadding> padding;
+    std::unique_ptr<RSAPadding> padding;
 
     if (mode == openssl::RSAPaddingMode::OAEP) {
-        padding = std::make_shared<OAEPPadding>(hashing, masking, label);
+        padding = std::make_unique<OAEPPadding>(hashing, masking, label);
     } else if (mode == openssl::RSAPaddingMode::PKCS1) {
-        padding = std::make_shared<PKCSPadding>();
+        padding = std::make_unique<PKCSPadding>();
     } else if (mode == openssl::RSAPaddingMode::NONE) {
-        padding = std::make_shared<NoPadding>();
+        padding = std::make_unique<NoPadding>();
     }
 
     return padding;
@@ -450,14 +450,17 @@ TEST_P(AsymmetricEncryptionTest, testSuccessfulDecryption)
 {
     auto data = GetParam();
     const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+    std::unique_ptr<RSAPadding> padding = createPadding(data._paddingMode,
                                                             data._hashing,
                                                             data._masking,
                                                             data._label);
-    const auto message = AsymmetricEncryption::decrypt(privateKey,
-                                                           *(padding.get()),
-                                                           data._encrypted);
-    EXPECT_EQ(data._message, message.toString());
+    AsymmetricCryptoCtx::Builder builder{};
+    auto ctx = builder.rsaPaddingMode(std::move(padding))
+                      .build(privateKey);
+
+    auto message = ctx.decrypt(data._encrypted);
+    std::string str(message.begin(), message.end());
+    EXPECT_EQ(data._message, str);
 }
 
 /**
@@ -470,17 +473,20 @@ TEST_P(AsymmetricEncryptionTest, testSuccessfulEncryption)
     auto data = GetParam();
     const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
     const auto privateKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+    std::unique_ptr<RSAPadding> padding = createPadding(data._paddingMode,
                                                             data._hashing,
                                                             data._masking,
                                                             data._label);
-    const auto encryptedMessage = AsymmetricEncryption::encrypt(publicKey,
-                                                                    *(padding.get()),
-                                                                    data._message);
-    const auto message = AsymmetricEncryption::decrypt(privateKey,
-                                                           *(padding.get()),
-                                                           encryptedMessage);
-    EXPECT_EQ(data._message, message.toString());
+    AsymmetricCryptoCtx::Builder builder{};
+
+    auto ctxEncrypt = builder.rsaPaddingMode(padding).build(publicKey);
+    std::vector<uint8_t> msg(data._message.begin(), data._message.end());
+    const auto encryptedMessage = ctxEncrypt.encrypt(msg);
+
+    auto ctxDecrypt =  builder.build(privateKey);
+    ctxDecrypt.setRsaPaddingMode(std::move(padding));
+    const auto message = ctxDecrypt.decrypt(encryptedMessage);
+    EXPECT_EQ(msg, message);
 }
 
 INSTANTIATE_TEST_CASE_P(testSuccessfulEncryptionDecryption, AsymmetricEncryptionTest,
@@ -499,18 +505,17 @@ TEST_F(AsymmetricEncryptionTest, testEncryptionInvalidParameters)
     // Uses one of the entries from the nominal data set as inputs. It is irrelevant for the purpose
     // of this test which entry is used.
     auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(nominalDataSet[0]._publicKey);
-    const auto unsupportedPaddingMode = PSSPadding();
+    std::unique_ptr<RSAPadding> padding = std::make_unique<PSSPadding>();
+    AsymmetricCryptoCtx::Builder builder{};
 
-    EXPECT_THROW(AsymmetricEncryption::encrypt(publicKey,
-                                               unsupportedPaddingMode,
-                                               nominalDataSet[0]._message),
-                 MoCOCrWException);
+    auto  ctxEncrypt = builder.rsaPaddingMode(padding).build(publicKey);
+    std::vector<uint8_t> msg(nominalDataSet[0]._message.begin(), nominalDataSet[0]._message.end());
 
-    auto eccKey = AsymmetricKeypair::generateECC();
-    EXPECT_THROW(AsymmetricEncryption::encrypt(eccKey,
-                                               OAEPPadding{},
-                                               nominalDataSet[0]._message),
-                 MoCOCrWException);
+    EXPECT_THROW(ctxEncrypt.encrypt(msg), MoCOCrWException);
+
+    AsymmetricPublicKey eccKey = AsymmetricKeypair::generateECC();
+    auto  ctxEncryptEcc =  builder.rsaPaddingMode(padding).build(eccKey);
+    EXPECT_THROW(ctxEncryptEcc.encrypt(msg), MoCOCrWException);
 }
 
 /**
@@ -528,18 +533,18 @@ TEST_F(AsymmetricEncryptionTest, testDecryptionInvalidParameters)
     // of this test which entry is used.
     const auto privateKey
             = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(nominalDataSet[0]._privateKey, "");
-    const auto unsupportedPaddingMode = PSSPadding();
+    std::unique_ptr<RSAPadding> unsupportedPaddingMode = std::make_unique<PSSPadding>();
 
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey,
-                                               unsupportedPaddingMode,
-                                               nominalDataSet[0]._encrypted),
-                 MoCOCrWException);
+    AsymmetricCryptoCtx::Builder builder{};
 
+    auto ctxDecrypt = builder.rsaPaddingMode(unsupportedPaddingMode).build(privateKey);
+    EXPECT_THROW(ctxDecrypt.decrypt(nominalDataSet[0]._encrypted), MoCOCrWException);
+
+
+    std::unique_ptr<RSAPadding> paddingMode = std::make_unique<OAEPPadding>();
     auto eccKey = AsymmetricKeypair::generateECC();
-    EXPECT_THROW(AsymmetricEncryption::decrypt(eccKey,
-                                               OAEPPadding{},
-                                               nominalDataSet[0]._encrypted),
-                 MoCOCrWException);
+    auto ctxDecryptEcc = builder.rsaPaddingMode(paddingMode).build(eccKey);
+    EXPECT_THROW(ctxDecryptEcc.decrypt(nominalDataSet[0]._encrypted), MoCOCrWException);
 }
 
 /**
@@ -577,33 +582,72 @@ TEST_F(AsymmetricEncryptionTest, testDecryptionWrongParameters)
             {}
     };
 
+    AsymmetricCryptoCtx::Builder builder{};
+
     // Step 1: Check the decryption with a wrong padding mode.
     const auto privateKey  = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-    const auto wrongPaddingMode = PKCSPadding();
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongPaddingMode, data._encrypted),
-                 MoCOCrWException);
+    std::unique_ptr<RSAPadding> wrongPaddingMode = std::make_unique<PKCSPadding>();
+    auto  ctxDecrypt = builder.rsaPaddingMode(wrongPaddingMode).build(privateKey);
+    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
 
     // Step 2: Check the decryption with a wrong hashing
-    const auto wrongHashing = OAEPPadding(openssl::DigestTypes::SHA512, data._masking, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongHashing, data._encrypted),
-                 MoCOCrWException);
+    std::unique_ptr<RSAPadding> wrongHashing = std::make_unique<OAEPPadding>(openssl::DigestTypes::SHA512,
+                                                                             data._masking,
+                                                                             data._label);
+    auto ctxDecryptWrongHash = builder.rsaPaddingMode(wrongHashing).build(privateKey);
+    EXPECT_THROW(ctxDecryptWrongHash.decrypt(data._encrypted), MoCOCrWException);
 
     // Step 3: Check the decryption with a wrong masking
-    const auto wrongMasking = OAEPPadding(data._hashing, openssl::DigestTypes::SHA512, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongMasking, data._encrypted),
-                 MoCOCrWException);
+    std::unique_ptr<RSAPadding>wrongMasking = std::make_unique<OAEPPadding>(data._hashing,
+            openssl::DigestTypes::SHA512, data._label);
+    auto ctxDecryptWrongMask = builder.rsaPaddingMode(wrongMasking).build(privateKey);
+    EXPECT_THROW(ctxDecryptWrongMask.decrypt(data._encrypted), MoCOCrWException);
 
     // Step 4: Check the decryption with a wrong label
-    const auto wrongLabel = OAEPPadding(data._hashing, data._masking, {0xAA, 0xBB, 0xCC, 0xDD});
-    EXPECT_THROW(AsymmetricEncryption::decrypt(privateKey, wrongLabel, data._encrypted),
-                 MoCOCrWException);
+    std::vector<uint8_t> label{0xAA, 0xBB, 0xCC, 0xDD};
+    std::unique_ptr<RSAPadding> wrongLabel = std::make_unique<OAEPPadding>(data._hashing,
+                                                                           data._masking, label);
+    auto ctxDecryptWrongLabel = builder.rsaPaddingMode(wrongLabel).build(privateKey);
+    EXPECT_THROW(ctxDecryptWrongLabel.decrypt(data._encrypted), MoCOCrWException);
 
     // Step 5: Check the decryption with a wrong key
     const auto wrongPrivateKey
             = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(keyPairs2048bit._privateKey, "");
-    const auto paddingMode = OAEPPadding(data._hashing, data._masking, data._label);
-    EXPECT_THROW(AsymmetricEncryption::decrypt(wrongPrivateKey, paddingMode, data._encrypted),
-                 MoCOCrWException);
+    std::unique_ptr<RSAPadding> paddingMode = std::make_unique<OAEPPadding>(data._hashing, data._masking, data._label);
+    auto ctxDecryptWrongKey = builder.rsaPaddingMode(paddingMode).build(wrongPrivateKey);
+    EXPECT_THROW(ctxDecryptWrongKey.decrypt(data._encrypted), MoCOCrWException);
+}
+
+TEST_F(AsymmetricEncryptionTest, testInvalidCtx)
+{
+    auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(nominalDataSet[0]._publicKey);
+    AsymmetricCryptoCtx::Builder builder{};
+    EXPECT_THROW({
+                  try {
+                      auto invalidCtxEncrypt = builder.eccMaskingFunction(openssl::DigestTypes::SHA512)
+                                                      .build(publicKey);
+                      std::vector<uint8_t> msg(nominalDataSet[0]._message.begin(),
+                                               nominalDataSet[0]._message.end());
+                      invalidCtxEncrypt.encrypt(msg);
+                      } catch (const MoCOCrWException &e) {//this tests that it has the correct message
+                        EXPECT_STREQ("When using a RSA key the RSAPadding context "
+                                     "member needs to be set", e.what());
+                        throw;
+                      }
+                 }, MoCOCrWException);
+
+    auto privateKey  = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(nominalDataSet[0]._privateKey, "");
+    EXPECT_THROW({
+                     try {
+                         auto invalidCtxDecrypt = builder.eccMaskingFunction(openssl::DigestTypes::SHA512)
+                                 .build(privateKey);
+                         invalidCtxDecrypt.decrypt(nominalDataSet[0]._encrypted);
+                         } catch (const MoCOCrWException &e) {//this tests that it has the correct message
+                         EXPECT_STREQ("When using a RSA key the RSAPadding context "
+                                      "member needs to be set", e.what());
+                         throw;
+                         }
+                 }, MoCOCrWException);
 }
 
 /// \brief Structure to hold the data set used to test the message size
@@ -962,14 +1006,17 @@ TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
 {
     auto data = GetParam();
     const auto publicKey  = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(data._publicKey);
-    std::shared_ptr<RSAPadding> padding = createPadding(data._paddingMode,
+    std::unique_ptr<RSAPadding> padding = createPadding(data._paddingMode,
                                                             data._hashing,
                                                             data._masking,
                                                             data._label);
+    AsymmetricCryptoCtx::Builder builder{};
+    auto encryptCtx = builder.rsaPaddingMode(padding).build(publicKey);
+    std::vector<uint8_t> msg(data._message.begin(), data._message.end());
     if (data._expectThrow) {
         EXPECT_THROW({
             try {
-                AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message);
+                encryptCtx.encrypt(msg);
             }
             catch (const MoCOCrWException &e) {//this tests that it has the correct message
                 EXPECT_STREQ(data._exceptionText.c_str(), e.what());
@@ -977,7 +1024,7 @@ TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
             }
             }, MoCOCrWException);
     } else {
-        EXPECT_NO_THROW(AsymmetricEncryption::encrypt(publicKey, *(padding.get()), data._message));
+        EXPECT_NO_THROW(encryptCtx.encrypt(msg));
     }
 }
 
