@@ -258,13 +258,13 @@ const EVP_MD* OpenSSLLib::SSL_EVP_sha3_384() noexcept { return EVP_sha3_384(); }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha3_512() noexcept { return EVP_sha3_512(); }
 
-int OpenSSLLib::SSL_PEM_write_bio_PKCS8PrivateKey(BIO* bp,
-                                                  EVP_PKEY* x,
-                                                  const EVP_CIPHER* enc,
-                                                  char* kstr,
+int OpenSSLLib::SSL_PEM_write_bio_PKCS8PrivateKey(BIO *bp,
+                                                  EVP_PKEY *x,
+                                                  const EVP_CIPHER *enc,
+                                                  char *kstr,
                                                   int klen,
-                                                  pem_password_cb* cb,
-                                                  void* u) noexcept
+                                                  pem_password_cb *cb,
+                                                  void *u) noexcept
 {
     return PEM_write_bio_PKCS8PrivateKey(bp, x, enc, kstr, klen, cb, u);
 }
