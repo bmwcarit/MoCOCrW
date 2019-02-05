@@ -51,7 +51,7 @@ public:
      * @param privateKey the key that should be used for signing the certificate. The public part
      *                   of the key will become the certificate's public key.
      * @param dn the distinguished name of the new certificate.
-     * @params serialNumber the serial number of the new certificate.
+     * @param serialNumber the serial number of the new certificate.
      * @param signParams the signing parameters for signing the new certificate.
      * @return a new root certificate.
      */

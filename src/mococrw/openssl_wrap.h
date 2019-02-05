@@ -486,12 +486,12 @@ int _BIO_gets(BIO* bio, std::vector<char>& buf);
 int _BIO_puts(BIO* bio, std::string buf);
 
 /**
- * Return value of 0 or -1 are possible without inidicating an error.
+ * Return value of 0 or -1 are possible without indicating an error.
  * The exact behavior depends on the type of BIO used (i.e. on its
  * method).
  *
  * @param bio The bio object to write to.
- * @param buf The vector from which the data should be written
+ * @param data The vector from which the data should be written
  *
  * @return The number of characters read, or -1. If -1 is returned, the interpretation
  *      depends on the method of the 'bio' (@see _BIO_new()).
@@ -627,7 +627,7 @@ SSL_EVP_PKEY_Ptr _PEM_read_bio_PUBKEY(BIO* bio);
  * @throws OpenSSLException if an internal OpenSSL error is encountered.
  *
  */
-SSL_X509_Ptr _PEM_read_bio_X509(BIO*);
+SSL_X509_Ptr _PEM_read_bio_X509(BIO* bio);
 
 /**
  * Let OpenSSL compute the time difference between two ASN1_TIMEs
@@ -668,6 +668,9 @@ void _X509_STORE_add_cert(X509_STORE *store, X509 *cert);
  * Initialize an X509 store context
  *
  * @param ctx The context to be initialized
+ * @param store
+ * @param x509
+ * @param chain
  *
  * @throw OpenSSLException when an error occurs while initializing
  *                         the context
