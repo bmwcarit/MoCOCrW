@@ -48,7 +48,7 @@ namespace lib
  * Prefix all method names with 'SSL_' to distinguish them from their
  * openssl counterparts.
  *
- * Note: If you have the idea to put include openssl #includes into
+ * Note: If you have the idea to put include openssl \#includes into
  * a dedicated namespace to enforce proper name-resolution: Nice try,
  * but macros make that idea impossible.
  *
