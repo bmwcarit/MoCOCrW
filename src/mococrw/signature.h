@@ -160,7 +160,7 @@ private:
      * Helper function that does the context setup according to the padding specifications
      *
      * @param ctx The message to be digested
-     * @param algorithm The algorithm to be used in the digest operation
+     * @param padding
      * @throw MoCOCrWException if the algorithm isn't supported
      */
     static void setUpContext(EVP_PKEY_CTX *ctx, const RSAPadding &padding);

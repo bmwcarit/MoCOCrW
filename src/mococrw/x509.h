@@ -315,7 +315,7 @@ public:
      *  - All the CRLs that must exist are valid (valid signature, not expired, ...)
      *  - None of the certificates in the chain are part of their predecessor's CRLs.
      *
-     * @param verificationCtx A verification context that describes the environment
+     * @param ctx A verification context that describes the environment
      *                        (trusted CAs, intermediate CAs, CRLs,...) in which the certificate
      *                        should be verified.
      * @throw MoCOCrWException if the validation fails.

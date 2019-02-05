@@ -45,7 +45,21 @@ if(CMAKE_BUILD_TYPE STREQUAL Coverage)
     find_package(Coverage REQUIRED)
 endif()
 
-option(BUILD_DOCUMENTATION "Build documentation" ON)
+###############################################################################
+# Documentation
+###############################################################################
+
+if(BUILD_DOCUMENTATION)
+    find_package(Doxygen REQUIRED)
+endif()
+
+###############################################################################
+# Post-build tasks
+###############################################################################
+
+if(BUILD_DOCUMENTATION)
+    add_subdirectory(doc)
+endif()
 
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
