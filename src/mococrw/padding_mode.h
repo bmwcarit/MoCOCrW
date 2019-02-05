@@ -224,7 +224,6 @@ public:
 private:
     /**
      * @brief Unused function for PSS because this padding mode is only used for signatures
-     * @param Unused
      * @return -1.
      */
     int getDataBlockSize(const AsymmetricPublicKey &) const override { return -1; }
