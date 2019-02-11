@@ -60,7 +60,7 @@ set(LIBRARY_PUBLIC_HEADERS
 add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_include_directories(${LIBRARY_NAME} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/cwrap")
-target_link_libraries(${LIBRARY_NAME} ${OPENSSL_LIBRARIES})
+target_link_libraries(${LIBRARY_NAME} PUBLIC ${OPENSSL_LIBRARIES} Boost::boost)
 
 target_include_directories(${LIBRARY_NAME} INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
