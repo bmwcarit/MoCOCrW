@@ -62,6 +62,9 @@ if(OPENSSL_FOUND)
 endif()
 
 find_package(Boost REQUIRED)
+if(Boost_FOUND)
+    include_directories (SYSTEM ${Boost_INCLUDE_DIR})
+endif()
 
 # Installation directories
 set(MOCOCRW ${CMAKE_INSTALL_LIBDIR}/cmake)
