@@ -68,9 +68,9 @@ More examples and a complete documentation will follow.
 Support for this library will be provided on a best-effort basis. However, we encourage
 you to submit bugs or contact us via github if there is an issue.
 
-##Doxygen Documentation
+## Doxygen Documentation
 
-In order to generate the doxygen documentation please follow the next steps:git
+In order to generate the doxygen documentation please follow the next steps:
 on the project build directory run:
 
 cmake -DBUILD_DOCUMENTATION=ON ..
