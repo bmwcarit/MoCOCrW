@@ -18,9 +18,10 @@
  */
 #include <gtest/gtest.h>
 
-#include <string>
-#include <fstream>
+#include <array>
 #include <cstdio>
+#include <fstream>
+#include <string>
 
 #include "mococrw/basic_constraints.h"
 #include "mococrw/ca.h"
