@@ -54,6 +54,7 @@ if(APPLE)
     find_package(OpenSSL REQUIRED)
 else()
     pkg_search_module(OPENSSL REQUIRED openssl)
+    pkg_check_modules(OPENSSL openssl<=1.1)
 endif()
 
 if(OPENSSL_FOUND)
