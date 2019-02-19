@@ -53,6 +53,7 @@ protected:
     std::string _pemChainNoNewlines;
     static const std::string _pemChainInvalid;
     static const std::string _certWithGivenName;
+    static const std::string _certWithUserId;
     static const std::string _eccRootKeyPem;
     static const std::string _eccIntermediateKeyPem;
     static const std::string _eccUserKeyPem;
@@ -343,6 +344,27 @@ xJGjUzBRMB0GA1UdDgQWBBSvUgPk/0OgqCjq51t0uFte9/uUvzAfBgNVHSMEGDAW
 gBSvUgPk/0OgqCjq51t0uFte9/uUvzAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49
 BAMCA0gAMEUCIFMm751uiLYek33gkcLHyCMdXntcwXUdgoEtOuq04Yr7AiEAk62k
 0Ct1NJmoJM1Hb88ID7WRHzwrkn5YLsc57UOKMYo=
+-----END CERTIFICATE-----)"
+};
+
+const std::string X509Test::_certWithUserId{
+R"(-----BEGIN CERTIFICATE-----
+MIIC5jCCAoygAwIBAgIJAIWjYAy0QBslMAoGCCqGSM49BAMCMIHNMQ0wCwYDVQQD
+DARteUNOMQswCQYDVQQGEwJQVDEMMAoGA1UEBwwDbXlMMQ0wCwYDVQQIDARteVNU
+MQ0wCwYDVQQLDARteU9VMQwwCgYDVQQKDANteU8xJDAiBgkqhkiG9w0BCQEWFW15
+QGVtYWlsQWRkcmVzcy5wa2NzOTEpMCcGA1UEBRMgMDhFMzZERDUwMTk0MTQzMjM1
+OEFGRTgyNTZCQzZFRkQxDTALBgNVBCoMBG15R04xFTATBgoJkiaJk/IsZAEBDAVt
+eVVJRDAeFw0xOTAyMTkxMTIyMjFaFw0yMDAyMTkxMTIyMjFaMIHNMQ0wCwYDVQQD
+DARteUNOMQswCQYDVQQGEwJQVDEMMAoGA1UEBwwDbXlMMQ0wCwYDVQQIDARteVNU
+MQ0wCwYDVQQLDARteU9VMQwwCgYDVQQKDANteU8xJDAiBgkqhkiG9w0BCQEWFW15
+QGVtYWlsQWRkcmVzcy5wa2NzOTEpMCcGA1UEBRMgMDhFMzZERDUwMTk0MTQzMjM1
+OEFGRTgyNTZCQzZFRkQxDTALBgNVBCoMBG15R04xFTATBgoJkiaJk/IsZAEBDAVt
+eVVJRDBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABPOW4kQtIbqG1mD+9/MZarr8
+YpaVG0Yk2yonRChs0j7y7t5zCUpFyp9wkAHzz1vf9O2ZdKS6pkDbpLgq1etFijuj
+UzBRMB0GA1UdDgQWBBSh/Vplw4bR3M8aJPGWMQhD2pgIaDAfBgNVHSMEGDAWgBSh
+/Vplw4bR3M8aJPGWMQhD2pgIaDAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMC
+A0gAMEUCIFPU7qNvf2C6keNmNE1AMbAzZ/VzLehz7VHgXqeniwgNAiEA/zU5zrxZ
+eZEogJJjDSB3R083oH3+sDPr8hQxD+xET2I=
 -----END CERTIFICATE-----)"
 };
 
@@ -808,3 +830,21 @@ TEST_F(X509Test, testGivenNameGetter)
     ASSERT_THAT(subject.givenName(), Eq("GivenName"));
 }
 
+TEST_F(X509Test,  testGivenUserId)
+{
+    auto _given_name_cert = X509Certificate::fromPEM(_certWithUserId);
+
+    using ::testing::Eq;
+    auto subject = _given_name_cert.getSubjectDistinguishedName();
+
+    ASSERT_THAT(subject.commonName(), Eq("myCN"));
+    ASSERT_THAT(subject.countryName(), Eq("PT"));
+    ASSERT_THAT(subject.localityName(), Eq("myL"));
+    ASSERT_THAT(subject.stateOrProvinceName(), Eq("myST"));
+    ASSERT_THAT(subject.organizationalUnitName(), Eq("myOU"));
+    ASSERT_THAT(subject.organizationName(), Eq("myO"));
+    ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("my@emailAddress.pkcs9"));
+    ASSERT_THAT(subject.serialNumber(), Eq("08E36DD501941432358AFE8256BC6EFD"));
+    ASSERT_THAT(subject.givenName(), Eq("myGN"));
+    ASSERT_THAT(subject.userId(), Eq("myUID"));
+}
