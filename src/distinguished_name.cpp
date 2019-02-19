@@ -48,6 +48,7 @@ void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr &subject) const
     _addString(subject, pkcs9EmailAddress(), ASN1_NID::Pkcs9EmailAddress);
     _addString(subject, serialNumber(), ASN1_NID::SerialNumber);
     _addString(subject, givenName(), ASN1_NID::GivenName);
+    _addString(subject, userId(), ASN1_NID::UserId);
 }
 
 std::string _getEntryByNIDAsString(X509_NAME *x509, ASN1_NID nid)
@@ -79,6 +80,7 @@ DistinguishedName DistinguishedName::fromX509Name(X509_NAME *x509)
     builder.pkcs9EmailAddress(_getEntryByNIDAsString(x509, ASN1_NID::Pkcs9EmailAddress));
     builder.serialNumber(_getEntryByNIDAsString(x509, ASN1_NID::SerialNumber));
     builder.givenName(_getEntryByNIDAsString(x509, ASN1_NID::GivenName));
+    builder.userId(_getEntryByNIDAsString(x509, ASN1_NID::UserId));
     return builder.build();
 }
 
@@ -91,7 +93,8 @@ auto _createTuple(const DistinguishedName &dn)
                     dn.organizationalUnitName(),
                     dn.organizationName(),
                     dn.pkcs9EmailAddress(),
-                    dn.serialNumber());
+                    dn.serialNumber(),
+                    dn.userId());
 }
 
 bool DistinguishedName::operator==(const DistinguishedName &other) const

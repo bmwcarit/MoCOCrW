@@ -338,6 +338,7 @@ enum class ASN1_NID : int {
     Pkcs9EmailAddress = NID_pkcs9_emailAddress,
     SerialNumber = NID_serialNumber,
     GivenName = NID_givenName,
+    UserId = NID_userId,
 };
 
 enum class ASN1_Name_Entry_Type : int {
