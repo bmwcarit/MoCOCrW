@@ -18,7 +18,9 @@
  */
 #pragma once
 
+#include <cstdint>
 #include <type_traits>
+#include <vector>
 
 #include "asn1time.h"
 #include "distinguished_name.h"
@@ -41,6 +43,11 @@ public:
      * Return a PEM representation of this certificate.
      */
     std::string toPEM() const;
+
+    /**
+     * Return a DER representation of this certificate.
+     */
+    std::vector<uint8_t> toDER() const;
 
     /**
      * Get the distinguished name of this certificate.
