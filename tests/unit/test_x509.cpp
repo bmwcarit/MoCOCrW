@@ -490,6 +490,28 @@ TEST_F(X509Test, testLoadDERCert)
     });
 }
 
+TEST_F(X509Test, testExportDER)
+{
+    using ::testing::NotNull;
+    ASSERT_NO_THROW({
+        auto bytes = bytesFromFile<uint8_t>("root1.der");
+        auto cert = X509Certificate::fromDER(bytes);
+        ASSERT_THAT(cert.internal(), NotNull());
+        auto der = cert.toDER();
+        ASSERT_EQ(bytes, der);
+    });
+}
+
+TEST_F(X509Test, testReimportExportedDER)
+{
+    using ::testing::NotNull;
+    ASSERT_NO_THROW({
+        auto der = _cert.toDER();
+        auto cert = X509Certificate::fromDER(der);
+        ASSERT_THAT(cert.internal(), NotNull());
+    });
+}
+
 TEST_F(X509Test, testLoadDERCertFromFileDirectly)
 {
     using ::testing::NotNull;
