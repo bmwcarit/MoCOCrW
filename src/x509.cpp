@@ -66,6 +66,13 @@ std::string X509Certificate::toPEM() const
     return bio.flushToString();
 }
 
+std::vector<uint8_t> X509Certificate::toDER() const
+{
+    BioObject bio{BioObject::Types::MEM};
+    _i2d_X509_bio(bio.internal(), const_cast<X509*>(internal()));
+    return bio.flushToVector();
+}
+
 void X509Certificate::VerificationContext::validityCheck() const
 {
     if (_enforceCrlForWholeChain && !_enforceSelfSignedRootCertificate) {
