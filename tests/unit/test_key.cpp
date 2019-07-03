@@ -216,7 +216,7 @@ TEST_F(KeyHandlingTests, testGetKeySpec)
     EXPECT_EQ(dynamic_cast<ECCSpec*>(Sect571r1Spec.get())->curve(), openssl::ellipticCurveNid::SECT_571r1);
     EXPECT_EQ(dynamic_cast<ECCSpec*>(Secp521Spec.get())->curve(), openssl::ellipticCurveNid::SECP_521r1);
 
-    auto defaultRSASpec = dynamic_cast<RSASpec*>(_rsaKeyPair.getKeySpec().get());
+    std::unique_ptr<RSASpec> defaultRSASpec (dynamic_cast<RSASpec*>(_rsaKeyPair.getKeySpec().release()));
     EXPECT_EQ(defaultRSASpec->numberOfBits(), 2048);
 }
 
