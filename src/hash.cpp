@@ -77,11 +77,50 @@ std::vector<uint8_t> sha512(const std::vector<uint8_t> &message) {
     return Hash::sha512().update(message).digest();
 }
 
+std::vector<uint8_t> sha3_256(const uint8_t* message, size_t length) {
+   return Hash::sha3_256().update(message, length).digest();
+}
+
+std::vector<uint8_t> sha3_256(const std::string &message) {
+    return Hash::sha3_256().update(message).digest();
+}
+
+std::vector<uint8_t> sha3_256(const std::vector<uint8_t> &message) {
+    return Hash::sha3_256().update(message).digest();
+}
+
+std::vector<uint8_t> sha3_384(const uint8_t* message, size_t length) {
+    return Hash::sha3_384().update(message, length).digest();
+}
+
+std::vector<uint8_t> sha3_384(const std::string &message) {
+    return Hash::sha3_384().update(message).digest();
+}
+
+std::vector<uint8_t> sha3_384(const std::vector<uint8_t> &message) {
+    return Hash::sha3_384().update(message).digest();
+}
+
+std::vector<uint8_t> sha3_512(const uint8_t* message, size_t length) {
+    return Hash::sha3_512().update(message, length).digest();
+}
+
+std::vector<uint8_t> sha3_512(const std::string &message) {
+    return Hash::sha3_512().update(message).digest();
+}
+
+std::vector<uint8_t> sha3_512(const std::vector<uint8_t> &message) {
+    return Hash::sha3_512().update(message).digest();
+}
+
 const std::map<DigestTypes, size_t> Hash::lengthInBytes = {
     { DigestTypes::SHA1, 160 / 8 },
     { DigestTypes::SHA256, 256 / 8 },
     { DigestTypes::SHA384, 384 / 8 },
-    { DigestTypes::SHA512, 512 / 8 }
+    { DigestTypes::SHA512, 512 / 8 },
+    { DigestTypes::SHA3_256, 256 / 8 },
+    { DigestTypes::SHA3_384, 384 / 8 },
+    { DigestTypes::SHA3_512, 512 / 8 }
 };
 
 Hash::Hash(const DigestTypes digestType) : _digestType(digestType) {
@@ -105,6 +144,18 @@ Hash Hash::sha384() {
 
 Hash Hash::sha512() {
     return Hash{DigestTypes::SHA512};
+}
+
+Hash Hash::sha3_256() {
+    return Hash{DigestTypes::SHA3_256};
+}
+
+Hash Hash::sha3_384() {
+    return Hash{DigestTypes::SHA3_384};
+}
+
+Hash Hash::sha3_512() {
+    return Hash{DigestTypes::SHA3_512};
 }
 
 std::vector<uint8_t> Hash::digest() {

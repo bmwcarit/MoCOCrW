@@ -41,6 +41,18 @@ std::vector<uint8_t> sha512(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha512(const std::string &message);
 std::vector<uint8_t> sha512(const uint8_t* message, size_t messageLength);
 
+std::vector<uint8_t> sha3_256(const std::vector<uint8_t> &message);
+std::vector<uint8_t> sha3_256(const std::string &message);
+std::vector<uint8_t> sha3_256(const uint8_t* message, size_t messageLength);
+
+std::vector<uint8_t> sha3_384(const std::vector<uint8_t> &message);
+std::vector<uint8_t> sha3_384(const std::string &message);
+std::vector<uint8_t> sha3_384(const uint8_t* message, size_t messageLength);
+
+std::vector<uint8_t> sha3_512(const std::vector<uint8_t> &message);
+std::vector<uint8_t> sha3_512(const std::string &message);
+std::vector<uint8_t> sha3_512(const uint8_t* message, size_t messageLength);
+
 class Hash
 {
 public:
@@ -48,6 +60,9 @@ public:
     static Hash sha256();
     static Hash sha384();
     static Hash sha512();
+    static Hash sha3_256();
+    static Hash sha3_384();
+    static Hash sha3_512();
     std::vector<uint8_t> digest();
     Hash& update(const std::vector<uint8_t> &chunk);
     Hash& update(const std::string &chunk);

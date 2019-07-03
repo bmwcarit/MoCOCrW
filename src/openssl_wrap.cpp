@@ -422,6 +422,12 @@ const EVP_MD* _getMDPtrFromDigestType(DigestTypes type)
             return lib::OpenSSLLib::SSL_EVP_sha384();
         case DigestTypes::SHA512:
             return lib::OpenSSLLib::SSL_EVP_sha512();
+        case DigestTypes::SHA3_256:
+            return lib::OpenSSLLib::SSL_EVP_sha3_256();
+        case DigestTypes::SHA3_384:
+            return lib::OpenSSLLib::SSL_EVP_sha3_384();
+        case DigestTypes::SHA3_512:
+            return lib::OpenSSLLib::SSL_EVP_sha3_512();
         default:
             throw std::runtime_error("Unknown digest type");
     }

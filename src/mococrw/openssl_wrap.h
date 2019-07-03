@@ -549,6 +549,9 @@ enum class DigestTypes {
     SHA256, // @MARCUS: Shouldn't there be some value initialization with openssl consts here?
     SHA384,
     SHA512,
+    SHA3_256,
+    SHA3_384,
+    SHA3_512
 };
 
 /**
