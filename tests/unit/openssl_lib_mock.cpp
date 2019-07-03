@@ -333,6 +333,21 @@ const EVP_MD* OpenSSLLib::SSL_EVP_sha512() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha512();
 }
 
+const EVP_MD* OpenSSLLib::SSL_EVP_sha3_256() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha3_256();
+}
+
+const EVP_MD* OpenSSLLib::SSL_EVP_sha3_384() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha3_384();
+}
+
+const EVP_MD* OpenSSLLib::SSL_EVP_sha3_512() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_sha3_512();
+}
+
 int OpenSSLLib::SSL_PEM_write_bio_PKCS8PrivateKey(BIO* bp,
                                                   EVP_PKEY* x,
                                                   const EVP_CIPHER* enc,
