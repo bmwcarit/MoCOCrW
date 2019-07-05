@@ -256,10 +256,10 @@ public:
     /**
      * @brief Signs a message
      *
-     * Creates an signature for the given message based on the given key and padding. The message
+     * Creates a signature for the given message based on the given key and padding. The message
      * is automatically hashed.
      *
-     * @param messageDigest The message to be signed
+     * @param message The message to be signed
      * @return The created signature
      * @throw MoCOCrWException If the sign operation fails.
      */
@@ -268,7 +268,7 @@ public:
     /**
      * @brief Signs a digest
      *
-     * Creates an signature for the given digest based on the given key and padding.
+     * Creates a signature for the given digest based on the given key and padding.
      *
      * @param messageDigest The digest to be signed
      * @return The created signature
@@ -427,10 +427,10 @@ public:
     /**
      * @brief Signs a message
      *
-     * Creates an signature for the given message based on the given key and padding. The message
+     * Creates a signature for the given message based on the given key and padding. The message
      * is automatically hashed.
      *
-     * @param messageDigest The message to be signed
+     * @param message The message to be signed
      * @return The created signature
      * @throw MoCOCrWException If the sign operation fails.
      */
@@ -439,7 +439,7 @@ public:
     /**
      * @brief Signs a digest
      *
-     * Creates an signature for the given digest based on the given key and padding.
+     * Creates a signature for the given digest based on the given key and padding.
      *
      * @param messageDigest The digest to be signed
      * @return The created signature
@@ -541,4 +541,119 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
+/**
+ * @brief EdDSASignaturePrivateKeyCtx
+ *
+ * This class supports signing message using EdDSA (PureEdDSA according to RFC8032).
+ */
+class EdDSASignaturePrivateKeyCtx {
+public:
+
+    /**
+     * @brief Constructor
+     * @param key The private key to be used
+     * @throw MoCOCrWException If key is not an Ed448 or Ed25519 private key
+     */
+    EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key);
+
+    /**
+     * @brief Destructor
+     */
+    ~EdDSASignaturePrivateKeyCtx();
+
+    /**
+     * @brief Copy Constructor
+     */
+    EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx &other);
+
+
+    /**
+     * @brief Copy Assignment
+     */
+    EdDSASignaturePrivateKeyCtx& operator=(const EdDSASignaturePrivateKeyCtx &other);
+
+    /**
+     * @brief Signs a message
+     *
+     * Creates a signature for the given message based on the given key.
+     *
+     * @param message The message to be signed
+     * @return The created signature
+     * @throw MoCOCrWException If the sign operation fails.
+     */
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message);
+private:
+    /**
+     * Internal class for applying the PIMPL design pattern
+     * (to hide the details of storing the padding objects from the client)
+     */
+    class Impl;
+
+    /**
+     * Pointer for PIMPL design pattern
+     */
+    std::unique_ptr<Impl> _impl;
+};
+
+/**
+ * @brief EdDSASignaturePublicKeyCtx
+ *
+ * This class supports verifying EdDSA (PureEdDSA according to RFC8032) signatures.
+ */
+class EdDSASignaturePublicKeyCtx {
+public:
+
+    /**
+     * @brief Constructor
+     * @param key The public key to be used
+     * @throw MoCOCrWException If key is not an Ed448 or Ed25519 public key
+     */
+    EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key);
+
+    /**
+     * @brief Constructor
+     * @param cert The certificate containing the publiy key to be used
+     * @throw MoCOCrWException If the certificate does not contain an Ed448 or Ed25519 public key
+     */
+    EdDSASignaturePublicKeyCtx(const X509Certificate &cert);
+
+    /**
+     * @brief Destructor
+     */
+    ~EdDSASignaturePublicKeyCtx();
+
+    /**
+     * @brief Copy Constructor
+     */
+    EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx &other);
+
+    /**
+     * @brief Copy Assignment
+     */
+    EdDSASignaturePublicKeyCtx& operator=(const EdDSASignaturePublicKeyCtx &other);
+
+    /**
+     * @brief Verifies the signature of a message
+     *
+     * Verifies the given signature of the given message based on the given key.
+     *
+     * @param signature The signature to be verified
+     * @param message The signed message
+     * @throw MoCOCrWException If the verification fails.
+     */
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message);
+
+private:
+    /**
+     * Internal class for applying the PIMPL design pattern
+     * (to hide the details of storing the padding objects from the client)
+     */
+    class Impl;
+
+    /**
+     * Pointer for PIMPL design pattern
+     */
+    std::unique_ptr<Impl> _impl;
+};
 }

@@ -242,6 +242,15 @@ int OpenSSLLib::SSL_EVP_DigestSignInit(EVP_MD_CTX* ctx,
     return EVP_DigestSignInit(ctx, pctx, type, e, pkey);
 }
 
+int OpenSSLLib::SSL_EVP_DigestSign(EVP_MD_CTX* ctx,
+                                   unsigned char* sigret,
+                                   size_t* siglen,
+                                   const unsigned char* tbs,
+                                   size_t tbslen) noexcept
+{
+    return EVP_DigestSign(ctx, sigret, siglen, tbs, tbslen);
+}
+
 void OpenSSLLib::SSL_EVP_MD_CTX_destroy(EVP_MD_CTX* ptr) noexcept { EVP_MD_CTX_destroy(ptr); }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha1() noexcept { return EVP_sha1(); }
@@ -821,6 +830,24 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD
 EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
 {
     return EVP_PKEY_get0_EC_KEY(pkey);
+}
+
+int OpenSSLLib::SSL_EVP_DigestVerifyInit(EVP_MD_CTX* ctx,
+                                         EVP_PKEY_CTX** pctx,
+                                         const EVP_MD * type,
+                                         ENGINE* e,
+                                         EVP_PKEY* pkey) noexcept
+{
+    return EVP_DigestVerifyInit(ctx, pctx, type, e, pkey);
+}
+
+int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
+                                     const unsigned char* sigret,
+                                     size_t siglen,
+                                     const unsigned char* tbs,
+                                     size_t tbslen) noexcept
+{
+    return EVP_DigestVerify(ctx, sigret, siglen, tbs, tbslen);
 }
 }  //::lib
 }  //::openssl

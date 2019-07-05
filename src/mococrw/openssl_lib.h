@@ -261,11 +261,6 @@ public:
     /* EVP_MD */
     static EVP_MD_CTX* SSL_EVP_MD_CTX_create() noexcept;
     static void SSL_EVP_MD_CTX_destroy(EVP_MD_CTX* ptr) noexcept;
-    static int SSL_EVP_DigestSignInit(EVP_MD_CTX* ctx,
-                                      EVP_PKEY_CTX** pctx,
-                                      const EVP_MD* type,
-                                      ENGINE* e,
-                                      EVP_PKEY* pkey) noexcept;
 
     /* Signatures */
     static int SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
@@ -283,6 +278,26 @@ public:
     static int SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept;
     static EC_KEY *SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept;
+    static int SSL_EVP_DigestSignInit(EVP_MD_CTX* ctx,
+                                      EVP_PKEY_CTX** pctx,
+                                      const EVP_MD* type,
+                                      ENGINE* e,
+                                      EVP_PKEY* pkey) noexcept;
+    static int SSL_EVP_DigestSign(EVP_MD_CTX* ctx,
+                                  unsigned char* sigret,
+                                  size_t* siglen,
+                                  const unsigned char* tbs,
+                                  size_t tbslen) noexcept;
+    static int SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
+                                    const unsigned char* sigret,
+                                    size_t siglen,
+                                    const unsigned char* tbs,
+                                    size_t tbslen) noexcept;
+    static int SSL_EVP_DigestVerifyInit(EVP_MD_CTX* ctx,
+                                        EVP_PKEY_CTX** pctx,
+                                        const EVP_MD * type,
+                                        ENGINE* e,
+                                        EVP_PKEY* pkey) noexcept;
 
     /* Encryption */
     static int SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept;

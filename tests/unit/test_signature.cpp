@@ -38,6 +38,8 @@ public:
 protected:
     std::unique_ptr<AsymmetricKeypair> _keyPairRsa;
     std::unique_ptr<AsymmetricKeypair> _keyPairEcc;
+    std::unique_ptr<AsymmetricKeypair> _keyPairEd25519;
+    std::unique_ptr<AsymmetricKeypair> _keyPairEd448;
 
     /* The SHA256 digest of the test message. */
     static const std::vector<uint8_t> _testMessageDigestSHA256;
@@ -57,10 +59,23 @@ protected:
 
     static const std::string _invalidEccPublicKey;
 
+    /* Valid Ed25519 keys belonging to the same key pair. */
+    static const std::string _validEd25519PrivateKey;
+    static const std::string _validEd25519PublicKey;
+    static const std::string _validEd25519Certificate;
+
+    /* Valid Ed448 keys belonging to the same key pair */
+    static const std::string _validEd448PrivateKey;
+    static const std::string _validEd448PublicKey;
+    static const std::string _validEd448Certificate;
+
     /* The signatures of the hashed test message with the previously declared private key */
     static const std::vector<uint8_t> _validPKCS1SignatureSHA256;
     static const std::vector<uint8_t> _validPKCS1SignatureSHA512;
     static const std::vector<uint8_t> _validEccSignatureSHA1;
+    static const std::vector<uint8_t> _validEd25519Signature;
+    static const std::vector<uint8_t> _validEd448Signature;
+    static const std::vector<uint8_t> _testMessage;
 
     /* Pre-configured padding modes for RSA operations */
     PKCSSignaturePadding _sha256PKCSSignaturePadding;
@@ -73,6 +88,8 @@ void SignatureTest::SetUp()
 {
     _keyPairRsa = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generateRSA());
     _keyPairEcc = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generateECC());
+    _keyPairEd25519 = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generateEd25519());
+    _keyPairEd448 = std::make_unique<AsymmetricKeypair>(mococrw::AsymmetricKeypair::generateEd448());
     _sha256PKCSSignaturePadding = PKCSSignaturePadding(openssl::DigestTypes::SHA256);
     _sha512PKCSSignaturePadding = PKCSSignaturePadding(openssl::DigestTypes::SHA512);
     _sha256PSSPadding = PSSPadding(DigestTypes::SHA256);
@@ -157,6 +174,51 @@ a29Ix3qgyrGBjpRnMBPvELa/jHWhRANCAAShlorbifTcI6V10BZKUuCOE3bQBe0x
 hk4EMPmGW7Z4odpGEVlGNfZ0i/+oWw6VrBpJTTCSIw6hGkMJ9e7F+D5F
 -----END PRIVATE KEY-----)"};
 
+const std::string SignatureTest::_validEd25519PrivateKey{R"(-----BEGIN PRIVATE KEY-----
+MC4CAQAwBQYDK2VwBCIEIHP1o8LJ4jNkuTyDT6uNtqLankRkQeAyAIflqvnjutC2
+-----END PRIVATE KEY-----)"};
+
+const std::string SignatureTest::_validEd25519PublicKey{R"(-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEAlY+GiXLleFpEvVAOS/GJJTTpCA+fjRrCzjBpeLI73TY=
+-----END PUBLIC KEY-----)"};
+
+const std::string SignatureTest::_validEd25519Certificate{R"(-----BEGIN CERTIFICATE-----
+MIIBnzCCAVGgAwIBAgIUVlF6bdywGCd6R4AK5fIw4qTqXdEwBQYDK2VwMEUxCzAJ
+BgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5l
+dCBXaWRnaXRzIFB0eSBMdGQwHhcNMTkwNzA4MTQxNjEwWhcNMjAwNzA3MTQxNjEw
+WjBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwY
+SW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMCowBQYDK2VwAyEAr9xxqFSYOgv915bZ
+wftq62t6/y9jfQ2qY85Zy3HXeQCjUzBRMB0GA1UdDgQWBBSTj+s7u6bAdeccsIiU
+lTDtzbHlsDAfBgNVHSMEGDAWgBSTj+s7u6bAdeccsIiUlTDtzbHlsDAPBgNVHRMB
+Af8EBTADAQH/MAUGAytlcANBAKmkt1ddr1LU79HRfOAp8sfhNbDlrIpQWmYiu+Pz
+GAMQq3gZlq2o/6lU0o0zI6wVMWPlMTNNu1qVuNOMe8uTkQo=
+-----END CERTIFICATE-----)"};
+
+const std::string SignatureTest::_validEd448PrivateKey{R"(-----BEGIN PRIVATE KEY-----
+MEcCAQAwBQYDK2VxBDsEOWlC44jv5bZiqT7dsOFrZkCYAjSpbNpWR/z+0qgCZQSk
+sSh8jk/iQYiNFH18bBFzh4qCMpTaWf/Dqw==
+-----END PRIVATE KEY-----)"};
+
+const std::string SignatureTest::_validEd448PublicKey{R"(-----BEGIN PUBLIC KEY-----
+MEMwBQYDK2VxAzoAn6AkwA6wgkvGj8eD9InZMXJZYhkNZodgMlPlOWkoWxf19roL
+7y84BN6+fKydGisX9Olenr/fx7SA
+-----END PUBLIC KEY-----)"};
+
+const std::string SignatureTest::_validEd448Certificate{R"(-----BEGIN CERTIFICATE-----
+MIIB6jCCAWqgAwIBAgIUV2uwWMEmTUgfBSoWUtPysr6KQYgwBQYDK2VxMEUxCzAJ
+BgNVBAYTAkFVMRMwEQYDVQQIDApTb21lLVN0YXRlMSEwHwYDVQQKDBhJbnRlcm5l
+dCBXaWRnaXRzIFB0eSBMdGQwHhcNMTkwODA2MTA1OTE4WhcNMjAwODA1MTA1OTE4
+WjBFMQswCQYDVQQGEwJBVTETMBEGA1UECAwKU29tZS1TdGF0ZTEhMB8GA1UECgwY
+SW50ZXJuZXQgV2lkZ2l0cyBQdHkgTHRkMEMwBQYDK2VxAzoAn6AkwA6wgkvGj8eD
+9InZMXJZYhkNZodgMlPlOWkoWxf19roL7y84BN6+fKydGisX9Olenr/fx7SAo1Mw
+UTAdBgNVHQ4EFgQUopUIHDDifvlx05vHq+v43aznwvEwHwYDVR0jBBgwFoAUopUI
+HDDifvlx05vHq+v43aznwvEwDwYDVR0TAQH/BAUwAwEB/zAFBgMrZXEDcwBuBncx
+0iQ1ZYm2BSk9/uAuQWYzmG7s+aNXrT6T4Y0TT84jp7ySR6fuNMH0JrPcB16AavL3
+4c/32gBN9uKqcavB4Zse0/vVBC4bLcgynrucQA4/CENhsR+ZwlKRoeVHd8WyCTMK
+zP5yYI+AQefisKPtMAA=
+-----END CERTIFICATE-----)"};
+
+
 const std::vector<uint8_t> SignatureTest::_validPKCS1SignatureSHA256{
         0x16, 0x00, 0x22, 0xD8, 0x72, 0x91, 0x6F, 0xD6, 0x24, 0x0C, 0xBD, 0x1C, 0xDE, 0x25, 0x4C,
         0x8E, 0x9F, 0x8D, 0x55, 0xAA, 0xE7, 0x1A, 0x10, 0xE0, 0x56, 0x67, 0x5D, 0x5C, 0xD8, 0x0A,
@@ -203,6 +265,7 @@ const std::vector<uint8_t> SignatureTest::_validPKCS1SignatureSHA512{
         0x48, 0x6A, 0xCE, 0xC4, 0xD0, 0x0A, 0x26, 0x38, 0x17, 0xFE, 0x3D, 0x7B, 0xBE, 0x82, 0x83,
         0xFE, 0x98, 0x59, 0x01, 0x35, 0xBB, 0xB6, 0x60, 0xF7, 0xAA, 0x0E, 0x90, 0xF7, 0xDE, 0xA6,
         0xAA};
+
 /*
  * All of the _testMessageDigest* variables contain the hashed "Hello World!" string
  */
@@ -221,6 +284,27 @@ const std::vector<uint8_t> SignatureTest::_testMessageDigestSHA512{
 const std::vector<uint8_t> SignatureTest::_testMessageDigestSHA1{
         0x2e, 0xf7, 0xbd, 0xe6, 0x08, 0xce, 0x54, 0x04, 0xe9, 0x7d, 0x5f, 0x04, 0x2f, 0x95, 0xf8,
         0x9f, 0x1c, 0x23, 0x28, 0x71};
+
+const std::vector<uint8_t> SignatureTest::_validEd25519Signature{
+        0xb0, 0xcd, 0x02, 0xef, 0xd6, 0x35, 0x8b, 0x7c, 0x88, 0xed, 0x39, 0xd2, 0x4d, 0x7e, 0xa5,
+        0x78, 0xaa, 0x2c, 0x5a, 0x5c, 0x73, 0xda, 0xfa, 0x6d, 0x8d, 0x9c, 0x57, 0x65, 0x8d, 0x7d,
+        0x4e, 0xd2, 0xb9, 0xe0, 0xe9, 0x08, 0x35, 0xb6, 0x77, 0xb7, 0x15, 0xb5, 0x33, 0x0e, 0x77,
+        0xe1, 0xa5, 0x88, 0x9c, 0x77, 0x19, 0xc9, 0x08, 0x07, 0x44, 0xcc, 0x4e, 0x84, 0xae, 0xda,
+        0x9c, 0xd7, 0x3a, 0x02};
+
+const std::vector<uint8_t> SignatureTest::_validEd448Signature{
+        0x03, 0x1e, 0x1c, 0x0a, 0x77, 0x56, 0x4b, 0x58, 0x01, 0x7a, 0x63, 0x8c, 0xc5, 0x77, 0xeb,
+        0x62, 0x3b, 0x86, 0xc1, 0xf3, 0x93, 0x7b, 0x37, 0x52, 0x09, 0x42, 0x1e, 0x6f, 0x36, 0xd9,
+        0xca, 0xaa, 0xc6, 0x82, 0x73, 0x40, 0x5a, 0xe4, 0xa5, 0x08, 0x78, 0xe0, 0xac, 0xdb, 0x6b,
+        0xac, 0x04, 0x22, 0x87, 0x3d, 0x62, 0xa1, 0x33, 0xab, 0x96, 0x26, 0x80, 0x25, 0x1b, 0xf2,
+        0xd0, 0xeb, 0x1c, 0x67, 0x95, 0xb9, 0xa1, 0x22, 0x35, 0x83, 0x07, 0x48, 0x72, 0xe6, 0xd5,
+        0x31, 0xd0, 0x23, 0xa7, 0x13, 0x8b, 0xd2, 0xe8, 0xcf, 0x83, 0xb2, 0x20, 0x0d, 0xc8, 0xfb,
+        0x7c, 0xa6, 0x4a, 0x86, 0xb6, 0xde, 0x95, 0x0f, 0x3c, 0x4d, 0x94, 0x48, 0xda, 0xfe, 0xd6,
+        0x53, 0xa3, 0xe5, 0xf5, 0xfb, 0x32, 0xa5, 0x1a, 0x00};
+
+const std::vector<uint8_t> SignatureTest::_testMessage{
+    'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'
+};
 
 /**
  * @brief Tests whether the RSA signature context is creating the correct PKCS1 signature
@@ -327,10 +411,8 @@ TEST_F(SignatureTest, testUnsuccessfulRsaSignatureWithInvalidDigestLengthPKCS1)
 {
     std::vector<uint8_t> signature;
     std::vector<uint8_t> messageDigest;
-    const std::string _testMessage{"Hello World!"};
 
-    messageDigest = sha256(reinterpret_cast<const uint8_t *>(_testMessage.c_str()),
-                           reinterpret_cast<size_t>(_testMessage.length()));
+    messageDigest = sha256(_testMessageDigestSHA1);
 
     auto signCtx512 = RSASignaturePrivateKeyCtx(*_keyPairRsa, _sha512PKCSSignaturePadding);
     EXPECT_THROW(signature = signCtx512.signDigest(messageDigest), MoCOCrWException);
@@ -537,4 +619,136 @@ TEST_F(SignatureTest, testUnsuccessfulEccVerificationWithWrongPublicKey)
     auto verifyCtx1 = ECDSASignaturePublicKeyCtx(publicKey, DigestTypes::SHA1);
     ASSERT_THROW(verifyCtx1.verifyDigest(_validEccSignatureSHA1,  _testMessageDigestSHA1),
                  MoCOCrWException);
+}
+
+/**
+ * @brief Tests whether the EdDSA signature context (using a Ed25519 key) is creating the correct
+ * signature by comparing the result to a known signature.
+ */
+TEST_F(SignatureTest, testSuccessfulEd25519SignatureComparedToKnownOutput)
+{
+    std::vector<uint8_t> signature;
+    auto key = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(_validEd25519PrivateKey, "");
+
+    auto ctx = EdDSASignaturePrivateKeyCtx(key);
+    EXPECT_NO_THROW(signature = ctx.signMessage(_testMessage));
+    EXPECT_EQ(_validEd25519Signature, signature);
+}
+
+/**
+ * @brief Tests whether the EdDSA signature context (using a Ed448 key) is creating the correct
+ * signature by comparing the result to a known signature.
+ */
+TEST_F(SignatureTest, testSuccessfulEd448SignatureComparedToKnownOutput)
+{
+    std::vector<uint8_t> signature;
+    auto key = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(_validEd448PrivateKey, "");
+
+    auto ctx = EdDSASignaturePrivateKeyCtx(key);
+    EXPECT_NO_THROW(signature = ctx.signMessage(_testMessage));
+    EXPECT_EQ(_validEd448Signature, signature);
+}
+
+/**
+ * @brief Tests whether the EdDSA signature context (using a Ed25519 key) is creating the correct
+ * signature by comparing the result to a known signature.
+ */
+TEST_F(SignatureTest, testSuccessfulEd25519SignatureAndVerification)
+{
+    std::vector<uint8_t> signature;
+
+    auto signCtx = EdDSASignaturePrivateKeyCtx(*_keyPairEd25519);
+    EXPECT_NO_THROW(signature = signCtx.signMessage(_testMessage));
+
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd25519);
+    EXPECT_NO_THROW(verifyCtx.verifyMessage(signature, _testMessage));
+}
+
+/**
+ * @brief Tests whether the EdDSA signature context (using a Ed448 key) is creating the correct
+ * signature by comparing the result to a known signature.
+ */
+TEST_F(SignatureTest, testSuccessfulEd448SignatureAndVerification)
+{
+    std::vector<uint8_t> signature;
+
+    auto signCtx = EdDSASignaturePrivateKeyCtx(*_keyPairEd448);
+    EXPECT_NO_THROW(signature = signCtx.signMessage(_testMessage));
+
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd448);
+    EXPECT_NO_THROW(verifyCtx.verifyMessage(signature, _testMessage));
+}
+
+/**
+ * @brief Tests that verification of an Ed25519 signature using a wrong public key fails.
+ */
+TEST_F(SignatureTest, testUnsuccessfulEd25519VerificationWithWrongPublicKey)
+{
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd25519);
+    ASSERT_THROW(verifyCtx.verifyMessage(_validEd25519Signature, _testMessage), MoCOCrWException);
+}
+
+/**
+ * @brief Tests that verification of an Ed448 signature using a wrong public key fails.
+ */
+TEST_F(SignatureTest, testUnsuccessfulEd448VerificationWithWrongPublicKey)
+{
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd448);
+    ASSERT_THROW(verifyCtx.verifyMessage(_validEd448Signature, _testMessage), MoCOCrWException);
+}
+
+/**
+ *  @brief Successful verification of a Ed25519 signature using a Certificate.
+ */
+TEST_F(SignatureTest, testSuccessfulEd25519VerificationWithCertificate)
+{
+    auto cert = X509Certificate::fromPEM(_validEd25519Certificate);
+    auto ctx = EdDSASignaturePublicKeyCtx(cert);
+
+    EXPECT_NO_THROW(ctx.verifyMessage(_validEd25519Signature, _testMessage));
+}
+
+/**
+ *  @brief Successful verification of a Ed448 signature using a Certificate.
+ */
+TEST_F(SignatureTest, testSuccessfulEd448VerificationWithCertificate)
+{
+    auto cert = X509Certificate::fromPEM(_validEd448Certificate);
+    auto ctx = EdDSASignaturePublicKeyCtx(cert);
+
+    EXPECT_NO_THROW(ctx.verifyMessage(_validEd448Signature, _testMessage));
+}
+
+/**
+ * @brief Verification of an Ed25519 signature fails due to an invalid (modified) signature.
+ */
+TEST_F(SignatureTest, testUnsuccessfulEd25519VerificationWithModifiedSignature)
+{
+    std::vector<uint8_t> signature;
+
+    auto signCtx = EdDSASignaturePrivateKeyCtx(*_keyPairEd25519);
+    EXPECT_NO_THROW(signature = signCtx.signMessage(_testMessage));
+
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd25519);
+    /* The signature is modified and should now be invalid. */
+    signature.front() ^= 0xaa;
+    signature.back() ^= 0xaa;
+    ASSERT_THROW(verifyCtx.verifyMessage(signature, _testMessage), MoCOCrWException);
+}
+
+/**
+ * @brief Verification of an Ed448 signature fails due to an invalid (modified) signature.
+ */
+TEST_F(SignatureTest, testUnsuccessfulEd448VerificationWithModifiedSignature)
+{
+    std::vector<uint8_t> signature;
+
+    auto signCtx = EdDSASignaturePrivateKeyCtx(*_keyPairEd448);
+    EXPECT_NO_THROW(signature = signCtx.signMessage(_testMessage));
+
+    auto verifyCtx = EdDSASignaturePublicKeyCtx(*_keyPairEd448);
+    /* The signature is modified and should now be invalid. */
+    signature.front() ^= 0xaa;
+    signature.back() ^= 0xaa;
+    ASSERT_THROW(verifyCtx.verifyMessage(signature, _testMessage), MoCOCrWException);
 }

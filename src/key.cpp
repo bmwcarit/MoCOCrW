@@ -29,6 +29,20 @@
 namespace mococrw
 {
 using namespace openssl;
+AsymmetricKey::KeyTypes AsymmetricKey::getType() const {
+    switch(openssl::_EVP_PKEY_type(_key.get())) {
+        case EVP_PKEY_RSA:
+            return KeyTypes::RSA;
+        case EVP_PKEY_EC:
+            return KeyTypes::ECC;
+        case EVP_PKEY_ED25519:
+        case EVP_PKEY_ED448:
+            return KeyTypes::ECC_ED;
+        default:
+            throw MoCOCrWException("Unknown Key Type");
+    }
+}
+
 AsymmetricKeypair AsymmetricKeypair::generate()
 {
     RSASpec defaultSpec{};
@@ -45,6 +59,16 @@ AsymmetricKeypair AsymmetricKeypair::generateECC()
 {
     ECCSpec defaultSpec{};
     return generate(defaultSpec);
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateEd448() {
+    ECCSpec spec{ellipticCurveNid::Ed448};
+    return generate(spec);
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateEd25519() {
+    ECCSpec spec{ellipticCurveNid::Ed25519};
+    return generate(spec);
 }
 
 AsymmetricKeypair AsymmetricKeypair::generate(const AsymmetricKey::Spec &keySpec)
@@ -105,18 +129,24 @@ AsymmetricKey RSASpec::generate() const
 
 AsymmetricKey ECCSpec::generate() const {
    SSL_EVP_PKEY_Ptr pkey{nullptr};
+   SSL_EVP_PKEY_CTX_Ptr keyCtx{nullptr};
    try {
         /*Setting the correct curve to generate the ECC key*/
-        auto paramCtx = _EVP_PKEY_CTX_new_id(EVP_PKEY_EC);
-        _EVP_PKEY_paramgen_init(paramCtx.get());
-        _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(paramCtx.get(),
-               static_cast<int>(_curveNid));
-        /*Set the curve ans1 flag so that we can save the key to a PEM format and reuse it later*/
-        _EVP_PKEY_CTX_set_ec_param_enc(paramCtx.get(), OPENSSL_EC_NAMED_CURVE);
-        auto params = _EVP_PKEY_paramgen(paramCtx.get());
+        if (_curveNid != ellipticCurveNid::Ed448 && _curveNid != ellipticCurveNid::Ed25519) {
+            auto paramCtx = _EVP_PKEY_CTX_new_id(EVP_PKEY_EC);
+            _EVP_PKEY_paramgen_init(paramCtx.get());
+            _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(paramCtx.get(),
+                    static_cast<int>(_curveNid));
+            /*Set the curve ans1 flag so that we can save the key to a PEM format and reuse it later*/
+            _EVP_PKEY_CTX_set_ec_param_enc(paramCtx.get(), OPENSSL_EC_NAMED_CURVE);
+            auto params = _EVP_PKEY_paramgen(paramCtx.get());
+
+            keyCtx = _EVP_PKEY_CTX_new(params.get());
+        } else {
+            keyCtx = _EVP_PKEY_CTX_new_id(static_cast<int>(_curveNid));
+        }
 
         /*Key Generation*/
-        auto keyCtx = _EVP_PKEY_CTX_new(params.get());
         _EVP_PKEY_keygen_init(keyCtx.get());
         pkey = _EVP_PKEY_keygen(keyCtx.get());
 
@@ -128,20 +158,27 @@ AsymmetricKey ECCSpec::generate() const {
 
 std::unique_ptr<AsymmetricKey::Spec> AsymmetricKey::getKeySpec() const
 {
-    if(getType() == KeyTypes::ECC) {
-        openssl::ellipticCurveNid keyNid;
-        try {
-            const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(_key.get()));
-            keyNid = static_cast<openssl::ellipticCurveNid>(_EC_GROUP_get_curve_name(group));
-        } catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
+    try {
+        switch(getType()) {
+            case KeyTypes::ECC:
+            {
+                const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(_key.get()));
+                auto nid = static_cast<openssl::ellipticCurveNid>(_EC_GROUP_get_curve_name(group));
+                return std::make_unique<ECCSpec>(nid);
+            }
+            case KeyTypes::ECC_ED:
+            {
+                auto nid = static_cast<openssl::ellipticCurveNid>(openssl::_EVP_PKEY_type(_key.get()));
+                return std::make_unique<ECCSpec>(nid);
+            }
+            case KeyTypes::RSA:
+                return std::make_unique<RSASpec>(getKeySize());
+            default:
+                throw MoCOCrWException("Key type not supported.");
         }
-        return std::make_unique<ECCSpec>(keyNid);//ECCSpec{keyNid});
-    } else if (getType() == KeyTypes::RSA){
-        unsigned int nBits = getKeySize();
-        return std::make_unique<RSASpec>(nBits);
-    } else{
-        throw MoCOCrWException("Key type not supported.");
+    }
+    catch (const OpenSSLException &e) {
+        throw MoCOCrWException(e.what());
     }
 }
 }
