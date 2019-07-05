@@ -607,4 +607,103 @@ namespace mococrw {
             throw MoCOCrWException(e.what());
         }
     }
+
+    /* ###########
+     * #  EdDSA  #
+     * ###########
+     */
+
+    /*
+     * Common base class for all PIMPL classes of the EdDSA contexts
+     *
+     * Implements the check if the given key is an Ed448 or an Ed25519 key in the constructor.
+     */
+    template <class Key>
+    class EdDSAImpl {
+    public:
+        EdDSAImpl(const Key& key) : key(key) {
+            // Not really nice but necessary since we can't get rid of the generic keypair
+            if (key.getType() != AsymmetricKey::KeyTypes::ECC_ED) {
+                throw mococrw::MoCOCrWException("Expected Ed448 or Ed25519 Key for EdDSA signatures");
+            }
+        }
+
+        Key key;
+    };
+
+    /*
+     * PIMPL-Class for EdDSASignaturePrivateKeyCtx
+     */
+    class EdDSASignaturePrivateKeyCtx::Impl : public EdDSAImpl<AsymmetricPrivateKey> {
+        using EdDSAImpl<AsymmetricPrivateKey>::EdDSAImpl;
+    };
+
+    EdDSASignaturePrivateKeyCtx::EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key)
+        : _impl(std::make_unique<EdDSASignaturePrivateKeyCtx::Impl>(key)) {}
+
+    EdDSASignaturePrivateKeyCtx::~EdDSASignaturePrivateKeyCtx() = default;
+
+    EdDSASignaturePrivateKeyCtx::EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx &other)
+        : _impl(std::make_unique<EdDSASignaturePrivateKeyCtx::Impl>(*(other._impl))) {}
+
+    EdDSASignaturePrivateKeyCtx& EdDSASignaturePrivateKeyCtx::operator=(const EdDSASignaturePrivateKeyCtx &other) {
+        _impl = std::make_unique<EdDSASignaturePrivateKeyCtx::Impl>(*(other._impl));
+        return *this;
+    }
+
+    std::vector<uint8_t> EdDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
+        std::vector<uint8_t> signature;
+        try {
+            auto mctx = _EVP_MD_CTX_create();
+            _EVP_DigestSignInit(mctx.get(), DigestTypes::NONE, const_cast<EVP_PKEY*>(_impl->key.internal()));
+
+            // This determines the buffer length
+            size_t siglen = 0;
+            _EVP_DigestSign(mctx.get(), nullptr, &siglen, message.data(), message.size());
+
+            signature.resize(siglen);
+            _EVP_DigestSign(mctx.get(), signature.data(), &siglen, message.data(), message.size());
+        }
+        catch (const OpenSSLException &e) {
+            throw MoCOCrWException(e.what());
+        }
+
+        return signature;
+    }
+
+    /*
+     * PIMPL-Class for EdDSASignaturePublicKeyCtx
+     */
+    class EdDSASignaturePublicKeyCtx::Impl : public EdDSAImpl<AsymmetricPublicKey> {
+        using EdDSAImpl<AsymmetricPublicKey>::EdDSAImpl;
+    };
+
+    EdDSASignaturePublicKeyCtx::EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key)
+        : _impl(std::make_unique<EdDSASignaturePublicKeyCtx::Impl>(key)) {}
+
+    EdDSASignaturePublicKeyCtx::EdDSASignaturePublicKeyCtx(const X509Certificate &cert)
+        : EdDSASignaturePublicKeyCtx(cert.getPublicKey()) {}
+
+    EdDSASignaturePublicKeyCtx::~EdDSASignaturePublicKeyCtx() = default;
+
+    EdDSASignaturePublicKeyCtx::EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx &other)
+        :_impl(std::make_unique<EdDSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}
+
+    EdDSASignaturePublicKeyCtx& EdDSASignaturePublicKeyCtx::operator=(const EdDSASignaturePublicKeyCtx &other) {
+        _impl = std::make_unique<EdDSASignaturePublicKeyCtx::Impl>(*(other._impl));
+        return *this;
+    }
+
+    void EdDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
+                                                   const std::vector<uint8_t> &message) {
+        try {
+            auto mctx = _EVP_MD_CTX_create();
+            _EVP_DigestVerifyInit(mctx.get(), openssl::DigestTypes::NONE, _impl->key.internal());
+            _EVP_DigestVerify(mctx.get(), signature.data(), signature.size(), message.data(), message.size());
+        }
+        catch (const OpenSSLException &e) {
+            throw MoCOCrWException(e.what());
+        }
+    }
+
 }

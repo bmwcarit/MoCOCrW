@@ -422,7 +422,6 @@ TEST_P(AsymmetricEncryptionTest, testSuccessfulEncryption)
 INSTANTIATE_TEST_CASE_P(testSuccessfulEncryptionDecryption, AsymmetricEncryptionTest,
                         testing::ValuesIn(AsymmetricEncryptionTest::nominalDataSet));
 
-
 /**
  * @brief Tests the decryption functionality with wrong parameters.
  *

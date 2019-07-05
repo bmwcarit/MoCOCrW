@@ -843,6 +843,30 @@ EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_get0_EC_KEY(pkey);
 }
+int OpenSSLLib::SSL_EVP_DigestSign(EVP_MD_CTX* ctx,
+                                   unsigned char* sigret,
+                                   size_t* siglen,
+                                   const unsigned char* tbs,
+                                   size_t tbslen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestSign(ctx, sigret, siglen, tbs, tbslen);
+}
+int OpenSSLLib::SSL_EVP_DigestVerifyInit(EVP_MD_CTX* ctx,
+                                         EVP_PKEY_CTX** pctx,
+                                         const EVP_MD * type,
+                                         ENGINE* e,
+                                         EVP_PKEY* pkey) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerifyInit(ctx, pctx, type, e, pkey);
+}
+int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
+                                     const unsigned char* sigret,
+                                     size_t siglen,
+                                     const unsigned char* tbs,
+                                     size_t tbslen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerify(ctx, sigret, siglen, tbs, tbslen);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

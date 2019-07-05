@@ -43,9 +43,13 @@ public:
     /**
      * Supported asymmetric key types.
      */
-    enum class KeyTypes : int { RSA = EVP_PKEY_RSA, ECC = EVP_PKEY_EC };
+    enum class KeyTypes : int {
+        RSA,
+        ECC,
+        ECC_ED
+    };
 
-    KeyTypes getType() const  { return static_cast<KeyTypes>(openssl::_EVP_PKEY_type(_key.get())); }
+    KeyTypes getType() const;
 
     int getKeySize() const { return EVP_PKEY_bits(_key.get());}
 
@@ -193,6 +197,8 @@ public:
      *      indicates an error
      */
     static AsymmetricKeypair generateECC();
+    static AsymmetricKeypair generateEd448();
+    static AsymmetricKeypair generateEd25519();
 
     /**
      * Serialize the asymmetric keypair encrypted with the given password.

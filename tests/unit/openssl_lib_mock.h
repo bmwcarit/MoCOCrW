@@ -208,6 +208,21 @@ public:
     virtual void SSL_EVP_MD_CTX_destroy(EVP_MD_CTX* ptr) = 0;
     virtual int SSL_EVP_DigestSignInit(
             EVP_MD_CTX* ctx, EVP_PKEY_CTX**, const EVP_MD*, ENGINE*, EVP_PKEY*) = 0;
+    virtual int SSL_EVP_DigestSign(EVP_MD_CTX* ctx,
+                                   unsigned char* sigret,
+                                   size_t* siglen,
+                                   const unsigned char* tbs,
+                                   size_t tbslen) = 0;
+    virtual int SSL_EVP_DigestVerifyInit(EVP_MD_CTX* ctx,
+                                         EVP_PKEY_CTX** pctx,
+                                         const EVP_MD * type,
+                                         ENGINE* e,
+                                         EVP_PKEY* pkey) = 0;
+    virtual int SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
+                                     const unsigned char* sigret,
+                                     size_t siglen,
+                                     const unsigned char* tbs,
+                                     size_t tbslen) = 0;
     virtual const EVP_MD* SSL_EVP_sha1() = 0;
     virtual const EVP_MD* SSL_EVP_sha256() = 0;
     virtual const EVP_MD* SSL_EVP_sha384() = 0;
@@ -390,6 +405,12 @@ public:
     MOCK_METHOD0(SSL_EVP_MD_CTX_create, EVP_MD_CTX*());
     MOCK_METHOD5(SSL_EVP_DigestSignInit,
                  int(EVP_MD_CTX* ctx, EVP_PKEY_CTX**, const EVP_MD*, ENGINE*, EVP_PKEY*));
+    MOCK_METHOD5(SSL_EVP_DigestSign,
+                int(EVP_MD_CTX*, unsigned char*, size_t*, const unsigned char*, size_t));
+    MOCK_METHOD5(SSL_EVP_DigestVerifyInit,
+                int(EVP_MD_CTX*, EVP_PKEY_CTX**, const EVP_MD *, ENGINE*, EVP_PKEY*));
+    MOCK_METHOD5(SSL_EVP_DigestVerify,
+                int(EVP_MD_CTX*, const unsigned char*, size_t, const unsigned char*, size_t));
     MOCK_METHOD1(SSL_EVP_MD_CTX_destroy, void(EVP_MD_CTX*));
     MOCK_METHOD0(SSL_EVP_sha1, const EVP_MD*());
     MOCK_METHOD0(SSL_EVP_sha256, const EVP_MD*());
