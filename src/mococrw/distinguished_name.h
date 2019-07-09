@@ -19,6 +19,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <boost/optional.hpp>
 
 #include "openssl_wrap.h"
 
@@ -40,30 +42,25 @@ namespace mococrw
 class DistinguishedName
 {
 public:
-    /**
-     * Forward declaration of nested Builder class
-     *
-     * Definition is below.
-     *
-     */
     class Builder;
-
+    class CustomOrderBuilder;
     /**
      * Get the various attributes in this distinguished name.
      *
      * If an attribute has not been set, the corresponding method will return an
      * empty string.
      */
-    const std::string &commonName() const { return _commonName; }
-    const std::string &countryName() const { return _countryName; }
-    const std::string &localityName() const { return _localityName; }
-    const std::string &stateOrProvinceName() const { return _stateOrProvinceName; }
-    const std::string &organizationalUnitName() const { return _organizationalUnitName; }
-    const std::string &organizationName() const { return _organizationName; }
-    const std::string &pkcs9EmailAddress() const { return _pkcs9EmailAddress; }
-    const std::string &serialNumber() const { return _serialNumber; }
-    const std::string &givenName() const { return _givenName; }
-    const std::string &userId() const { return _userId; }
+    std::string commonName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::CommonName); }
+    std::string countryName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::CountryName); }
+    std::string localityName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::LocalityName); }
+    std::string stateOrProvinceName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::StateOrProvinceName); }
+    std::string organizationalUnitName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationalUnitName); }
+    std::string organizationName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationName); }
+    std::string pkcs9EmailAddress() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Pkcs9EmailAddress); }
+    std::string serialNumber() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::SerialNumber); }
+    std::string givenName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName); }
+    std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
+
     /**
      * Populate an X509_NAME instance.
      *
@@ -79,20 +76,18 @@ public:
     void populateX509Name(openssl::SSL_X509_NAME_Ptr &subject) const;
 
     static DistinguishedName fromX509Name(X509_NAME *ptr);
-
     bool operator==(const DistinguishedName& other) const;
     bool operator!=(const DistinguishedName& other) const { return !(*this == other); }
-private:
-    std::string _commonName;
-    std::string _countryName;
-    std::string _localityName;
-    std::string _stateOrProvinceName;
-    std::string _organizationalUnitName;
-    std::string _organizationName;
-    std::string _pkcs9EmailAddress;
-    std::string _serialNumber;
-    std::string _givenName;
-    std::string _userId;
+private:    
+    struct Attribute {
+        openssl::ASN1_NID id;
+        std::string       name;
+    };
+    std::string _getAttributeByNIDAsString(const openssl::ASN1_NID id) const;
+    boost::optional<Attribute> _getAttributeByNID(const openssl::ASN1_NID id) const;
+    void _addString(openssl::SSL_X509_NAME_Ptr &x509Name, const boost::optional<DistinguishedName::Attribute>& attribute) const;
+    std::vector<Attribute> _attributes;
+    bool _customAttributeOrderFlag{false};
 };
 
 class DistinguishedName::Builder
@@ -122,82 +117,87 @@ public:
     Builder &userId(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
-
-private:
+protected:
     DistinguishedName _dn;
+};
+
+class DistinguishedName::CustomOrderBuilder: public DistinguishedName::Builder
+{
+public:
+    CustomOrderBuilder(): Builder() { _dn._customAttributeOrderFlag = true; }
 };
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::commonName(T &&name)
 {
-    _dn._commonName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::CommonName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::countryName(T &&name)
 {
-    _dn._countryName = std::forward<T>(name);
-    if (_dn._countryName.size() > 2) {
-        _dn._countryName = "";
+    Attribute attribute{openssl::ASN1_NID::CountryName, std::forward<T>(name)};
+    if (attribute.name.size() > 2) {
         throw std::runtime_error("The country name must not exceed two characters");
     }
+    _dn._attributes.emplace_back(std::move(attribute));
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::localityName(T &&name)
 {
-    _dn._localityName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::LocalityName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::stateOrProvinceName(T &&name)
 {
-    _dn._stateOrProvinceName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::StateOrProvinceName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::organizationalUnitName(T &&name)
 {
-    _dn._organizationalUnitName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::OrganizationalUnitName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::organizationName(T &&name)
 {
-    _dn._organizationName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::OrganizationName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::pkcs9EmailAddress(T &&name)
 {
-    _dn._pkcs9EmailAddress = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Pkcs9EmailAddress, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::serialNumber(T &&name)
 {
-    _dn._serialNumber = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::SerialNumber, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::givenName(T &&name)
 {
-    _dn._givenName = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::GivenName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::userId(T &&name)
 {
-    _dn._userId = std::forward<T>(name);
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::UserId, std::forward<T>(name)});
     return *this;
 }
 
