@@ -143,7 +143,7 @@ void CATest::SetUp()
 
     _signParams = CertificateSigningParameters::Builder{}
             .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(Asn1Time::now())
+            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
@@ -208,7 +208,7 @@ TEST_F(CATest, testAddExtensionWithSharedPointer)
 
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now())
+                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(extensionPtr)
                 .build());
@@ -219,7 +219,7 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
     //one extension
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now())
+                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .build());
@@ -227,7 +227,7 @@ TEST_F(CATest, testBuildSignParamsWithExtensions)
     //Two extensions
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
                 .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now())
+                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
                 .digestType(openssl::DigestTypes::SHA256)
                 .addExtension(*_exampleConstraints)
                 .addExtension(*_exampleUsage)
@@ -238,7 +238,7 @@ TEST_F(CATest, testRequestNotExistingExtension)
 {
     CertificateSigningParameters cert = CertificateSigningParameters::Builder{}
                     .certificateValidity(Asn1Time::Seconds(120))
-                    .notBeforeAsn1(Asn1Time::now())
+                    .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
                     .digestType(openssl::DigestTypes::SHA256)
                     .addExtension(*_exampleConstraints)
                     .build();
@@ -252,7 +252,7 @@ TEST_F(CATest, testBuildSignParamsOneExtensionTwice)
     //an existing extension is overwritten and not added twice
     CertificateSigningParameters params = CertificateSigningParameters::Builder{}
             .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(Asn1Time::now())
+            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
@@ -306,7 +306,7 @@ TEST_P(CATest, testSignedCSRHasCorrectFields)
 
     CertificateSigningRequest csr{*_certDetails, AsymmetricKeypair::generateRSA()};
     X509Certificate cert = data.ca.signCSR(csr);
-    testValiditySpan(cert, _signParams.certificateValidity(), Asn1Time::now());
+    testValiditySpan(cert, _signParams.certificateValidity(), Asn1Time::now() - std::chrono::seconds{1});
     EXPECT_EQ(csr.getPublicKey(), cert.getPublicKey());
     EXPECT_EQ(*_certDetails, cert.getSubjectDistinguishedName());
     EXPECT_EQ(data.rootCert.getSubjectDistinguishedName(), cert.getIssuerDistinguishedName());
@@ -432,7 +432,7 @@ TEST_F(CATest, testIssueLongLivedCertificate)
     Asn1Time::Seconds validityTime(60l * 60 * 24 * 365 * 1000);
     _signParams = CertificateSigningParameters::Builder{}
             .certificateValidity(validityTime)
-            .notBeforeAsn1(Asn1Time::now())
+            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(*_exampleConstraints)
             .addExtension(*_exampleUsage)
@@ -443,7 +443,7 @@ TEST_F(CATest, testIssueLongLivedCertificate)
     X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
                                                        AsymmetricKeypair::generateRSA()});
 
-    testValiditySpan(cert, validityTime, Asn1Time::now());
+    testValiditySpan(cert, validityTime, Asn1Time::now() - std::chrono::seconds{1});
 
 }
 
