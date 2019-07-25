@@ -60,6 +60,7 @@ public:
     std::string serialNumber() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::SerialNumber); }
     std::string givenName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName); }
     std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
+    std::string title() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Title); }
 
     /**
      * Populate an X509_NAME instance.
@@ -115,6 +116,8 @@ public:
     Builder &givenName(T &&name);
     template <class T>
     Builder &userId(T &&name);
+    template <class T>
+    Builder &title(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
 protected:
@@ -198,6 +201,13 @@ template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::userId(T &&name)
 {
     _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::UserId, std::forward<T>(name)});
+    return *this;
+}
+
+template <class T>
+DistinguishedName::Builder &DistinguishedName::Builder::title(T &&name)
+{
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Title, std::forward<T>(name)});
     return *this;
 }
 

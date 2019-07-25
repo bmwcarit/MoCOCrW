@@ -56,6 +56,7 @@ void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr &subject) const
         _addString(subject, _getAttributeByNID(ASN1_NID::SerialNumber));
         _addString(subject, _getAttributeByNID(ASN1_NID::GivenName));
         _addString(subject, _getAttributeByNID(ASN1_NID::UserId));
+        _addString(subject, _getAttributeByNID(ASN1_NID::Title));
     }
 }
 
@@ -89,6 +90,7 @@ DistinguishedName DistinguishedName::fromX509Name(X509_NAME *x509)
     builder.serialNumber(_getEntryByNIDAsString(x509, ASN1_NID::SerialNumber));
     builder.givenName(_getEntryByNIDAsString(x509, ASN1_NID::GivenName));
     builder.userId(_getEntryByNIDAsString(x509, ASN1_NID::UserId));
+    builder.title(_getEntryByNIDAsString(x509, ASN1_NID::Title));
     return builder.build();
 }
 
@@ -103,7 +105,8 @@ auto _createTuple(const DistinguishedName& dn)
                      dn.pkcs9EmailAddress(),
                      dn.serialNumber(),
                      dn.userId(),
-                     dn.givenName());
+                     dn.givenName(),
+                     dn.title());
 }
 
 bool DistinguishedName::operator==(const DistinguishedName &other) const
