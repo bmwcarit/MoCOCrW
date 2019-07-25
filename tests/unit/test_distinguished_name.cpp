@@ -272,3 +272,31 @@ TEST_F(DistinguishedNameTest, testThatComparsionWorksWithMixedBuilders) {
     auto dn2 = builder2.build();
     ASSERT_EQ(dn1 != dn2, dn2 != dn1);
 }
+
+TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForStandardBuilder) {
+    auto builder = DistinguishedName::Builder();
+    builder.countryName("DE")
+            .commonName("ImATeapot")
+            .title("TestTitle");
+    auto dn = builder.build();
+    auto x509Name = _X509_NAME_new();
+    dn.populateX509Name(x509Name);
+    auto entry = _X509_NAME_get_entry(x509Name.get(), 2);
+    auto name = _X509_NAME_ENTRY_get_data(entry);
+    ASSERT_EQ(name, "TestTitle");
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Title)[0], 2);
+}
+
+TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForCustomerOrderBuilder) {
+    auto builder = DistinguishedName::CustomOrderBuilder();
+    builder.countryName("DE")
+            .title("TestTitle")
+            .commonName("ImATeapot");
+    auto dn = builder.build();
+    auto x509Name = _X509_NAME_new();
+    dn.populateX509Name(x509Name);
+    auto entry = _X509_NAME_get_entry(x509Name.get(), 1);
+    auto name = _X509_NAME_ENTRY_get_data(entry);
+    ASSERT_EQ(name, "TestTitle");
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Title)[0], 1);
+}
