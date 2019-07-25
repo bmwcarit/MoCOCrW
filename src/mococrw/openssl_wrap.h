@@ -339,6 +339,7 @@ enum class ASN1_NID : int {
     SerialNumber = NID_serialNumber,
     GivenName = NID_givenName,
     UserId = NID_userId,
+    Title = NID_title,
 };
 
 enum class ASN1_Name_Entry_Type : int {
