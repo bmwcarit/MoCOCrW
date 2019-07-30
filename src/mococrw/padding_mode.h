@@ -35,13 +35,6 @@ class RSAPadding
 public:
 
     virtual ~RSAPadding() = default;
-
-    /**
-     * Crates a copy of the current object and returns it as a unique pointer.
-     * @return unique pointer to the copy of the object.
-     */
-    virtual std::unique_ptr<RSAPadding> clone() = 0;
-
     /**
      * @brief Get the padding mode
      *
@@ -50,25 +43,12 @@ public:
     virtual openssl::RSAPaddingMode getPadding() const = 0;
 
     /**
-     * Checks if an given operation is supported by the padding mode
-     * @param op Operation to check
-     * @return true if the operations is supported, false otherwise
-     */
-    virtual bool isOperationSupported(const openssl::OperationTypes& op) const = 0;
-
-    /**
      * @brief Get maximum data size that can encrypted using the PKCS padding
      * @param key RSA public key that will be used for encryption
      * @return the maximum size of the data that can be encrypted in bytes.
      */
     virtual int getDataBlockSize(const AsymmetricPublicKey &key) const = 0;
 
-    /**
-     * Sets all padding specific configurations on the OpenSSL PKEY context object.
-     * @param ctx OpenSSL PKEY context
-     */
-    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
-                                       const openssl::OperationTypes& op) = 0;
 };
 
 /**
@@ -79,13 +59,6 @@ public:
 class NoPadding: public RSAPadding {
 public:
     virtual ~NoPadding() = default;
-
-    /**
-     * Crates a copy of the current NoPadding object and returns it as a unique pointer.
-     * @return unique pointer to the copy of the object.
-     */
-    std::unique_ptr<RSAPadding> clone() override
-    { return std::make_unique<NoPadding>(*this); }
 
     /**
     * @brief Get the padding mode
@@ -100,13 +73,6 @@ public:
     }
 
     /**
-    * Checks if an given operation can be used with no padding mode.
-    * @param op Operation to check
-    * @return true if the operations is supported, false otherwise
-    */
-    bool isOperationSupported(const openssl::OperationTypes& op) const override;
-
-    /**
     * @brief Get maximum data size that can encrypted, which is the same as
     * the the key when not using padding. Since we're not using any type of
     * padding, the data to encrypt need to have exactly the same size of
@@ -117,16 +83,6 @@ public:
     int getDataBlockSize(const AsymmetricPublicKey &key) const override
     {
         return key.getKeySize()/8;
-    }
-
-    /**
-     * Currently there's no specific action that need to be made when no using any padding mode.
-     * @param ctx OpenSSL PKEY context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
-                               const openssl::OperationTypes&) override
-    {
-        openssl::_EVP_PKEY_CTX_set_rsa_padding(ctx.get(), static_cast<int>(getPadding()));
     }
 };
 
@@ -148,13 +104,6 @@ public:
     virtual ~PKCSPadding() = default;
 
     /**
-     * Crates a copy of the current PKCSPadding object and returns it as a unique pointer.
-     * @return unique pointer to the copy of the object.
-     */
-    std::unique_ptr<RSAPadding> clone() override
-    { return std::make_unique<PKCSPadding>(*this); }
-
-    /**
     * @brief Get the padding mode
     *
     * Getter method for the padding mode.
@@ -165,12 +114,6 @@ public:
     {
         return openssl::RSAPaddingMode::PKCS1;
     }
-
-    /**
-    * Checks if an given operation is supported by the PKCS padding mode
-    * @return true, since all operations are supported by this padding mode
-    */
-    bool isOperationSupported(const openssl::OperationTypes&) const override { return true; }
 
     /**
      * @brief Get the hashing function
@@ -193,12 +136,6 @@ public:
     {
         return key.getKeySize()/8 - c_pkcsMaxSizeSOverhead;
     }
-
-    /**
-     * @brief Sets all Padding Mode spcific context Configuration
-     * @param ctx OpenSSL context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx, const openssl::OperationTypes& op) override;
 
 private:
     /**
@@ -237,13 +174,6 @@ public:
     virtual ~PSSPadding() = default;
 
     /**
-     * Crates a copy of the current PSSPadding object and returns it as a unique pointer.
-     * @return unique pointer to the copy of the object.
-     */
-    std::unique_ptr<RSAPadding> clone() override
-    { return std::make_unique<PSSPadding>(*this); }
-
-    /**
     * @brief Get the padding mode
     *
     * Getter method for the padding mode.
@@ -254,13 +184,6 @@ public:
     {
         return openssl::RSAPaddingMode::PSS;
     }
-
-    /**
-    * Checks if an given operation is supported by the PSS padding mode
-    * @param op Operation to check
-    * @return true if the operations is supported, false otherwise
-    */
-    bool isOperationSupported(const openssl::OperationTypes& op) const override;
 
     /**
      * @brief Get the hashing function
@@ -298,12 +221,6 @@ public:
         return _saltLength;
     }
 
-    /**
-     * @brief Sets all PSS specific context configurations.
-     * @param ctx OpenSSL PKEY context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx, const openssl::OperationTypes& op) override;
-
 private:
     /**
      * @brief Unused function for PSS because this padding mode is only used for signatures
@@ -311,6 +228,7 @@ private:
      */
     int getDataBlockSize(const AsymmetricPublicKey &) const override { return -1; }
 
+private:
     /**
      * @brief The masking algorithm to be used. Not necessary for encryption.
      */
@@ -358,13 +276,6 @@ public:
     }
 
     virtual ~OAEPPadding() = default;
-
-     /**
-     * Crates a copy of the current OAEPPadding object and returns it as a unique pointer.
-     * @return unique pointer to the copy of the object.
-     */
-    std::unique_ptr<RSAPadding> clone() override
-    { return std::make_unique<OAEPPadding>(*this); }
 
     /**
      * @brief Get the hashing function
@@ -415,13 +326,6 @@ public:
     }
 
     /**
-    * Checks if an given operation is supported by the OAEP padding mode
-    * @param op Operation to check
-    * @return true if the operations is supported, false otherwise
-    */
-    bool isOperationSupported(const openssl::OperationTypes& op) const override;
-
-    /**
      * @brief Get maximum data size that can encrypted using the OAEP padding
      * @param key RSA public key that will be used for encryption
      * @return the maximum size of the data that can be encrypted in bytes.
@@ -431,12 +335,6 @@ public:
         return key.getKeySize()/8 -
                 (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_hashingFunction))) - 2;
     }
-
-    /**
-     * @brief Preforms all the specific configurations when using the OAEP padding mode.
-     * @param ctx OpenSSL PKEY context that will store all specific configurations.
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx, const openssl::OperationTypes& op) override;
 
 private:
     /**
