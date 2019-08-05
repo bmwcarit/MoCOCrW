@@ -113,6 +113,10 @@ std::vector<uint8_t> sha3_512(const std::vector<uint8_t> &message) {
     return Hash::sha3_512().update(message).digest();
 }
 
+size_t Hash::getDigestSize(openssl::DigestTypes digestType) {
+    return Hash::lengthInBytes.at(digestType);
+}
+
 const std::map<DigestTypes, size_t> Hash::lengthInBytes = {
     { DigestTypes::SHA1, 160 / 8 },
     { DigestTypes::SHA256, 256 / 8 },
