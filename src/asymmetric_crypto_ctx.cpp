@@ -52,6 +52,12 @@ namespace mococrw {
                 return sha384(message);
             case openssl::DigestTypes::SHA512:
                 return sha512(message);
+            case openssl::DigestTypes::SHA3_256:
+                return sha3_256(message);
+            case openssl::DigestTypes::SHA3_384:
+                return sha3_384(message);
+            case openssl::DigestTypes::SHA3_512:
+                return sha3_512(message);
             default:
                 throw MoCOCrWException("Unknown Hash Function");
         };
