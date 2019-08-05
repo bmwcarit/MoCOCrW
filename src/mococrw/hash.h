@@ -48,6 +48,7 @@ public:
     static Hash sha256();
     static Hash sha384();
     static Hash sha512();
+    static size_t getDigestSize(openssl::DigestTypes digestType);
     std::vector<uint8_t> digest();
     Hash& update(const std::vector<uint8_t> &chunk);
     Hash& update(const std::string &chunk);
