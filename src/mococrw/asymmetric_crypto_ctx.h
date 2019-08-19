@@ -26,6 +26,51 @@
 namespace mococrw {
 
 /**
+ * @brief Interface for encryption contexts
+ */
+class EncryptionCtx {
+public:
+
+    /**
+     * @brief Destructor
+     */
+    virtual ~EncryptionCtx();
+
+    /**
+     * @brief Encrypt a message
+     *
+     * Encrypts a given message
+     *
+     * @param message The message to be encrypted
+     * @returns The encrypted message
+     * @throw MoCOCrWException If the encryption operation fails.
+     */
+    virtual std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message) = 0;
+};
+
+/**
+ * @brief Interface for decryption contexts
+ */
+class DecryptionCtx {
+public:
+    /**
+     * @brief Destructor
+     */
+    virtual ~DecryptionCtx();
+
+    /**
+     * @brief Decrypt a message
+     *
+     * Decrypts a given message
+     *
+     * @param message The message to be decrypted
+     * @returns The decrypted message
+     * @throw MoCOCrWException If the decryption operation fails.
+     */
+    virtual std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message) = 0;
+};
+
+/**
  * @brief RSAEncryptionPrivateKeyCtx
  *
  * This class supports decryption of RSA encrypted cipher texts.
@@ -36,10 +81,10 @@ namespace mococrw {
  *
  * Default Padding: OEAP
  *  - Hash Function: SHA256
- *  - Mask Generation Function: MGF1(SHA256)
+ *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Label: Empty String
  */
-class RSAEncryptionPrivateKeyCtx {
+class RSAEncryptionPrivateKeyCtx : public DecryptionCtx {
 public:
     /**
      * @brief Constructor
@@ -48,23 +93,7 @@ public:
      * @throw MoCOCrWException If key is not an RSA private key
      */
     RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
-                               OAEPPadding padding = OAEPPadding());
-    /**
-     * @brief Constructor
-     * @param key RSA private key to be used
-     * @param padding PKCS v1.5 Padding parameters to be used
-     * @throw MoCOCrWException If key is not an RSA private key
-     */
-    RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key, PKCSEncryptionPadding padding);
-
-    /**
-     * @brief Constructor
-     * @param key RSA private key to be used
-     * @param padding NoPadding parameters to be used
-     * @throw MoCOCrWException If key is not an RSA private key
-     */
-    RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key, NoPadding padding);
-
+                               std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Destructor
      */
@@ -80,16 +109,7 @@ public:
      */
     RSAEncryptionPrivateKeyCtx& operator=(const RSAEncryptionPrivateKeyCtx& other);
 
-    /**
-     * @brief Decrypt a message
-     *
-     * Decrypts a given message based on the specified key and padding mode
-     *
-     * @param message The message to be decrypted
-     * @returns The decrypted message
-     * @throw MoCOCrWException If the decryption operation fails.
-     */
-    std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -115,58 +135,27 @@ private:
  *
  * Default Padding: OEAP
  *  - Hash Function: SHA256
- *  - Mask Generation Function: MGF1(SHA256)
+ *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Label: Empty String
  */
-class RSAEncryptionPublicKeyCtx {
+class RSAEncryptionPublicKeyCtx : public EncryptionCtx {
 public:
     /**
      * @brief Constructor
      * @param key RSA public key to be used
-     * @param padding OAEP Padding parameters to be used
+     * @param padding Padding parameters to be used (default OEAP)
      * @throw MoCOCrWException If key is not an RSA public key
      */
-    RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key, OAEPPadding padding = OAEPPadding());
-
-    /**
-     * @brief Constructor
-     * @param key RSA public key to be used
-     * @param padding PKCS v1.5 Padding parameters to be used
-     * @throw MoCOCrWException If key is not an RSA public key
-     */
-    RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key, PKCSEncryptionPadding padding);
-
-    /**
-     * @brief Constructor
-     * @param key RSA public key to be used
-     * @param padding NoPadding parameters to be used
-     * @throw MoCOCrWException If cert doesn't contain an RSA public key
-     */
-    RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key, NoPadding padding);
-
+    RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
+                              std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Constructor
      * @param cert X509 Certificate containing RSA public key to be used
-     * @param padding OAEP Padding parameters to be used
+     * @param padding Padding parameters to be used (default OAEP)
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
-    RSAEncryptionPublicKeyCtx(const X509Certificate& cert, OAEPPadding padding = OAEPPadding());
-
-    /**
-     * @brief Constructor
-     * @param cert X509 Certificate containing RSA public key to be used
-     * @param padding PKCS v1.5 Padding parameters to be used
-     * @throw MoCOCrWException If cert doesn't contain an RSA public key
-     */
-    RSAEncryptionPublicKeyCtx(const X509Certificate& cert, PKCSEncryptionPadding padding);
-
-    /**
-     * @brief Constructor
-     * @param cert X509 Certificate containing RSA public key to be used
-     * @param padding NoPadding parameters to be used
-     * @throw MoCOCrWException If cert doesn't contain an RSA public key
-     */
-    RSAEncryptionPublicKeyCtx(const X509Certificate& cert, NoPadding padding);
+    RSAEncryptionPublicKeyCtx(const X509Certificate& cert,
+                              std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
 
     /**
      * @brief Copy Constructor
@@ -183,16 +172,7 @@ public:
      */
     ~RSAEncryptionPublicKeyCtx();
 
-    /**
-     * @brief Encrypt a message
-     *
-     * Encrypts a given message based on the specified key and padding mode
-     *
-     * @param message The message to be encrypted
-     * @returns The encrypted message
-     * @throw MoCOCrWException If the encryption operation fails.
-     */
-    std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message);
+    std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -208,6 +188,98 @@ private:
 };
 
 /**
+ * @brief Interface for classes that support signing (pre-hashed) digests.
+ */
+class DigestSignatureCtx {
+public:
+    /**
+     * @brief Destructor
+     */
+    virtual ~DigestSignatureCtx();
+
+    /**
+     * @brief Signs a digest
+     *
+     * Creates an signature for the given (pre-hashed) digest.
+     *
+     * @param messageDigest The digest to be signed
+     * @return The created signature
+     * @throw MoCOCrWException If the sign operation fails.
+     * @throw MoCOCrWException If digest size doesn't match the expected digest size.
+     */
+    virtual std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) = 0;
+};
+
+/**
+ * @brief Interface for contexts that support signing messages.
+ */
+class MessageSignatureCtx {
+public:
+    /**
+     * @brief Destructor
+     */
+    virtual ~MessageSignatureCtx();
+
+    /**
+     * @brief Signs a message
+     *
+     * Creates an signature for the given (unhashed) message. The message is automatically
+     * hashed if required.
+     *
+     * @param message The message to be signed
+     * @return The created signature
+     * @throw MoCOCrWException If the sign operation fails.
+     */
+    virtual std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) = 0;
+};
+
+/**
+ * @brief Interface for contexts that support verification of (pre-hashed) digests.
+ */
+class DigestVerificationCtx {
+public:
+    /**
+     * @brief Destructor
+     */
+    virtual ~DigestVerificationCtx();
+
+    /**
+     * @brief Verifies the signature of a digest
+     *
+     * Verifies the given signature of the given (pre-hashed) digest.
+     *
+     * @param signature The signature to be verified
+     * @param digest The signed digest
+     * @throw MoCOCrWException If the verification fails.
+     */
+    virtual void verifyDigest(const std::vector<uint8_t> &signature,
+                              const std::vector<uint8_t> &digest) = 0;
+};
+
+/**
+ * @brief Interface for contexts that support verification of message.
+ */
+class MessageVerificationCtx {
+public:
+    /**
+     * @brief Destructor
+     */
+    virtual ~MessageVerificationCtx();
+    /**
+     * @brief Verifies the signature of a message
+     *
+     * Verifies the given signature of the given (unhashed) message. The message is automatically
+     * hashed if required.
+     *
+     * @param signature The signature to be verified
+     * @param message The signed message
+     * @throw MoCOCrWException If the verification fails.
+     */
+    virtual void verifyMessage(const std::vector<uint8_t> &signature,
+                               const std::vector<uint8_t> &message) = 0;
+};
+
+/**
  * @brief RSASignaturePrivateKeyCtx
  *
  * This class support signing messages and digest using RSA
@@ -217,26 +289,21 @@ private:
  *
  * Default Padding: PSS
  *  - Hash Function: SHA256
- *  - Mask Generation Function: MGF1(SHA256)
- *  - Salt Length: 64
+ *  - Mask Generation Function: MGF1(\<Hash Function\>)
+ *  - Salt Length: length of \<Hash Function\> digests
  */
-class RSASignaturePrivateKeyCtx {
+class RSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx {
 public:
     /**
      * @brief Constructor
      * @param key RSA private key to be used
+     * @param hashFunction The hash function to be used for signing
      * @param padding PSS Padding parameters to be used
      * @throw MoCOCrWException If key is not an RSA private key
      */
-    RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key, PSSPadding padding = PSSPadding());
-
-    /**
-     * @brief Constructor
-     * @param key RSA private key to be used
-     * @param padding PKCS v1.5 Padding parameters to be used
-     * @throw MoCOCrWException If key is not an RSA private key
-     */
-    RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key, PKCSSignaturePadding padding);
+    RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
+                              openssl::DigestTypes hashFunction,
+                              std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
@@ -253,29 +320,9 @@ public:
      */
     ~RSASignaturePrivateKeyCtx();
 
-    /**
-     * @brief Signs a message
-     *
-     * Creates an signature for the given message based on the given key and padding. The message
-     * is automatically hashed.
-     *
-     * @param messageDigest The message to be signed
-     * @return The created signature
-     * @throw MoCOCrWException If the sign operation fails.
-     */
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message);
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
 
-    /**
-     * @brief Signs a digest
-     *
-     * Creates an signature for the given digest based on the given key and padding.
-     *
-     * @param messageDigest The digest to be signed
-     * @return The created signature
-     * @throw MoCOCrWException If the sign operation fails.
-     * @throw MoCOCrWException If digest size doesn't match the expected digest size.
-     */
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest);
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -300,43 +347,32 @@ private:
  *
  * Default Padding: PSS
  *  - Hash Function: SHA256
- *  - Mask Generation Function: MGF1(SHA256)
- *  - Salt Length: 64
+ *  - Mask Generation Function: MGF1(\<Hash Function\>)
+ *  - Salt Length: length of \<Hash Function\> digests
  */
-class RSASignaturePublicKeyCtx {
+class RSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx {
 public:
-
     /**
      * @brief Constructor
      * @param key RSA public key to be used
+     * @param hashFunction The hash function to be used for signing
      * @param padding PKCS v1.5 Padding parameters to be used
      * @throw MoCOCrWException If key is not an RSA public key
      */
-    RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, PKCSSignaturePadding padding);
-
-    /**
-     * @brief Constructor
-     * @param key RSA public key to be used
-     * @param padding PSS Padding parameters to be used
-     * @throw MoCOCrWException If key is not an RSA public key
-     */
-    RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, PSSPadding padding = PSSPadding());
+    RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+                             openssl::DigestTypes hashFunction,
+                             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Constructor
      * @param cert Certificate containing the RSA public key to be used
-     * @param padding PKCS v1.5 Padding parameters to be used
-     * @throw MoCOCrWException If cert doesn't contain an RSA public key
-     */
-    RSASignaturePublicKeyCtx(const X509Certificate& cert, PKCSSignaturePadding padding);
-
-    /**
-     * @brief Constructor
-     * @param cert Certificate containing the RSA public key to be used
+     * @param hashFunction The hash function to be used for signing
      * @param padding PSS Padding parameters to be used
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
-    RSASignaturePublicKeyCtx(const X509Certificate& cert, PSSPadding padding = PSSPadding());
+    RSASignaturePublicKeyCtx(const X509Certificate& cert,
+                             openssl::DigestTypes hashFunction,
+                             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
@@ -353,29 +389,11 @@ public:
      */
     ~RSASignaturePublicKeyCtx();
 
-    /**
-     * @brief Verifies the signature of a message
-     *
-     * Verifies the given signature of the given message based on the given key and padding.
-     *
-     * @param signature The signature to be verified
-     * @param message The signed message
-     * @throw MoCOCrWException If the verification fails.
-     */
-    void verifyMessage(const std::vector<uint8_t> &signature,
-                       const std::vector<uint8_t> &message);
-
-    /**
-     * @brief Verifies the signature of a digest
-     *
-     * Verifies the given signature of the given digest based on the given key and padding.
-     *
-     * @param signature The signature to be verified
-     * @param digest The signed digest
-     * @throw MoCOCrWException If the verification fails.
-     */
     void verifyDigest(const std::vector<uint8_t> &signature,
-                      const std::vector<uint8_t> &digest);
+                      const std::vector<uint8_t> &digest) override;
+
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -396,9 +414,8 @@ private:
  * This class supports signing messages and digests using ECDSA
  * Default Hash Function: SHA256
  */
-class ECDSASignaturePrivateKeyCtx {
+class ECDSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx {
 public:
-
     /**
      * @brief Constructor
      *
@@ -424,29 +441,9 @@ public:
      */
     ~ECDSASignaturePrivateKeyCtx();
 
-    /**
-     * @brief Signs a message
-     *
-     * Creates an signature for the given message based on the given key and padding. The message
-     * is automatically hashed.
-     *
-     * @param messageDigest The message to be signed
-     * @return The created signature
-     * @throw MoCOCrWException If the sign operation fails.
-     */
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message);
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
 
-    /**
-     * @brief Signs a digest
-     *
-     * Creates an signature for the given digest based on the given key and padding.
-     *
-     * @param messageDigest The digest to be signed
-     * @return The created signature
-     * @throw MoCOCrWException If the sign operation fails.
-     * @throw MoCOCrWException If digest size doesn't match the expected digest size.
-     */
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest);
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -468,9 +465,8 @@ private:
  * This class supports the verification of ECDSA signatures of messages and digests
  * Default Hash Function: SHA256
  */
-class ECDSASignaturePublicKeyCtx {
+class ECDSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx {
 public:
-
     /**
      * @brief Constructor
      *
@@ -505,29 +501,12 @@ public:
      */
     ~ECDSASignaturePublicKeyCtx();
 
-    /**
-     * @brief Verifies the signature of a message
-     *
-     * Verifies the given signature of the given message based on the given key and padding.
-     *
-     * @param signature The signature to be verified
-     * @param message The signed message
-     * @throw MoCOCrWException If the verification fails.
-     */
-    void verifyMessage(const std::vector<uint8_t> &signature,
-                       const std::vector<uint8_t> &message);
-
-    /**
-     * @brief Verifies the signature of a digest
-     *
-     * Verifies the given signature of the given digest based on the given key and padding.
-     *
-     * @param signature The signature to be verified
-     * @param digest The signed digest
-     * @throw MoCOCrWException If the verification fails.
-     */
     void verifyDigest(const std::vector<uint8_t> &signature,
-                      const std::vector<uint8_t> &digest);
+                      const std::vector<uint8_t> &digest) override;
+
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message) override;
+
 private:
     /**
      * Internal class for applying the PIMPL design pattern

@@ -86,6 +86,15 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/padding_mode.cpp"
                             "${SRC_DIR}/hash.cpp"
                             ${REAL_SOURCES})
+    add_executable(rsa_padding_mode_tests test_padding_mode.cpp
+                            "${SRC_DIR}/hash.cpp"
+                            "${SRC_DIR}/key.cpp"
+                            "${SRC_DIR}/x509.cpp"
+                            "${SRC_DIR}/csr.cpp"
+                            "${SRC_DIR}/crl.cpp"
+                            "${SRC_DIR}/asn1time.cpp"
+                            "${SRC_DIR}/padding_mode.cpp"
+                            ${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
@@ -102,6 +111,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(catests             ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(signaturetests      ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(asymencryptiontests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(rsa_padding_mode_tests   ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
     add_test(OpenSSLTest openssltest)
 
@@ -146,6 +156,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         COMMAND asymencryptiontests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
     )
+    add_test(RSAPaddingModeTests rsa_padding_mode_tests)
 
     # Configure valgrind
     find_program(MEMORYCHECK_COMMAND NAMES valgrind)
