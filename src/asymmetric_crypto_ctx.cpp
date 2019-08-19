@@ -18,7 +18,6 @@
  */
 
 #include <boost/format.hpp>
-#include <boost/variant.hpp>
 #include <limits>
 
 #include "mococrw/hash.h"
@@ -90,6 +89,27 @@ namespace mococrw {
     }
 
     /*
+     * Interface Destructors
+     */
+    EncryptionCtx::~EncryptionCtx() = default;
+    DecryptionCtx::~DecryptionCtx() = default;
+    DigestSignatureCtx::~DigestSignatureCtx() = default;
+    MessageSignatureCtx::~MessageSignatureCtx() = default;
+    DigestVerificationCtx::~DigestVerificationCtx() = default;
+    MessageVerificationCtx::~MessageVerificationCtx() = default;
+
+
+    /*
+     * Base class for signature contexts that support specifying a hash function
+     */
+    class SignatureCtxImpl {
+    public:
+        SignatureCtxImpl(openssl::DigestTypes hashFunction) : hashFunction(hashFunction) {}
+
+        openssl::DigestTypes hashFunction;
+    };
+
+    /*
      * ####################
      * #  RSA Encryption  #
      * ####################
@@ -101,51 +121,29 @@ namespace mococrw {
      * Implements the check if the given key is a RSA key in the constructor and enables
      * to call the prepareOpenSSLContext method on the given padding.
      */
-    template <class Key, typename... AllowedPaddingTypes>
+    template <class Key, class PaddingBase>
     class RSAImpl {
     public:
         /*
          * Constructor that checks the type of the given key
          */
-        template <class Padding>
-        RSAImpl(const Key& key, Padding padding) : key(key), padding(padding) {
+        RSAImpl(const Key& key, std::shared_ptr<PaddingBase> padding) : key(key), padding(padding) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::RSA) {
                 throw MoCOCrWException("Expected RSA Key for RSA operation");
             }
         }
 
-        /*
-         * Visitor implementation for calling prepareOpenSSLContext()
-         */
-        class PrepareCtxVisitor : public boost::static_visitor<> {
-        public:
-            PrepareCtxVisitor(SSL_EVP_PKEY_CTX_Ptr& ctx) : ctx(ctx) {}
-
-            template<typename T>
-            void operator()(T& t) const {
-                t.prepareOpenSSLContext(ctx);
-            }
-
-            SSL_EVP_PKEY_CTX_Ptr& ctx;
-        };
-
-        /*
-         * Call prepareOpenSSLContext on the stored padding object
-         */
-        void prepareOpenSSLContext(SSL_EVP_PKEY_CTX_Ptr& ctx) {
-            boost::apply_visitor(PrepareCtxVisitor(ctx), this->padding);
-        }
-
         Key key;
-        boost::variant<AllowedPaddingTypes...> padding;
+        std::shared_ptr<PaddingBase> padding;
     };
+
 
     /*
      * Intermediate base type for RSA Encryption Contexts
      */
     template<class Key>
-    using RSAEncryptionImpl = RSAImpl<Key, PKCSEncryptionPadding, OAEPPadding, NoPadding>;
+    using RSAEncryptionImpl = RSAImpl<Key, RSAEncryptionPadding>;
 
     /*
      * PIMPL-Class of RSAEncryptionPrivateKeyCtx
@@ -155,16 +153,8 @@ namespace mococrw {
     };
 
     RSAEncryptionPrivateKeyCtx::RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
-                                                           PKCSEncryptionPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSAEncryptionPrivateKeyCtx::RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
-                                                           OAEPPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSAEncryptionPrivateKeyCtx::RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
-                                                           NoPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(key, std::move(padding))) {}
+                                                           std::shared_ptr<RSAEncryptionPadding> padding)
+        : _impl(std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(key, padding)) {}
 
     RSAEncryptionPrivateKeyCtx::~RSAEncryptionPrivateKeyCtx() = default;
 
@@ -172,7 +162,7 @@ namespace mococrw {
         : _impl(std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(*(other._impl))) {}
 
     RSAEncryptionPrivateKeyCtx& RSAEncryptionPrivateKeyCtx::operator=(const RSAEncryptionPrivateKeyCtx& other) {
-        _impl = std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<RSAEncryptionPrivateKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
@@ -185,7 +175,7 @@ namespace mococrw {
             _EVP_PKEY_decrypt_init(keyCtx.get());
 
             /* Preform padding specific configurations*/
-            _impl->prepareOpenSSLContext(keyCtx);
+            _impl->padding->prepareOpenSSLContext(keyCtx);
 
             /* First call to determine the buffer length */
             _EVP_PKEY_decrypt(keyCtx.get(), nullptr, &decryptedMessageLen,
@@ -213,75 +203,15 @@ namespace mococrw {
      */
     class RSAEncryptionPublicKeyCtx::Impl : public RSAEncryptionImpl<AsymmetricPublicKey> {
         using RSAEncryptionImpl<AsymmetricPublicKey>::RSAEncryptionImpl;
-    public:
-
-        /*
-         * Visitor implementation to check if the given message can be encrypted using
-         * the specified parameters
-         */
-        class CheckDataBlockSizeVisitor {
-        public:
-            CheckDataBlockSizeVisitor(AsymmetricPublicKey& key, size_t messageSize)
-                : key(key), messageSize(messageSize) {}
-
-            template<typename T>
-            void operator()(T& t) const {
-                // Throw if message size is greater than the key size
-                int dataBlockSize = t.getDataBlockSize(key);
-                if (dataBlockSize < 0 || static_cast<size_t>(dataBlockSize) < messageSize) {
-                    throw MoCOCrWException("Message too long for RSA key size");
-                }
-            }
-
-            void operator()(NoPadding& np) const {
-                // Without padding key size must equal message size
-                if (static_cast<size_t>(np.getDataBlockSize(key)) != messageSize) {
-                    throw MoCOCrWException((boost::format{"When using NoPadding message size "
-                                                          "(%1% Byte) must equal the key size "
-                                                          "(%2% Byte)"}
-                                                          % messageSize
-                                                          % (key.getKeySize()/8)).str());
-                }
-            }
-
-            AsymmetricPublicKey key;
-            size_t messageSize;
-        };
-
-        /*
-         * Check if message can be encrypted using the specified padding parameters
-         */
-        void checkDataBlockSize(size_t messageSize) {
-            if (static_cast<size_t>(std::numeric_limits<int>::max()) < messageSize) {
-                throw("Message size exceeds possible key size");
-            }
-            boost::apply_visitor(CheckDataBlockSizeVisitor(this->key, messageSize), this->padding);
-        }
     };
 
     RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
-                                                         PKCSEncryptionPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
-                                                         OAEPPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
-                                                         NoPadding padding)
-        : _impl(std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(key, std::move(padding))) {}
+                                                         std::shared_ptr<RSAEncryptionPadding> padding)
+        : _impl(std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(key, padding)) {}
 
     RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const X509Certificate& cert,
-                                                         PKCSEncryptionPadding padding)
-        : RSAEncryptionPublicKeyCtx(cert.getPublicKey(), std::move(padding)) {}
-
-    RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const X509Certificate& cert,
-                                                         OAEPPadding padding)
-        : RSAEncryptionPublicKeyCtx(cert.getPublicKey(), std::move(padding)) {}
-
-    RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const X509Certificate& cert,
-                                                         NoPadding padding)
-        : RSAEncryptionPublicKeyCtx(cert.getPublicKey(), std::move(padding)) {}
+                                                         std::shared_ptr<RSAEncryptionPadding> padding)
+        : RSAEncryptionPublicKeyCtx(cert.getPublicKey(), padding) {}
 
     RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const RSAEncryptionPublicKeyCtx& other)
         : _impl(std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(*(other._impl))) {}
@@ -289,7 +219,7 @@ namespace mococrw {
     RSAEncryptionPublicKeyCtx::~RSAEncryptionPublicKeyCtx() = default;
 
     RSAEncryptionPublicKeyCtx& RSAEncryptionPublicKeyCtx::operator=(const RSAEncryptionPublicKeyCtx& other) {
-        _impl = std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<RSAEncryptionPublicKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
@@ -303,10 +233,17 @@ namespace mococrw {
                 throw MoCOCrWException("Encryption context is empty");
             }
 
-            _impl->checkDataBlockSize(message.size());
+            // Check if message can be encrypted using the given key
+            if (static_cast<size_t>(std::numeric_limits<int>::max()) < message.size()) {
+                throw MoCOCrWException("Message size exceeds possible key size");
+            } else if (!_impl->padding->checkMessageSize(_impl->key, message.size())) {
+                throw MoCOCrWException((boost::format{"Message of size %1% can't be encrypted using"
+                                                      " the given key and padding"}
+                                                      % message.size()).str());
+            }
 
             _EVP_PKEY_encrypt_init(keyCtx.get());
-            _impl->prepareOpenSSLContext(keyCtx);
+            _impl->padding->prepareOpenSSLContext(keyCtx);
 
             /* First call to determine the buffer length */
             _EVP_PKEY_encrypt(keyCtx.get(),
@@ -347,28 +284,10 @@ namespace mococrw {
      * Implements the retrieving of the hash function to be used of the stored padding object
      */
     template <class Key>
-    class RSASignatureImpl : public RSAImpl<Key, PKCSSignaturePadding, PSSPadding> {
-        using RSAImpl<Key, PKCSSignaturePadding, PSSPadding>::RSAImpl;
+    class RSASignatureImpl : public RSAImpl<Key, RSASignaturePadding>, public SignatureCtxImpl {
     public:
-        /*
-         * Visitor that implements the retrieving of the hash function to be used
-         */
-        class GetHashFunctionVisitor : public boost::static_visitor<> {
-        public:
-            typedef openssl::DigestTypes result_type;
-
-            template<typename T>
-            openssl::DigestTypes operator()(const T& t) const {
-                return t.getHashFunction();
-            }
-        };
-
-        /*
-         * Retrieves the hash function to be used
-         */
-        openssl::DigestTypes getHashFunction() {
-            return boost::apply_visitor(GetHashFunctionVisitor{}, this->padding);
-        }
+        RSASignatureImpl(const Key& key, openssl::DigestTypes hashFunction, std::shared_ptr<RSASignaturePadding> padding)
+            : RSAImpl<Key, RSASignaturePadding>(key, padding), SignatureCtxImpl(hashFunction) {}
     };
 
     /*
@@ -379,29 +298,22 @@ namespace mococrw {
     };
 
     RSASignaturePrivateKeyCtx::RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
-                                                         PKCSSignaturePadding padding)
-        : _impl(std::make_unique<RSASignaturePrivateKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSASignaturePrivateKeyCtx::RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
-                                                         PSSPadding padding)
-        : _impl(std::make_unique<RSASignaturePrivateKeyCtx::Impl>(key, std::move(padding))) {}
+                                                         openssl::DigestTypes hashFunction,
+                                                         std::shared_ptr<RSASignaturePadding> padding)
+        : _impl(std::make_unique<RSASignaturePrivateKeyCtx::Impl>(key, hashFunction, padding)) {}
 
     RSASignaturePrivateKeyCtx::RSASignaturePrivateKeyCtx(const RSASignaturePrivateKeyCtx& other)
         : _impl(std::make_unique<RSASignaturePrivateKeyCtx::Impl>(*(other._impl))) {}
 
     RSASignaturePrivateKeyCtx& RSASignaturePrivateKeyCtx::operator=(const RSASignaturePrivateKeyCtx& other) {
-        _impl = std::make_unique<RSASignaturePrivateKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<RSASignaturePrivateKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
     RSASignaturePrivateKeyCtx::~RSASignaturePrivateKeyCtx() = default;
 
-    std::vector<uint8_t> RSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
-        return signDigest(createHash(_impl->getHashFunction(), message));
-    }
-
     std::vector<uint8_t> RSASignaturePrivateKeyCtx::signDigest(const std::vector<uint8_t> &messageDigest) {
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->getHashFunction());
+        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
         if (messageDigest.size() != expectedDigestSize) {
             throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
                                                   % expectedDigestSize).str());
@@ -411,13 +323,17 @@ namespace mococrw {
             auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
             _EVP_PKEY_sign_init(keyCtx.get());
 
-            _impl->prepareOpenSSLContext(keyCtx);
+            _impl->padding->prepareOpenSSLContext(keyCtx, _impl->hashFunction);
 
             return signHelper(keyCtx, messageDigest);
         }
         catch (const OpenSSLException &e) {
             throw MoCOCrWException(e.what());
         }
+    }
+
+    std::vector<uint8_t> RSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
+        return signDigest(createHash(_impl->hashFunction, message));
     }
 
     /*
@@ -429,40 +345,29 @@ namespace mococrw {
 
 
     RSASignaturePublicKeyCtx::RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
-                                                       PKCSSignaturePadding padding)
-        : _impl(std::make_unique<RSASignaturePublicKeyCtx::Impl>(key, std::move(padding))) {}
-
-    RSASignaturePublicKeyCtx::RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
-                                                       PSSPadding padding)
-        : _impl(std::make_unique<RSASignaturePublicKeyCtx::Impl>(key, std::move(padding))) {}
+                                                       openssl::DigestTypes hashFunction,
+                                                       std::shared_ptr<RSASignaturePadding> padding)
+        : _impl(std::make_unique<RSASignaturePublicKeyCtx::Impl>(key, hashFunction, padding)) {}
 
     RSASignaturePublicKeyCtx::RSASignaturePublicKeyCtx(const X509Certificate& cert,
-                                                       PKCSSignaturePadding padding)
-        : RSASignaturePublicKeyCtx(cert.getPublicKey(), std::move(padding)) {}
-
-    RSASignaturePublicKeyCtx::RSASignaturePublicKeyCtx(const X509Certificate& cert,
-                                                       PSSPadding padding)
-        : RSASignaturePublicKeyCtx(cert.getPublicKey(), std::move(padding)) {}
+                                                       openssl::DigestTypes hashFunction,
+                                                       std::shared_ptr<RSASignaturePadding> padding)
+        : RSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction, padding) {}
 
     RSASignaturePublicKeyCtx::RSASignaturePublicKeyCtx(const RSASignaturePublicKeyCtx& other)
         : _impl(std::make_unique<RSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}
 
     RSASignaturePublicKeyCtx& RSASignaturePublicKeyCtx::operator=(const RSASignaturePublicKeyCtx& other) {
-        _impl = std::make_unique<RSASignaturePublicKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<RSASignaturePublicKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
     RSASignaturePublicKeyCtx::~RSASignaturePublicKeyCtx() = default;
 
-    void RSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
-                                                 const std::vector<uint8_t> &message) {
-        verifyDigest(signature, createHash(_impl->getHashFunction(), message));
-    }
-
     void RSASignaturePublicKeyCtx::verifyDigest(const std::vector<uint8_t> &signature,
                                                 const std::vector<uint8_t> &messageDigest) {
 
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->getHashFunction());
+        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
         if (messageDigest.size() != expectedDigestSize) {
             throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
                                                   % expectedDigestSize).str());
@@ -472,7 +377,7 @@ namespace mococrw {
             auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
             _EVP_PKEY_verify_init(keyCtx.get());
 
-            _impl->prepareOpenSSLContext(keyCtx);
+            _impl->padding->prepareOpenSSLContext(keyCtx, _impl->hashFunction);
 
             _EVP_PKEY_verify(keyCtx.get(),
                              reinterpret_cast<const unsigned char *>(signature.data()),
@@ -485,6 +390,12 @@ namespace mococrw {
         }
     }
 
+    void RSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
+                                                 const std::vector<uint8_t> &message) {
+        verifyDigest(signature, createHash(_impl->hashFunction, message));
+    }
+
+
     /* ###########
      * #  ECDSA  #
      * ###########
@@ -496,9 +407,9 @@ namespace mococrw {
      * Implements the check if the given key is a ECC key in the constructor.
      */
     template <class Key>
-    class ECDSAImpl {
+    class ECDSAImpl : public SignatureCtxImpl {
     public:
-        ECDSAImpl(const Key& key, openssl::DigestTypes hashFunction) : key(key), hashFunction(hashFunction) {
+        ECDSAImpl(const Key& key, openssl::DigestTypes hashFunction) : SignatureCtxImpl(hashFunction), key(key) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::ECC) {
                 throw mococrw::MoCOCrWException("Expected ECC Key for ECC signatures");
@@ -506,7 +417,6 @@ namespace mococrw {
         }
 
         Key key;
-        openssl::DigestTypes hashFunction;
     };
 
 
@@ -525,15 +435,11 @@ namespace mococrw {
         : _impl(std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(*(other._impl))) {}
 
     ECDSASignaturePrivateKeyCtx& ECDSASignaturePrivateKeyCtx::operator=(const ECDSASignaturePrivateKeyCtx& other) {
-        _impl = std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
     ECDSASignaturePrivateKeyCtx::~ECDSASignaturePrivateKeyCtx() = default;
-
-    std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
-        return signDigest(createHash(_impl->hashFunction, message));
-    }
 
     std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signDigest(const std::vector<uint8_t> &messageDigest) {
         size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
@@ -551,6 +457,10 @@ namespace mococrw {
         catch (const OpenSSLException &e) {
             throw MoCOCrWException(e.what());
         }
+    }
+
+    std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
+        return signDigest(createHash(_impl->hashFunction, message));
     }
 
     /*
@@ -572,17 +482,12 @@ namespace mococrw {
         : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}
 
     ECDSASignaturePublicKeyCtx& ECDSASignaturePublicKeyCtx::operator=(const ECDSASignaturePublicKeyCtx& other) {
-        _impl = std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl));
+        this->_impl = std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl));
         return *this;
     }
 
     ECDSASignaturePublicKeyCtx::~ECDSASignaturePublicKeyCtx() = default;
 
-
-    void ECDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
-                                                   const std::vector<uint8_t> &message) {
-        verifyDigest(signature, createHash(_impl->hashFunction, message));
-    }
 
     void ECDSASignaturePublicKeyCtx::verifyDigest(const std::vector<uint8_t> &signature,
                                                   const std::vector<uint8_t> &messageDigest) {
@@ -606,6 +511,11 @@ namespace mococrw {
         catch (const OpenSSLException &e) {
             throw MoCOCrWException(e.what());
         }
+    }
+    
+    void ECDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
+                                                   const std::vector<uint8_t> &message) {
+        verifyDigest(signature, createHash(_impl->hashFunction, message));
     }
 
     /* ###########

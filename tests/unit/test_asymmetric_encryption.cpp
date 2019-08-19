@@ -32,53 +32,41 @@ using namespace mococrw;
 
 /// \brief Structure to hold a private/public key pair
 struct KeyPair {
-    std::string _publicKey;
-    std::string _privateKey;
+    KeyPair(const std::string& publicKey, const std::string& privateKey)
+        : pubKey(AsymmetricPublicKey::readPublicKeyFromPEM(publicKey)),
+          privKey(AsymmetricPrivateKey::readPrivateKeyFromPEM(privateKey, ""))
+    {}
+
+    AsymmetricPublicKey pubKey;
+    AsymmetricPrivateKey privKey;
 };
 
 /// \brief Structure to hold the input data set for the test cases
 struct NominalDataSet {
+    NominalDataSet (const std::string& message,
+                    const std::vector<uint8_t>& encrypted,
+                    const KeyPair& keyPair,
+                    std::shared_ptr<RSAEncryptionPadding> padding)
+        : message(message),
+          encrypted(encrypted),
+          encryptionCtx(std::make_shared<RSAEncryptionPublicKeyCtx>(keyPair.pubKey, padding)),
+          decryptionCtx(std::make_shared<RSAEncryptionPrivateKeyCtx>(keyPair.privKey, padding))
+    {}
+
     // inputs
-    std::string _message;
-    std::vector <uint8_t> _encrypted;
-    std::string _publicKey;
-    std::string _privateKey;
-    boost::variant<OAEPPadding, PKCSEncryptionPadding, NoPadding> padding;
+    std::string message;
+    std::vector <uint8_t> encrypted;
+    std::shared_ptr<EncryptionCtx> encryptionCtx;
+    std::shared_ptr<DecryptionCtx> decryptionCtx;
 };
 
 class AsymmetricEncryptionTest : public ::testing::Test,
                                  public ::testing::WithParamInterface<NominalDataSet>{
 public:
     static const std::vector<NominalDataSet> nominalDataSet;
+
+    static const NominalDataSet& OAEPPaddingDataSet;
 };
-
-template<class KeyType,class KeyCtx>
-class ContextCreatorVisitor {
-public:
-    typedef KeyCtx result_type;
-
-    ContextCreatorVisitor(KeyType& key) : key(key) {}
-
-    template<class Padding>
-    KeyCtx operator()(Padding& p) const {
-        return KeyCtx(key, p);
-    }
-
-    KeyType& key;
-};
-
-template<class DataSet>
-RSAEncryptionPublicKeyCtx getPublicKeyCtx(const DataSet& data) {
-    auto key = AsymmetricPublicKey::readPublicKeyFromPEM(data._publicKey);
-    return boost::apply_visitor(ContextCreatorVisitor<AsymmetricPublicKey, RSAEncryptionPublicKeyCtx>(key), data.padding);
-}
-
-template<class DataSet>
-RSAEncryptionPrivateKeyCtx getPrivateKeyCtx(const DataSet& data) {
-    auto key = AsymmetricPrivateKey::readPrivateKeyFromPEM(data._privateKey, "");
-    return boost::apply_visitor(ContextCreatorVisitor<AsymmetricPrivateKey, RSAEncryptionPrivateKeyCtx>(key), data.padding);
-}
-
 
 /// \brief RSA 1024-bit Pair public/private key
 const KeyPair keyPairs1024bit
@@ -176,9 +164,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0x53, 0x20, 0xB7, 0x32, 0xE5, 0xF8, 0x77, 0xCE, 0xF3, 0x2C, 0xB0, 0xAC, 0xAC, 0x67,
             0x9B, 0xFE
         },
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        PKCSEncryptionPadding()
+        keyPairs1024bit,
+        std::make_shared<PKCSPadding>()
     },
     // PKCS1 2048-bit RSA key data set
     {
@@ -205,9 +192,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0x71, 0x8F, 0x6E, 0xEA, 0xE4, 0xE7, 0x22, 0x9B, 0x3B, 0xDB, 0x42, 0xD0, 0x56, 0x74,
             0x48, 0x42, 0x0F, 0xA7
         },
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        PKCSEncryptionPadding()
+        keyPairs2048bit,
+        std::make_shared<PKCSPadding>()
     },
     // OAEP 1024-bit RSA key data set, hashing SHA256, masking SHA256
     {
@@ -224,9 +210,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0x57, 0x52, 0xF9, 0x24, 0x9C, 0x18, 0x76, 0xFC, 0xE4, 0xC0, 0x86, 0x67, 0x30, 0xA6,
             0x60, 0x1B
         },
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding()
+        keyPairs1024bit,
+        std::make_shared<OAEPPadding>()
     },
     // OAEP 1024-bit RSA key data set, hashing SHA256, masking SHA256, label = CAFEBEEF
     {
@@ -243,9 +228,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0xE5, 0xE6, 0x7C, 0xEA, 0x97, 0xC6, 0xC6, 0x1D, 0x7F, 0xEE, 0x6E, 0xEF, 0x93, 0x25,
             0xE2, 0xFF
         },
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA256, MGF1(), "\xca\xfe\xbe\xef")
+        keyPairs1024bit,
+        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA256, std::make_shared<MGF1>(), "\xca\xfe\xbe\xef")
     },
     // OAEP 2048-bit RSA key data set, hashing SHA256, masking SHA256
     {
@@ -272,9 +256,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0x87, 0x3E, 0x33, 0x39, 0x0F, 0x05, 0x20, 0xBE, 0x87, 0xB1, 0xDB, 0xAB, 0x28, 0x60,
             0x2E, 0xE2, 0x8F, 0x6C
         },
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding()
+        keyPairs2048bit,
+        std::make_shared<OAEPPadding>()
     },
     // OAEP 2048-bit RSA key data set, hashing SHA512, masking SHA512
     {
@@ -301,9 +284,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0x70, 0x10, 0x22, 0xE1, 0x43, 0x8A, 0x62, 0xDE, 0x1D, 0x3A, 0x48, 0x0B, 0x73, 0x76,
             0xFE, 0x2D, 0x7D, 0x21
         },
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA512)
+        keyPairs2048bit,
+        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512)
     },
     // OAEP 2048-bit RSA key data set, hashing SHA256, masking SHA512
     {
@@ -330,9 +312,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0xD5, 0x32, 0x3F, 0x11, 0xF7, 0x5F, 0x74, 0x81, 0xC1, 0xD6, 0x9A, 0x15, 0x5E, 0x03,
             0x31, 0x3B, 0xC4, 0x09
         },
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA256, MGF1(openssl::DigestTypes::SHA512))
+        keyPairs2048bit,
+        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA256, std::make_shared<MGF1>(openssl::DigestTypes::SHA512))
     },
     // No Padding, 1024-bit RSA key data set
     {
@@ -350,9 +331,8 @@ AsymmetricEncryptionTest::nominalDataSet
             0xA2, 0xFA, 0x9A, 0xEE, 0x9F, 0x8E, 0x83, 0x23, 0xAD, 0x46, 0xE2, 0x72, 0x52, 0x22,
             0x47, 0x20
         },
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        NoPadding()
+        keyPairs1024bit,
+        std::make_shared<NoPadding>()
     },
     // No Padding, 2048-bit RSA key data set
     {
@@ -380,11 +360,12 @@ AsymmetricEncryptionTest::nominalDataSet
             0xBE, 0x94, 0xE7, 0xC8, 0x8A, 0xE2, 0xB8, 0x44, 0x7D, 0x85, 0x35, 0x57, 0x08, 0x8F,
             0x49, 0xAB, 0x79, 0x2A
         },
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        NoPadding()
+        keyPairs2048bit,
+        std::make_shared<NoPadding>()
     }
 };
+
+const NominalDataSet& AsymmetricEncryptionTest::OAEPPaddingDataSet = nominalDataSet[2];
 
 /**
  * @brief Tests the nominal scenarios of the decryption functionality. The nominal encryption data
@@ -393,12 +374,11 @@ AsymmetricEncryptionTest::nominalDataSet
  */
 TEST_P(AsymmetricEncryptionTest, testSuccessfulDecryption)
 {
-    auto data = GetParam();
-    auto ctxDecrypt = getPrivateKeyCtx(data);
+    auto dataSet = GetParam();
 
-    auto message = ctxDecrypt.decrypt(data._encrypted);
+    auto message = dataSet.decryptionCtx->decrypt(dataSet.encrypted);
     std::string str(message.begin(), message.end());
-    EXPECT_EQ(data._message, str);
+    EXPECT_EQ(dataSet.message, str);
 }
 
 /**
@@ -408,405 +388,63 @@ TEST_P(AsymmetricEncryptionTest, testSuccessfulDecryption)
  */
 TEST_P(AsymmetricEncryptionTest, testSuccessfulEncryption)
 {
-    auto data = GetParam();
+    auto dataSet = GetParam();
 
-    auto ctxEncrypt = getPublicKeyCtx(data);
-    auto ctxDecrypt = getPrivateKeyCtx(data);
+    std::vector<uint8_t> message(dataSet.message.begin(), dataSet.message.end());
+    auto encrypted = dataSet.encryptionCtx->encrypt(message);
+    auto decrypted = dataSet.decryptionCtx->decrypt(encrypted);
 
-    std::vector<uint8_t> msg(data._message.begin(), data._message.end());
-    const auto encryptedMessage = ctxEncrypt.encrypt(msg);
-    const auto message = ctxDecrypt.decrypt(encryptedMessage);
-    EXPECT_EQ(msg, message);
+    EXPECT_EQ(decrypted, message);
 }
 
 INSTANTIATE_TEST_CASE_P(testSuccessfulEncryptionDecryption, AsymmetricEncryptionTest,
                         testing::ValuesIn(AsymmetricEncryptionTest::nominalDataSet));
 
 /**
- * @brief Tests the decryption functionality with wrong parameters.
- *
- * The following use cases are covered:
- * - wrong padding mode (message encrypted with another padding)
- * - wrong hashing
- * - wrong masking
- * - wrong label
- * - wrong private key
+ * @brief Tests that decryption is unsuccessful if a wrong padding mode is used.
  */
-TEST_F(AsymmetricEncryptionTest, testDecryptionWrongParameters)
+TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionPKCSInsteadOfOEAP)
 {
-    // OAEP 1024-bit RSA key data set, hashing SHA256, masking SHA256
-    NominalDataSet data {
-            "Lorem ipsum dolor sit amet, consectetur",
-            {
-                    0x40, 0x6B, 0x15, 0x44, 0xDF, 0x62, 0xCD, 0x33, 0x80, 0x13, 0x24, 0xFC, 0xC2, 0xAE,
-                    0x18, 0x4D, 0x2F, 0xD6, 0x32, 0x16, 0xA3, 0x86, 0x1F, 0x66, 0x15, 0xF8, 0x09, 0xE0,
-                    0xAB, 0x1E, 0x56, 0xC0, 0x4E, 0x35, 0x37, 0x11, 0x82, 0x07, 0xBD, 0xBF, 0xC8, 0x68,
-                    0xBF, 0xF6, 0xF2, 0x61, 0xCC, 0x71, 0xBC, 0x38, 0x5A, 0x88, 0x1D, 0xFB, 0x1D, 0x98,
-                    0x97, 0xAE, 0xBE, 0xF8, 0xE3, 0xDB, 0x02, 0x05, 0x8C, 0xE9, 0x16, 0x16, 0x32, 0x7E,
-                    0x8D, 0x99, 0x4F, 0x85, 0x63, 0x8B, 0x36, 0xA0, 0xBD, 0xD0, 0xA4, 0x99, 0xA8, 0x01,
-                    0x22, 0xB4, 0x21, 0xD3, 0x0B, 0xC6, 0x63, 0xE0, 0xA9, 0x4C, 0xA8, 0x7F, 0xB3, 0x36,
-                    0x47, 0x64, 0x2F, 0x25, 0xB3, 0xF9, 0xBC, 0x51, 0xA7, 0x7D, 0x91, 0x4F, 0xA6, 0xDE,
-                    0x57, 0x52, 0xF9, 0x24, 0x9C, 0x18, 0x76, 0xFC, 0xE4, 0xC0, 0x86, 0x67, 0x30, 0xA6,
-                    0x60, 0x1B
-            },
-            keyPairs1024bit._publicKey,
-            keyPairs1024bit._privateKey,
-            OAEPPadding()
-    };
-
-    const auto privateKey  = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(data._privateKey, "");
-
-    // Step 1: Check the decryption with a wrong padding mode.
-    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(privateKey, PKCSEncryptionPadding());
-    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
-
-    // Step 2: Check the decryption with a wrong hashing
-    auto padding = OAEPPadding(openssl::DigestTypes::SHA512, MGF1());
-    ctxDecrypt = RSAEncryptionPrivateKeyCtx(privateKey, std::move(padding));
-    ctxDecrypt = RSAEncryptionPrivateKeyCtx(RSAEncryptionPrivateKeyCtx(privateKey, std::move(padding)));
-    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
-
-    // Step 3: Check the decryption with a wrong masking
-    padding = OAEPPadding(openssl::DigestTypes::SHA256, MGF1(openssl::DigestTypes::SHA512));
-    ctxDecrypt = RSAEncryptionPrivateKeyCtx(privateKey, std::move(padding));
-    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
-
-    // Step 4: Check the decryption with a wrong label
-    padding = OAEPPadding(openssl::DigestTypes::SHA256, MGF1(), "\xaa\xbb\xcc\xdd");
-    ctxDecrypt = RSAEncryptionPrivateKeyCtx(privateKey, std::move(padding));
-    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
-
-    // Step 5: Check the decryption with a wrong key
-    const auto wrongPrivateKey
-            = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(keyPairs2048bit._privateKey, "");
-    ctxDecrypt = RSAEncryptionPrivateKeyCtx(wrongPrivateKey, OAEPPadding());
-    EXPECT_THROW(ctxDecrypt.decrypt(data._encrypted), MoCOCrWException);
+    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs1024bit.privKey, std::make_shared<PKCSPadding>());
+    EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
 }
-
-/// \brief Structure to hold the data set used to test the message size
-struct MessageSizeDataSet
-{
-    // inputs
-    std::string _message;
-    std::string _publicKey;
-    std::string _privateKey;
-    boost::variant<OAEPPadding, PKCSEncryptionPadding, NoPadding> padding;
-    // expected outputs
-    std::string _exceptionText;
-    bool _expectThrow;
-};
-
-class AsymmetricEncryptionSizeTest : public ::testing::Test,
-                                     public ::testing::WithParamInterface<MessageSizeDataSet>{
-public:
-    static const std::vector<MessageSizeDataSet> messageSizeDataSet;
-};
-
-/// \brief Data set used to test the message size limits use-cases, encrytion functionality
-const std::vector<MessageSizeDataSet>
-AsymmetricEncryptionSizeTest::messageSizeDataSet
-{
-    // PKCS, 1024-bit key, empty message
-    {
-        "",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        PKCSEncryptionPadding(),
-        "",
-        false
-    },
-    // PKCS, 1024-bit key, max message size (117)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        PKCSEncryptionPadding(),
-        "",
-        false
-    },
-    // PKCS, 1024-bit key, max message size + 1 (118)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.1234567",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        PKCSEncryptionPadding(),
-        "Message too long for RSA key size",
-        true
-    },
-    // PKCS, 2048-bit key, empty message
-    {
-        "",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        PKCSEncryptionPadding(),
-        "",
-        false
-    },
-    // PKCS, 2048-bit key, max message size (245)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.1234",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        PKCSEncryptionPadding(),
-        "",
-        false
-    },
-    // PKCS, 2048-bit key, max message size + 1 (246)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.12345",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        PKCSEncryptionPadding(),
-        "Message too long for RSA key size",
-        true
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), empty message
-    {
-        "",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding(),
-        "",
-        false
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size (62)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.1",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding(),
-        "",
-        false
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (63)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.12",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding(),
-        "Message too long for RSA key size",
-        true
-    },
-    // OAEP, 1024-bit key, hashing SHA512, MGF1(SHA256), max message size (-2)
-    {
-        "",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA512, MGF1()),
-        "Message too long for RSA key size",
-        true
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), empty message
-    {
-        "",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(),
-        "",
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size (190)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(),
-        "",
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (191)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(),
-        "Message too long for RSA key size",
-        true
-    },
-    // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size (126)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.12345",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA512, MGF1()),
-        "",
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size + 1 (127)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        OAEPPadding(openssl::DigestTypes::SHA512, MGF1()),
-        "Message too long for RSA key size",
-        true
-    },
-    // NO PADDING, 1024-bit key, max message size - 1 (127)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        NoPadding(),
-        "When using NoPadding message size (127 Byte) must equal the key size (128 Byte)",
-        true
-    },
-    // NO PADDING, 1024-bit key, max message size (128)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.1234567",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        NoPadding(),
-        "",
-        false
-    },
-    // NO PADDING, 1024-bit key, max message size + 1 (129)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.12345679",
-        keyPairs1024bit._publicKey,
-        keyPairs1024bit._privateKey,
-        NoPadding(),
-        "When using NoPadding message size (129 Byte) must equal the key size (128 Byte)",
-        true
-    },
-    // NO PADDING, 2048-bit key, max message size - 1 (255)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".1234",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        NoPadding(),
-        "When using NoPadding message size (255 Byte) must equal the key size (256 Byte)",
-        true
-    },
-    // NO PADDING, 2048-bit key, max message size (256)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".12345",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        NoPadding(),
-        "",
-        false
-    },
-    // NO PADDING, 2048-bit key, max message size + 1 (257)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456",
-        keyPairs2048bit._publicKey,
-        keyPairs2048bit._privateKey,
-        NoPadding(),
-        "When using NoPadding message size (257 Byte) must equal the key size (256 Byte)",
-        true
-    },
-
-};
 
 /**
- * @brief Tests the size limits of the message to encrypt.
- *
- * The following use cases are covered:
- * - PKCS, 1024-bit key, empty message
- * - PKCS, 1024-bit key, max message size     (117)
- * - PKCS, 1024-bit key, max message size + 1 (118)
- * - PKCS, 2048-bit key, empty message
- * - PKCS, 2048-bit key, max message size     (245)
- * - PKCS, 2048-bit key, max message size + 1 (246)
- * - OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), empty message
- * - OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size     (62)
- * - OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (63)
- * - OAEP, 1024-bit key, hashing SHA512, MGF1(SHA256), max message size     (-2)
- * - OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), empty message
- * - OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size     (190)
- * - OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (191)
- * - OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size     (126)
- * - OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size + 1 (127)
- * - NO PADDING, 1024-bit key, max message size - 1 (127)
- * - NO PADDING, 1024-bit key, max message size     (128)
- * - NO PADDING, 1024-bit key, max message size + 1 (129)
- * - NO PADDING, 2048-bit key, max message size - 1 (255)
- * - NO PADDING, 2048-bit key, max message size     (256)
- * - NO PADDING, 2048-bit key, max message size + 1 (257)
+ * @brief Tests the decryption functionality with wrong key.
  */
-TEST_P(AsymmetricEncryptionSizeTest, testMessageSize)
+TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionWrongKey)
 {
-    auto data = GetParam();
-    auto encryptCtx = getPublicKeyCtx(data);
-
-    std::vector<uint8_t> msg(data._message.begin(), data._message.end());
-    if (data._expectThrow) {
-        EXPECT_THROW({
-            try {
-                encryptCtx.encrypt(msg);
-            }
-            catch (const MoCOCrWException &e) {//this tests that it has the correct message
-                EXPECT_STREQ(data._exceptionText.c_str(), e.what());
-                throw;
-            }
-            }, MoCOCrWException);
-    } else {
-        EXPECT_NO_THROW(encryptCtx.encrypt(msg));
-    }
+    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs2048bit.privKey, std::make_shared<OAEPPadding>());
+    EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
 }
 
-INSTANTIATE_TEST_CASE_P(testMessageSize, AsymmetricEncryptionSizeTest,
-                        testing::ValuesIn(AsymmetricEncryptionSizeTest::messageSizeDataSet));
-
-TEST_F(AsymmetricEncryptionSizeTest, testGetMessageSize)
+/**
+ * @brief Tests the decryption functionality with OEAP that uses a wrong hash function.
+ */
+TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionWrongHashFunctionOEAP)
 {
-    auto key1024 = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(keyPairs1024bit._publicKey);
-    auto key2048 = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(keyPairs2048bit._publicKey);
+    auto padding = std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, nullptr);
+    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs2048bit.privKey, padding);
+    EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
+}
 
-    OAEPPadding oeapPad{};
-    EXPECT_EQ(oeapPad.getDataBlockSize(key1024), 62);
-    EXPECT_EQ(oeapPad.getDataBlockSize(key2048), 190);
+/**
+ * @brief Tests the decryption functionality with OEAP that uses a wrongly configured MGF1.
+ */
+TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionWrongMGF1OEAP)
+{
+    auto mgf = std::make_shared<MGF1>(openssl::DigestTypes::SHA384);
+    auto padding = std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA256, mgf);
+    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs2048bit.privKey, padding);
+    EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
+}
 
-    PKCSEncryptionPadding pkcsPadding{};
-    EXPECT_EQ(pkcsPadding.getDataBlockSize(key1024), 1024/8 - 11);
-    EXPECT_EQ(pkcsPadding.getDataBlockSize(key2048), 2048/8 - 11);
-
-    NoPadding noPadding{};
-    EXPECT_EQ(noPadding.getDataBlockSize(key1024), 1024/8);
-    EXPECT_EQ(noPadding.getDataBlockSize(key2048), 2048/8);
+/**
+ * @brief Tests the decryption functionality with OEAP that uses a wrong label.
+ */
+TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionWrongLabelOEAP)
+{
+    auto padding = std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA256, nullptr, "\xaa\xbb\xcc\xdd");
+    auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs2048bit.privKey, padding);
+    EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
 }

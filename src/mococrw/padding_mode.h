@@ -25,56 +25,28 @@
 namespace mococrw {
 
 /**
- * @brief NoPadding
- *
- * This class defines the parameters specific to the RSA no padding mode.
+ * @brief Interface for paddings for RSA encryptions
  */
-class NoPadding {
+class RSAEncryptionPadding {
 public:
     /**
-     * @brief Get maximum data size that can encrypted, which is the same as
-     * the key when not using padding. Since we're not using any type of
-     * padding, the data to encrypt needs to have exactly the same size of
-     * the key used
-     * @param key RSA public key that will be used for encryption
+     * @brief Destructor
+     */
+    virtual ~RSAEncryptionPadding();
+
+    /**
+     * @brief Check if a message of a given size can be encrypted using the given padding.
+     * @param key The RSA public key that will be used for encryption
+     * @param messageSize The size of the message that will be encrypted
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    int getDataBlockSize(const AsymmetricPublicKey &key) const;
+    virtual bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const = 0;
 
     /**
      * @brief Prepares the given openssl context with the padding specific parameters.
      * @param ctx OpenSSL PKEY context
      */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const;
-};
-
-
-/**
- * @brief PKCSEncryptionPadding
- *
- * This class defines the parameters specific to the PKCS1 padding mode.
- *
- */
-class PKCSEncryptionPadding {
-public:
-    /**
-     * @brief Get maximum data size that can encrypted using the PKCS padding
-     * @param key RSA public key that will be used for encryption
-     * @return the maximum size of the data that can be encrypted in bytes.
-     */
-    int getDataBlockSize(const AsymmetricPublicKey &key) const;
-
-    /**
-     * @brief Prepares the given openssl context with the padding specific parameters.
-     * @param ctx OpenSSL context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const;
-
-private:
-    /**
-     * @brief Size overhead added by the PKCS padding on the RSA encryption
-     */
-    static const int c_pkcsMaxSizeSOverhead = 11;
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const = 0;
 };
 
 /**
@@ -82,57 +54,67 @@ private:
  *
  *  Base Class for RSA Signature Paddings (because they all share the hash function attribute)
  */
-class RSASignaturePadding  {
+class RSASignaturePadding {
 public:
     /**
-     * @brief Construtor for RSASignaturePadding
-     * @param hashFunction Hash function to be used
+     * @brief Destructor
      */
-    RSASignaturePadding(openssl::DigestTypes hashFunction);
-
-     /**
-      * @brief Get the hash function
-      *
-      * Getter method for the hash function.
-      *
-      * @return The hash function
-      */
-    openssl::DigestTypes getHashFunction() const;
-
-protected:
-    /**
-     * @brief Hash function to be used for signing
-     */
-    openssl::DigestTypes _hashFunction;
-};
-
-/**
- * @brief PKCSSignaturePadding
- *
- * This class defines the parameters specific to the PKCS1 padding mode.
- *
- * Defaults:
- * - Hash function: SHA256
- */
-class PKCSSignaturePadding: public RSASignaturePadding {
-public:
-    /**
-     * @brief Constructor for PKCSSignaturePadding
-     * @param hashFunction Hash function to be used
-     */
-    PKCSSignaturePadding(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
+    virtual ~RSASignaturePadding();
 
     /**
      * @brief Prepares the given openssl context with the padding specific parameters.
      * @param ctx OpenSSL context
+     * @param hashFunction The hash function to be used
      */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const;
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+                                       openssl::DigestTypes hashFunction) const = 0;
+};
+
+
+/**
+ * @brief NoPadding
+ *
+ * This class defines the parameters specific to the RSA no padding mode.
+ */
+class NoPadding : public RSAEncryptionPadding {
+public:
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
+
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+};
+
+/**
+ * @brief PKCSPadding
+ *
+ * This class defines the parameters specific to the PKCS#1 v1.5 padding mode.
+ *
+ */
+class PKCSPadding : public RSAEncryptionPadding, public RSASignaturePadding {
+public:
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
+
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+                               openssl::DigestTypes hashFunction) const override;
 
 private:
     /**
-     * @brief Size overhead added by the PKCS padding on the RSA encryption
+     * @brief Size overhead added by the PKCS#1 padding on the RSA encryption
      */
-    static const int c_pkcsMaxSizeSOverhead = 11;
+    static const int PKCS_MAX_SIZE_OVERHEAD = 11;
+};
+
+/**
+ * @brief Interface for mask generation functions
+ */
+class MaskGenerationFunction {
+public:
+    /**
+     * @brief Prepares the given openssl context with the mask generation function specific parameters.
+     * @param ctx OpenSSL context
+     */
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const = 0;
 };
 
 /**
@@ -144,7 +126,7 @@ private:
  * Defaults:
  *  - Hash Function: SHA256
  */
-class MGF1 {
+class MGF1 : public MaskGenerationFunction {
 public:
     /**
      * @brief Construtor
@@ -152,77 +134,13 @@ public:
      */
     MGF1(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
 
-    /**
-     * @brief Prepares the given openssl context with the masking function specific parameters.
-     * @param ctx OpenSSL context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const;
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+
 private:
     /**
      *  Hash function to be used for mask generation
      */
     openssl::DigestTypes _hashFunction;
-};
-
-/**
- * @brief PSSPadding
- *
- * This class defines the parameters specific to the RSA PSS padding mode.
- *
- * Defaults:
- * - Hash Function: SHA256
- * - Mask Generation Function: MGF1(<Hash Function>):
- *   By default, the specified hash function is also used for mask generation
- * - Salt length: Length of Hash Digest
- *
- * Currently only supports MGF1 objects for mask generation. If there ever will
- * be another mask generation function a second constructor may be added.
- */
-class PSSPadding: public RSASignaturePadding {
-public:
-    /**
-     * @brief Constructor
-     * @param hashFunction Hash function to be used
-     * @param mgf1 MGF1 mask generation function to be used (if equals boost::none
-     *             by default MGF1(hashFunction) will be used)
-     * @param saltLength Length of salt to be used
-     */
-    PSSPadding(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256,
-               boost::optional<MGF1> maskGenerationFunction = boost::none,
-               boost::optional<int> saltLength = boost::none);
-
-    /**
-     * @brief Copy Constructor
-     */
-    PSSPadding(const PSSPadding& other);
-
-    /**
-     * @brief Copy Assignment
-     */
-    PSSPadding& operator=(const PSSPadding& other);
-
-    /**
-     * @brief Destructor
-     */
-    ~PSSPadding();
-
-    /**
-     * @brief Prepares the given openssl context with the padding specific parameters.
-     * @param ctx OpenSSL PKEY context
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const;
-
-private:
-    /**
-     * Internal class for applying the PIMPL design pattern
-     * (to hide the details of storing the masking function objects from clients)
-     */
-    class Impl;
-
-    /**
-     * Pointer for PIMPL design pattern
-     */
-    std::unique_ptr<Impl> _impl;
 };
 
 /**
@@ -239,17 +157,17 @@ private:
  *  - Mask Generation Function: MGF1(<Hash Function>)
  *  - Label: Empty String
  */
-class OAEPPadding {
+class OAEPPadding : public RSAEncryptionPadding {
 public:
     /**
      * @brief Constructor
      * @param hashFunction Hash function to be used
-     * @param mgf1 MGF1 mask generation function to be used (if equals boost::none
-     *             by default MGF1(hashFunction) will be used)
+     * @param maskGenerationFunction mask generation function to be used (if equals nullptr
+     *                               by default MGF1(hashFunction) will be used)
      * @param label Label to be used
      */
     OAEPPadding(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256,
-                boost::optional<MGF1> maskGenerationFunction = boost::none,
+                std::shared_ptr<MaskGenerationFunction> maskGenerationFunction = nullptr,
                 const std::string& label="");
 
     /**
@@ -267,23 +185,66 @@ public:
      */
     ~OAEPPadding();
 
-    /**
-     * @brief Get maximum data size that can encrypted using the OAEP padding
-     * @param key RSA public key that will be used for encryption
-     * @return the maximum size of the data that can be encrypted in bytes.
-     */
-    int getDataBlockSize(const AsymmetricPublicKey &key) const;
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
 
-    /**
-     * @brief Prepares the given openssl context with the padding specific parameters.
-     * @param ctx OpenSSL PKEY context that will store all specific configurations.
-     */
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx);
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
 
 private:
     /**
      * Internal class for applying the PIMPL design pattern
-     * (to hide the details of storing the masking function objects from clients)
+     * (to hide the details of storing the mask generation function objects from clients)
+     */
+    class Impl;
+
+    /**
+     * Pointer for PIMPL design pattern
+     */
+    std::unique_ptr<Impl> _impl;
+};
+
+/**
+ * @brief PSSPadding
+ *
+ * This class defines the parameters specific to the RSA PSS padding mode.
+ *
+ * Defaults:
+ * - Mask Generation Function: MGF1(<Hash Function>):
+ *   By default, the hash function used for the signature is also used for mask generation
+ * - Salt length: Length of Hash Digest
+ */
+class PSSPadding: public RSASignaturePadding {
+public:
+    /**
+     * @brief Constructor
+     * @param maskGenerationFunction The mask generation function to be used (if equals nullptr
+     *                               by default MGF1(hashFunction) will be used)
+     * @param saltLength Length of salt to be used
+     */
+    PSSPadding(std::shared_ptr<MaskGenerationFunction> maskGenerationFunction = nullptr,
+               boost::optional<int> saltLength = boost::none);
+
+    /**
+     * @brief Copy Constructor
+     */
+    PSSPadding(const PSSPadding& other);
+
+    /**
+     * @brief Copy Assignment
+     */
+    PSSPadding& operator=(const PSSPadding& other);
+
+    /**
+     * @brief Destructor
+     */
+    ~PSSPadding();
+
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+                               openssl::DigestTypes hashFunction) const override;
+
+private:
+    /**
+     * Internal class for applying the PIMPL design pattern
+     * (to hide the details of storing the mask generation function objects from clients)
      */
     class Impl;
 
