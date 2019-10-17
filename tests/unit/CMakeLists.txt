@@ -9,6 +9,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
             ONLY_CMAKE_FIND_ROOT_PATH)
         if(GMOCK_SRC_DIR)
             message(STATUS "Found GMock sources in ${GMOCK_SRC_DIR}")
+            set(INSTALL_GTEST OFF CACHE BOOL "Enable installation of googletest." FORCE)
             add_subdirectory("${GMOCK_SRC_DIR}" gmock)
             set(GMOCK_BOTH_LIBRARIES "gmock_main")
         else()
