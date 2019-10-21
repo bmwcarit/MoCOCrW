@@ -114,19 +114,40 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(asymencryptiontests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(rsa_padding_mode_tests   ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
-    add_test(OpenSSLTest openssltest)
+    add_test(
+        NAME OpenSSLTest
+        COMMAND openssltest
+    )
 
-    add_test(Asn1TimeTests asn1timetests)
-    add_test(HashTests hashtests)
-    add_test(UtilTests utiltests)
-    add_test(KeyTest keytests)
-    add_test(CsrTests csrtests)
+    add_test(
+        NAME Asn1TimeTests
+        COMMAND asn1timetests
+    )
+    add_test(
+        NAME HashTests
+        COMMAND hashtests
+    )
+    add_test(
+        NAME UtilTests
+        COMMAND utiltests
+    )
+    add_test(
+        NAME KeyTest
+        COMMAND keytests
+    )
+    add_test(
+        NAME CsrTests
+        COMMAND csrtests
+    )
     add_test(
         NAME BioTests
         COMMAND biotests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
     )
-    add_test(DistinguishedNameTests dntests)
+    add_test(
+        NAME DistinguishedNameTests
+        COMMAND dntests
+    )
     add_test(
         NAME X509Tests
         COMMAND x509tests
