@@ -212,6 +212,8 @@ private:
     FunctorOrFuncRefType _functor;
 };
 
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wnoexcept-type"
 template <class ReturnCheckPolicy = DefaultReturnCheckPolicy,
           class ErrorPolicy = DefaultErrorPolicy>
 class CallCheckContext {
@@ -222,5 +224,6 @@ public:
                 std::forward<Callable>(callable), std::forward<Args>(args)...);
     }
 };
+#pragma GCC diagnostic pop
 
 }  // namespace cppc
