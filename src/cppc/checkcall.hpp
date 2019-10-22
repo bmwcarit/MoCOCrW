@@ -34,15 +34,15 @@ template <class T>
 using EnableIfIsPrecallFunc = std::enable_if_t<std::is_same<T, void()>::value>;
 
 template <class T, class = EnableIfIsPrecallFunc<decltype(T::preCall)>>
-inline void _callIf(void*) {
+static inline void _callIf(void*) {
     T::preCall();
 }
 
 template <class... Ts>
-inline void _callIf(Ts*...) {}
+static inline void _callIf(Ts*...) {}
 
 template <class T>
-inline void callPrecCallIfPresent() {
+static inline void callPrecCallIfPresent() {
     _callIf<T>(nullptr);
 }
 
@@ -179,7 +179,7 @@ template <class R = DefaultReturnCheckPolicy,
           class E = DefaultErrorPolicy,
           class Callable = std::function<void(void)>,
           class... Args>
-inline auto callChecked(Callable&& callable, Args&&... args) {
+static inline auto callChecked(Callable&& callable, Args&&... args) {
     ::cppc::_auxiliary::callPrecCallIfPresent<R>();
     const auto retVal = callable(std::forward<Args>(args)...);
     return _auxiliary::ReturnCheckWrapper<R, E, decltype(retVal)>::policyHandeledReturnValue(
