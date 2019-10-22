@@ -251,10 +251,10 @@ TEST(KeySpecTest, testGeneratingEccKeyWithDefaultParameters)
 TEST(KeySpecTest, testThatDefaultParametersAreSane)
 {
     RSASpec spec{};
-    ASSERT_THAT(spec.numberOfBits(), Eq(2048));
+    ASSERT_EQ(spec.numberOfBits(), 2048);
 
     RSASpec nonDefault{1024};
-    ASSERT_THAT(nonDefault.numberOfBits(), Eq(1024));
+    ASSERT_EQ(nonDefault.numberOfBits(), 1024);
 
     ECCSpec defaultEccSpec{};
     ASSERT_EQ(defaultEccSpec.curve(), openssl::ellipticCurveNid::PRIME_256v1);
