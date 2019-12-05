@@ -892,6 +892,111 @@ X509_NAME_ENTRY* _X509_NAME_get_entry(X509_NAME *name, int loc);
 
 std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry);
 
+using SSL_EVP_CIPHER_CTX_Ptr =
+std::unique_ptr<EVP_CIPHER_CTX, SSLDeleter<EVP_CIPHER_CTX, lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_free>>;
+using SSL_EVP_CIPHER_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_CIPHER_CTX_Ptr>;
+
+/**
+ * Create new cipher context.
+ * @sa _EVP_CIPHER_CTX_ctrl()
+ */
+SSL_EVP_CIPHER_CTX_Ptr _EVP_CIPHER_CTX_new();
+
+/**
+ * Clears all information from a cipher context and free up any allocated memory associated with it,
+ * except the ctx itself.
+ */
+void _EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *ctx);
+
+/**
+ * Allows various cipher specific parameters to be determined and set
+ */
+void _EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
+
+/**
+ * Sets up cipher context `ctx` for encryption or decryption.
+ *
+ * @param ctx cipher context to set
+ * @param cipher cipher implementation e.g. `EVP_aes_256_cbc()`
+ * @param impl  If impl is NULL then the default implementation is used.
+ * @param key the symmetric key to use
+ * @param iv the IV to use (if necessary),
+ * @param enc 1 if context should be initialized for encryption and 0 if fo decryption.
+ */
+void _EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx,
+                        const EVP_CIPHER* cipher,
+                        ENGINE* impl,
+                        const unsigned char* key,
+                        const unsigned char* iv,
+                        int enc);
+
+/**
+ * Can be used for encryption or decryption depending on how cipher context was initialized.
+ *
+ * This function wraps `EVP_EncryptUpdate()` and `EVP_DecryptUpdate()` of OpenSSL. Please reference
+ * OpenSSL man pages for more details.
+ *
+ * @sa _EVP_CipherInit_ex
+ *
+ * @param ctx cipher context
+ * @param outm output buffer
+ * @param outl length of the output buffer. At the input the function expects size of the \c outm
+ * to be placed in \c outl. At the output, the actual amount of data written to \c outm will be
+ * stored in this variable. The amount of data written depends on the block alignment
+ *  of the encrypted/decrypted data.
+ * @param in input buffer
+ * @param inl length of the input buffer.
+ */
+void _EVP_CipherUpdate(EVP_CIPHER_CTX* ctx,
+                       unsigned char* outm,
+                       int* outl,
+                       const unsigned char* in,
+                       int inl);
+
+/**
+ * If padding is enabled (the default) this function encrypts/decrypts the "final" data, that is
+ * any data that remains in a partial block. Please take a look at the OpenSSL `EVP_EncryptFinal_ex()`
+ * and `EVP_DecryptFinal_ex()` documentation for more details.
+ *
+ * @note After this function is called the encryption/decryption operation is finished and no
+ * further calls to _EVP_CipherUpdate() should be made.
+ *
+ * @param ctx cipher context
+ * @param outm output buffer
+ * @param outl At the input the function expects size of the \c outm to be placed in \c outl.
+ * At the output, the actual amount of data written to \c outm will be stored in this variable.
+ */
+void _EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl);
+
+/**
+ * Get the key length of a cipher.
+ * @param ctx cipher context
+ * @return key length of a cipher in bytes.
+ */
+int _EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX *ctx);
+
+/**
+ * Get the IV length of a cipher.
+ *
+ * It will return zero if the cipher does not use an IV
+ *
+ * @param ctx cipher context
+ * @return IV length of a cipher in bytes.
+ */
+int _EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX *ctx);
+
+
+/**
+ * Enables or disables padding.
+ *
+ * This function should be called after the context is set up for encryption or decryption with
+ * `_EVP_EncryptInit_ex()`.  If the pad parameter is zero then no padding is performed, the total
+ * amount of data encrypted or decrypted must then be a multiple of the block size or an error will
+ * occur.
+ */
+
+void _EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX *ctx, int pad);
+
 /**
  * Get the cipher descriptor for AES 256 in CBC mode.
  * The result should not be freed (at least it is const and openssl apps don't do it)
@@ -1201,6 +1306,13 @@ int _EVP_MD_size(const EVP_MD *md);
  * Allocates memory
  */
 void* _OPENSSL_malloc(int num);
+
+/**
+ * Generate random data.
+ *
+ * RAND_bytes() puts num cryptographically strong pseudo-random bytes into buf.
+ */
+void _RAND_bytes(unsigned char *buf, int num);
 
 void _CRYPTO_malloc_init();
 

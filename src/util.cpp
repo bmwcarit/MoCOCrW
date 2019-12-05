@@ -16,9 +16,14 @@
  * limitations under the License.
  * #L%
  */
+
 #include "mococrw/util.h"
+
 #include <sstream>
 #include <iomanip>
+
+#include "mococrw/openssl_wrap.h"
+
 
 namespace mococrw
 {
@@ -31,6 +36,23 @@ std::string toHex(const std::vector<uint8_t> &data) {
         result << std::hex << std::setfill('0') << std::setw(2) << (int)data[i];
     }
     return result.str();
+}
+
+std::vector<uint8_t> fromHex(const std::string &hexData) {
+    std::vector <uint8_t> binary;
+    binary.reserve(hexData.size()/2);
+    for (size_t i=0; i<hexData.length(); i+=2) {
+        auto encodedByte = hexData.substr(i,2);
+        uint8_t b = (uint8_t) strtoul(encodedByte.c_str(), NULL, 16);
+        binary.push_back(b);
+    }
+    return binary;
+}
+
+std::vector<uint8_t> cryptoRandomBytes(size_t length) {
+    std::vector<uint8_t> buffer(length);
+    openssl::_RAND_bytes(buffer.data(), buffer.size());
+    return buffer;
 }
 
 }

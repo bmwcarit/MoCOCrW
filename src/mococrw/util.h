@@ -30,5 +30,9 @@ template <class T>
 using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
 
 std::string toHex(const std::vector<uint8_t> &data);
+
+std::vector<uint8_t> fromHex(const std::string &hexData);
+
+std::vector<uint8_t> cryptoRandomBytes(size_t length);
 }  //::utility
 }  //::mococrw

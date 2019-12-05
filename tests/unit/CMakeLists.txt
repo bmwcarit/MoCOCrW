@@ -17,6 +17,10 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         endif()
     endif()
 
+    add_compile_options(
+        -Wfatal-errors
+    )
+
     #TODO: clean this up
     set(LIB_SOURCES "${SRC_DIR}/openssl_wrap.cpp" "${SRC_DIR}/bio.cpp" "${SRC_DIR}/distinguished_name.cpp")
     set(MOCK_SOURCES "openssl_lib_mock.cpp" ${LIB_SOURCES})
@@ -63,7 +67,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/basic_constraints.cpp"
                             "${SRC_DIR}/crl.cpp"
                              ${REAL_SOURCES})
-   add_executable(signaturetests test_signature.cpp
+    add_executable(signaturetests test_signature.cpp
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/csr.cpp"
                             "${SRC_DIR}/ca.cpp"
@@ -96,23 +100,48 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
                             "${SRC_DIR}/asn1time.cpp"
                             "${SRC_DIR}/padding_mode.cpp"
                             ${REAL_SOURCES})
+    add_executable(symmencryptiontests test_symmetric_crypto.cpp
+        "${SRC_DIR}/symmetric_crypto.cpp"
+        "${SRC_DIR}/symmetric_memory.cpp"
+        "${SRC_DIR}/util.cpp"
+        ${REAL_SOURCES})
+    add_executable(symmmemorytests test_symmetric_memory.cpp
+        "${SRC_DIR}/symmetric_memory.cpp")
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
-    target_link_libraries(asn1timetests       ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(keytests            ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(csrtests            ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(biotests            ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(hashtests           ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(utiltests           ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(x509tests           ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(crltests            ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(verificationtests   ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(dntests             ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(catests             ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(signaturetests      ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(asymencryptiontests ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(rsa_padding_mode_tests   ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(asn1timetests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(keytests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(csrtests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(biotests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(hashtests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(utiltests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(x509tests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(crltests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(verificationtests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(dntests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(catests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(signaturetests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(asymencryptiontests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(rsa_padding_mode_tests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(symmencryptiontests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(symmmemorytests
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}  Boost::boost)
 
     add_test(
         NAME OpenSSLTest
@@ -182,6 +211,14 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         NAME RSAPaddingModeTests
         COMMAND rsa_padding_mode_tests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
+    )
+    add_test(
+        NAME SymmetricCipherTest
+        COMMAND symmencryptiontests
+    )
+    add_test(
+        NAME SymmetricCipherMemoryModelTest
+        COMMAND symmmemorytests
     )
 
     # Configure valgrind
