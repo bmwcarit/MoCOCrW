@@ -37,6 +37,17 @@ class OpenSSLLibMockInterface
 public:
     virtual int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) = 0;
     virtual X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) = 0;
+    virtual int SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) = 0;
+    virtual int SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX * c) = 0;
+    virtual int SSL_RAND_bytes(unsigned char * buf, int num) = 0;
+    virtual int SSL_EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx) = 0;
+    virtual int SSL_EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX* ctx) = 0;
+    virtual int SSL_EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX* ctx, int type, int arg, void* ptr) = 0;
+    virtual void SSL_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX* c) = 0;
+    virtual EVP_CIPHER_CTX * SSL_EVP_CIPHER_CTX_new() = 0;
+    virtual int SSL_EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* cipher, ENGINE* impl, const unsigned char* key, const unsigned char* iv, int enc) = 0;
+    virtual int SSL_EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl) = 0;
+    virtual int SSL_EVP_CipherUpdate(EVP_CIPHER_CTX * ctx, unsigned char * out, int * outl, const unsigned char * in, int inl) = 0;
     virtual int SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) = 0;
     virtual int SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) = 0;
     virtual int SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) = 0;
@@ -296,6 +307,17 @@ class OpenSSLLibMock : public OpenSSLLibMockInterface
 public:
     MOCK_METHOD2(SSL_i2d_X509_REQ_bio, int(BIO*, X509_REQ*));
     MOCK_METHOD2(SSL_d2i_X509_REQ_bio, X509_REQ*(BIO*, X509_REQ**));
+    MOCK_METHOD2(SSL_EVP_CIPHER_CTX_set_padding, int(EVP_CIPHER_CTX *, int));
+    MOCK_METHOD1(SSL_EVP_CIPHER_CTX_reset, int(EVP_CIPHER_CTX *));
+    MOCK_METHOD2(SSL_RAND_bytes, int(unsigned char *, int));
+    MOCK_METHOD1(SSL_EVP_CIPHER_CTX_iv_length, int(const EVP_CIPHER_CTX*));
+    MOCK_METHOD1(SSL_EVP_CIPHER_CTX_key_length, int(const EVP_CIPHER_CTX*));
+    MOCK_METHOD4(SSL_EVP_CIPHER_CTX_ctrl, int(EVP_CIPHER_CTX*, int, int, void*));
+    MOCK_METHOD1(SSL_EVP_CIPHER_CTX_free, void(EVP_CIPHER_CTX*));
+    MOCK_METHOD0(SSL_EVP_CIPHER_CTX_new, EVP_CIPHER_CTX *());
+    MOCK_METHOD6(SSL_EVP_CipherInit_ex, int(EVP_CIPHER_CTX*, const EVP_CIPHER*, ENGINE*, const unsigned char*, const unsigned char*, int));
+    MOCK_METHOD3(SSL_EVP_CipherFinal_ex, int(EVP_CIPHER_CTX*, unsigned char*, int*));
+    MOCK_METHOD5(SSL_EVP_CipherUpdate, int(EVP_CIPHER_CTX *, unsigned char *, int *, const unsigned char *, int));
     MOCK_METHOD1(SSL_EVP_MD_CTX_reset, int(EVP_MD_CTX*));
     MOCK_METHOD3(SSL_EVP_DigestFinal_ex, int(EVP_MD_CTX*, unsigned char*, unsigned int*));
     MOCK_METHOD3(SSL_EVP_DigestUpdate, int(EVP_MD_CTX*, const void*, size_t));

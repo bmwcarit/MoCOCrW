@@ -34,6 +34,7 @@ extern "C" {
 #include <openssl/x509.h>
 #include <openssl/x509v3.h>
 #include <openssl/ec.h>
+#include <openssl/rand.h>
 }
 
 namespace mococrw
@@ -58,6 +59,17 @@ class OpenSSLLib
 public:
     static int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept;
     static X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept;
+    static int SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noexcept;
+    static int SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX * c) noexcept;
+    static int SSL_RAND_bytes(unsigned char * buf, int num) noexcept;
+    static int SSL_EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx) noexcept;
+    static int SSL_EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX* ctx) noexcept;
+    static int SSL_EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX* ctx, int type, int arg, void* ptr) noexcept;
+    static void SSL_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX* c) noexcept;
+    static EVP_CIPHER_CTX * SSL_EVP_CIPHER_CTX_new() noexcept;
+    static int SSL_EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* cipher, ENGINE* impl, const unsigned char* key, const unsigned char* iv, int enc) noexcept;
+    static int SSL_EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl) noexcept;
+    static int SSL_EVP_CipherUpdate(EVP_CIPHER_CTX* ctx, unsigned char* out, int* outl, const unsigned char* in, int inl) noexcept;
     static int SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) noexcept;
     static int SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) noexcept;
     static int SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) noexcept;

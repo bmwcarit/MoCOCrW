@@ -873,6 +873,62 @@ std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry)
     return bio.flushToString();
 }
 
+SSL_EVP_CIPHER_CTX_Ptr _EVP_CIPHER_CTX_new() {
+    return SSL_EVP_CIPHER_CTX_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_new)};
+}
+
+void _EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *ctx) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_reset, ctx);
+}
+
+
+void _EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_ctrl, ctx, type, arg, ptr);
+}
+
+void _EVP_CipherInit_ex(EVP_CIPHER_CTX *ctx,
+                        const EVP_CIPHER* cipher,
+                        ENGINE* impl,
+                        const unsigned char* key,
+                        const unsigned char* iv,
+                        int enc) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CipherInit_ex, ctx, cipher, impl, key, iv, enc);
+}
+
+void _EVP_CipherUpdate(EVP_CIPHER_CTX * ctx,
+                       unsigned char * outm,
+                       int * outl,
+                       const unsigned char * in,
+                       int inl) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CipherUpdate, ctx, outm, outl, in, inl);
+}
+
+void _EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CipherFinal_ex, ctx, outm, outl);
+}
+
+int _EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX *ctx) {
+    int res =  lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_key_length(ctx);
+    if (res <= 0) {
+        // Don't use OpensslCallIsOne::callChecked() as standard openssl error in this case
+        // does not contain any meaningful information.
+        throw OpenSSLException{"SSL_EVP_CIPHER_CTX_key_length() failed. Operation is unsupported by a given cipher."};
+    }
+    return res;
+}
+
+int _EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX *ctx) {
+    int res = lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_iv_length(ctx);
+    if (0 == res) {
+        throw OpenSSLException{"The cipher does not use an IV."};
+    }
+    return res;
+}
+
+void _EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX *ctx, int pad) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_set_padding, ctx, pad);
+}
+
 const EVP_CIPHER *_EVP_aes_256_cbc() {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_aes_256_cbc);
 }
@@ -1171,6 +1227,11 @@ int _EVP_MD_size(const EVP_MD *md)
 void* _OPENSSL_malloc(int num)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_OPENSSL_malloc, num);
+}
+
+void _RAND_bytes(unsigned char *buf, int num)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_RAND_bytes, buf, num);
 }
 
 void _CRYPTO_malloc_init()

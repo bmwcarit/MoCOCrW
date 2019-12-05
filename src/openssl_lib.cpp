@@ -849,13 +849,66 @@ int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
 {
     return EVP_DigestVerify(ctx, sigret, siglen, tbs, tbslen);
 }
+
 X509_REQ* OpenSSLLib::SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept
 {
     return d2i_X509_REQ_bio(bp, req);
 }
+
 int OpenSSLLib::SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept
 {
     return i2d_X509_REQ_bio(bp, req);
+}
+
+int OpenSSLLib::SSL_EVP_CipherUpdate(EVP_CIPHER_CTX* ctx,
+                                     unsigned char* out,
+                                     int* outl,
+                                     const unsigned char* in,
+                                     int inl) noexcept
+{
+    return EVP_CipherUpdate(ctx, out, outl, in, inl);
+}
+
+int OpenSSLLib::SSL_EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl) noexcept
+{
+    return EVP_CipherFinal_ex(ctx, outm, outl);
+}
+
+int OpenSSLLib::SSL_EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* cipher, ENGINE* impl, const unsigned char* key, const unsigned char* iv, int enc) noexcept
+{
+    return EVP_CipherInit_ex(ctx, cipher, impl, key, iv, enc);
+}
+EVP_CIPHER_CTX * OpenSSLLib::SSL_EVP_CIPHER_CTX_new() noexcept
+{
+    return EVP_CIPHER_CTX_new();
+}
+void OpenSSLLib::SSL_EVP_CIPHER_CTX_free(EVP_CIPHER_CTX* c) noexcept
+{
+    EVP_CIPHER_CTX_free(c);
+}
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX* ctx, int type, int arg, void* ptr) noexcept
+{
+    return EVP_CIPHER_CTX_ctrl(ctx, type, arg, ptr);
+}
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX* ctx) noexcept
+{
+    return EVP_CIPHER_CTX_key_length(ctx);
+}
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx) noexcept
+{
+    return EVP_CIPHER_CTX_iv_length(ctx);
+}
+int OpenSSLLib::SSL_RAND_bytes(unsigned char * buf, int num) noexcept
+{
+    return RAND_bytes(buf, num);
+}
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX * c) noexcept
+{
+    return EVP_CIPHER_CTX_reset(c);
+}
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noexcept
+{
+    return EVP_CIPHER_CTX_set_padding(c, pad);
 }
 }  //::lib
 }  //::openssl
