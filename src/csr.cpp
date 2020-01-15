@@ -30,7 +30,7 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
         : _req{openssl::_X509_REQ_new()}
 {
     /* setup x509 version number */
-    _X509_REQ_set_version(_req.get(), 0L);
+    _X509_REQ_set_version(_req.get(), 2L);
 
     auto subject = _X509_NAME_new();
     dn.populateX509Name(subject);
