@@ -144,7 +144,7 @@ TEST_F(VerificationTest, testExpiredCertValidationFails)
 TEST_F(VerificationTest, testExpiredEccCertValidationFails)
 {
     std::vector<X509Certificate> trustStore{*_eccRoot.get()};
-    std::vector<X509Certificate> intermediateCAs{};
+    std::vector<X509Certificate> intermediateCAs{*_eccIntermediate.get()};
     EXPECT_THROW({
         try {
             _eccExpiredCert->verify(trustStore, intermediateCAs);
