@@ -40,7 +40,7 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
 
     auto mctx = _EVP_MD_CTX_create();
 
-    auto digestType = DigestTypes::SHA256;
+    auto digestType = DigestTypes::SHA512;
     if (keypair.getType() == AsymmetricKey::KeyTypes::ECC_ED) {
         digestType = DigestTypes::NONE;
     }
