@@ -19,13 +19,17 @@
 #include <gtest/gtest.h>
 
 #include <fstream>
+#include <tuple>
 
 #include <cstdio>
 
 #include "csr.cpp"
 
+#include "ExecUtil.h"
+
 using namespace mococrw;
 using namespace mococrw::openssl;
+using namespace std::literals::string_literals;
 
 
 /// \brief Structure to hold a private/public key pair
@@ -47,6 +51,7 @@ protected:
     static std::unique_ptr<AsymmetricKeypair> _rsaKeypair;
     static std::unique_ptr<AsymmetricKeypair> _eccKeypair;
     constexpr static auto _pemFile = "csr.pem";
+    constexpr static auto _derFile = "csr.der";
 };
 
 std::vector<keyWithSize> CSRTest::_asymmetricKeys
@@ -75,6 +80,7 @@ void CSRTest::SetUpTestCase()
 void CSRTest::TearDown()
 {
     std::remove(_pemFile);
+    std::remove(_derFile);
 }
 
 TEST_P(CSRTest, testCreateCSR)
@@ -82,7 +88,7 @@ TEST_P(CSRTest, testCreateCSR)
     auto data = GetParam();
     CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
-    auto pemString = csr.toPem();
+    auto pemString = csr.toPEM();
     auto pubKey = csr.getPublicKey();
     // Smoke test to verify that a realistic amount of output
     // is generated
@@ -104,12 +110,12 @@ TEST_P(CSRTest, testCreateCsrFromPem)
 {
     auto data = GetParam();
     CertificateSigningRequest csr{*_distinguishedName, data.keypair};
-    auto pemString = csr.toPem();
+    auto pemString = csr.toPEM();
     auto pubKey = csr.getPublicKey();
     auto name = csr.getSubjectName();
 
     CertificateSigningRequest csrCheck = CertificateSigningRequest::fromPEM(pemString);
-    auto pemStringCheck = csrCheck.toPem();
+    auto pemStringCheck = csrCheck.toPEM();
     auto pubKeyCheck = csrCheck.getPublicKey();
     auto nameCheck = csrCheck.getSubjectName();
 
@@ -123,20 +129,42 @@ TEST_P(CSRTest, testCreateCsrFromPemFile)
 {
     auto data = GetParam();
     CertificateSigningRequest csr{*_distinguishedName, data.keypair};
-    auto pemString = csr.toPem();
+    auto pemString = csr.toPEM();
     auto pubKey = csr.getPublicKey();
     auto name = csr.getSubjectName();
 
     std::ofstream of(_pemFile);
-    of << csr.toPem();
+    of << csr.toPEM();
     of.close();
 
     CertificateSigningRequest csrCheck = CertificateSigningRequest::fromPEMFile(_pemFile);
-    auto pemStringCheck = csrCheck.toPem();
+    auto pemStringCheck = csrCheck.toPEM();
     auto pubKeyCheck = csrCheck.getPublicKey();
     auto nameCheck = csrCheck.getSubjectName();
 
     EXPECT_EQ(pemString, pemStringCheck);
+    EXPECT_EQ(pubKey.publicKeyToPem(), pubKeyCheck.publicKeyToPem());
+    EXPECT_EQ(name, nameCheck);
+    EXPECT_EQ(*_distinguishedName, nameCheck);
+    EXPECT_NO_THROW(csrCheck.verify());
+}
+
+TEST_P(CSRTest, testCreateCsrFromDerFile)
+{
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
+    auto derData = csr.toDER();
+    auto pubKey = csr.getPublicKey();
+    auto name = csr.getSubjectName();
+
+    std::ofstream of(_derFile);
+    of.write(reinterpret_cast<const char*>(derData.data()), derData.size());
+    of.close();
+
+    CertificateSigningRequest csrCheck = CertificateSigningRequest::fromDERFile(_derFile);
+    auto pubKeyCheck = csrCheck.getPublicKey();
+    auto nameCheck = csrCheck.getSubjectName();
+
     EXPECT_EQ(pubKey.publicKeyToPem(), pubKeyCheck.publicKeyToPem());
     EXPECT_EQ(name, nameCheck);
     EXPECT_EQ(*_distinguishedName, nameCheck);
@@ -148,6 +176,11 @@ TEST_F(CSRTest, testCreateCsrFromNonExistingPemFileThrows)
     ASSERT_THROW(CertificateSigningRequest::fromPEMFile(_pemFile), openssl::OpenSSLException);
 }
 
+TEST_F(CSRTest, testCreateCsrFromNonExistingDerFileThrows)
+{
+    ASSERT_THROW(CertificateSigningRequest::fromDERFile(_derFile), openssl::OpenSSLException);
+}
+
 TEST_F(CSRTest, testCreateCsrFromNonPemFileThrows)
 {
     std::ofstream of(_pemFile);
@@ -155,6 +188,15 @@ TEST_F(CSRTest, testCreateCsrFromNonPemFileThrows)
     of.close();
 
     ASSERT_THROW(CertificateSigningRequest::fromPEMFile(_pemFile), openssl::OpenSSLException);
+}
+
+TEST_F(CSRTest, testCreateCsrFromNonDerFileThrows)
+{
+    std::ofstream of(_pemFile);
+    of << "This is most certainly no DER";
+    of.close();
+
+    ASSERT_THROW(CertificateSigningRequest::fromDERFile(_pemFile), openssl::OpenSSLException);
 }
 
 TEST_P(CSRTest, testVerifyCsrSuccess)
@@ -170,11 +212,23 @@ TEST_P(CSRTest, testVerifyCsrFromPemSuccess)
     auto data = GetParam();
     CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
-    std::string pemString = csr.toPem();
+    std::string pemString = csr.toPEM();
 
     CertificateSigningRequest csrFromPem = CertificateSigningRequest::fromPEM(pemString);
 
     EXPECT_NO_THROW(csrFromPem.verify());
+}
+
+TEST_P(CSRTest, testVerifyCsrFromDerSuccess)
+{
+    auto data = GetParam();
+    CertificateSigningRequest csr{*_distinguishedName, data.keypair};
+
+    auto derData = csr.toDER();
+
+    CertificateSigningRequest csrFromDer = CertificateSigningRequest::fromDER(derData);
+
+    EXPECT_NO_THROW(csrFromDer.verify());
 }
 
 TEST_P(CSRTest, testVerifyCsrFail)
@@ -182,12 +236,49 @@ TEST_P(CSRTest, testVerifyCsrFail)
     auto data = GetParam();
     CertificateSigningRequest csr{*_distinguishedName, data.keypair};
 
-    std::string pemString = csr.toPem();
+    std::string pemString = csr.toPEM();
     auto idx = pemString.find_first_of('1');
     pemString.replace(idx, 1, "2");
 
     CertificateSigningRequest csrFromPem = CertificateSigningRequest::fromPEM(pemString);
     EXPECT_THROW(csrFromPem.verify(), MoCOCrWException);
+}
+
+TEST_P(CSRTest, testCsrSignatureDigest)
+{
+    static const auto hashAlgorithms = std::vector<std::tuple<DigestTypes, std::string>>{
+        {DigestTypes::SHA256, "sha256"},
+        {DigestTypes::SHA384, "sha384"},
+        {DigestTypes::SHA512, "sha512"},
+    };
+    auto data = GetParam();
+    if (data.keypair.getType() == AsymmetricKey::KeyTypes::ECC_ED) {
+        /* those support only fixed hashes right now
+         * Nothing to be tested
+         */
+        return;
+    }
+
+    for (const auto& hashAlgo : hashAlgorithms) {
+        CertificateSigningRequest csr{*_distinguishedName, data.keypair, std::get<0>(hashAlgo)};
+        std::ofstream of(_pemFile, std::ios::trunc);
+        of << csr.toPEM();
+        of.close();
+
+        std::string openSSLCmdline = "openssl req -in "s + _pemFile + " -noout -text";
+        auto output = exec(openSSLCmdline.c_str());
+
+        auto sigAlgoPos = output.find("Signature Algorithm:");
+        ASSERT_NE(sigAlgoPos, std::string::npos);
+        auto sigAlgoEndlinePos = output.find("\n", sigAlgoPos);
+        ASSERT_NE(sigAlgoEndlinePos, std::string::npos);
+        auto algoLine = output.substr(sigAlgoPos, sigAlgoEndlinePos - sigAlgoPos);
+        std::transform(algoLine.begin(), algoLine.end(), algoLine.begin(),
+                       [] (auto c) { return std::tolower(c); });
+        auto digestPos = algoLine.find(std::get<1>(hashAlgo));
+        EXPECT_NE(digestPos, std::string::npos);
+
+    }
 }
 
 INSTANTIATE_TEST_CASE_P(CSRTest, CSRTest,

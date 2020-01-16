@@ -39,8 +39,31 @@ public:
                                        const AsymmetricKeypair &key);
 
     /**
+     * Construct a new CertificateSigningRequest for the given distinguished name.
+     * The given public key is integrated in the CSR whereas the given private key
+     * is used to sign the CertificateSigningRequest. The signature uses the provided
+     * digestFunction.
+     */
+    explicit CertificateSigningRequest(const DistinguishedName &distinguishedName,
+                                       const AsymmetricKeypair &key,
+                                       const openssl::DigestTypes digestFunction);
+
+    /**
      * Return the PEM for this CSR as a string.
      */
+    std::string toPEM() const;
+
+    /**
+     * Return the DER for this CSR.
+     */
+    std::vector<uint8_t> toDER() const;
+
+
+    /**
+     * Return the PEM for this CSR as a string.
+     * @deprecated - inconsistent capitalization with rest of lib
+     */
+    [[deprecated]]
     std::string toPem() const;
 
     /**
@@ -52,6 +75,16 @@ public:
      * Convert a CSR in PEM format from a file to a CertificateSigningRequest.
      */
     static CertificateSigningRequest fromPEMFile(const std::string &filename);
+
+    /**
+     * Convert a CSR in DER format to a CertificateSigningRequest.
+     */
+    static CertificateSigningRequest fromDER(const std::vector<uint8_t> &derData);
+
+    /**
+     * Convert a CSR in DER format from a file to a CertificateSigningRequest.
+     */
+    static CertificateSigningRequest fromDERFile(const std::string &filename);
 
     /**
      * Get the public key for this CertificateSigningRequest.

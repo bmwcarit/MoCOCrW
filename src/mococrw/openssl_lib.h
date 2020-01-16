@@ -56,6 +56,8 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept;
+    static X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept;
     static int SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) noexcept;
     static int SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) noexcept;
     static int SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) noexcept;

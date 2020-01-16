@@ -528,12 +528,27 @@ int _BIO_read(BIO* bio, std::vector<uint8_t> &buf, std::size_t numBytes);
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
 SSL_X509_Ptr _d2i_X509_bio(BIO* bp);
+
+/*
+ * Read a DER encoded X509 certificate request from a bio
+ *
+ * @throw OpenSSLException if an OpenSSL internal error occurs.
+ */
+SSL_X509_REQ_Ptr _d2i_X509_REQ_bio(BIO* bp);
+
 /*
  * Write an X509 certificate in DER encoded form to a bio
  *
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
 void _i2d_X509_bio(BIO* bp, X509* x);
+
+/*
+ * Write an X509 certification request in DER encoded form to a bio
+ *
+ * @throw OpenSSLException if an OpenSSL internal error occurs.
+ */
+void _i2d_X509_REQ_bio(BIO* bp, X509_REQ* x);
 
 /**
  * Sign an X509_REQ to obtain a complete CSR.
