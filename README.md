@@ -4,6 +4,14 @@ MoCOCrW
 (mo)dern (c)++ (o)penssl (cr)ypto (w)rapper library
 ===================================================
 
+## Deprication warning
+
+OpenSSL version 1.0.2 is out of support. As a consequence, this branch
+is no longer maintained. You may use it at your own risk. We will continue
+to maintain the version for OpenSSL 1.1
+
+## History about this library
+
 As part of our development efforts we noticed that there are cryptographic
 primitives that are needed in many different situations. Unfortunately,
 most of the libraries are only in C and the only library that implements all
