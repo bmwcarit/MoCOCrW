@@ -867,6 +867,14 @@ int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerify(ctx, sigret, siglen, tbs, tbslen);
 }
+X509_REQ* OpenSSLLib::SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_d2i_X509_REQ_bio(bp, req);
+}
+int OpenSSLLib::SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_i2d_X509_REQ_bio(bp, req);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

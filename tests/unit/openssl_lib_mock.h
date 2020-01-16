@@ -35,6 +35,8 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) = 0;
+    virtual X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) = 0;
     virtual int SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) = 0;
     virtual int SSL_EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s) = 0;
     virtual int SSL_EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt) = 0;
@@ -292,6 +294,8 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD2(SSL_i2d_X509_REQ_bio, int(BIO*, X509_REQ*));
+    MOCK_METHOD2(SSL_d2i_X509_REQ_bio, X509_REQ*(BIO*, X509_REQ**));
     MOCK_METHOD1(SSL_EVP_MD_CTX_reset, int(EVP_MD_CTX*));
     MOCK_METHOD3(SSL_EVP_DigestFinal_ex, int(EVP_MD_CTX*, unsigned char*, unsigned int*));
     MOCK_METHOD3(SSL_EVP_DigestUpdate, int(EVP_MD_CTX*, const void*, size_t));

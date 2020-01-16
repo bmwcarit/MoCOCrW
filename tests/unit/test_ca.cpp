@@ -28,6 +28,8 @@
 #include "mococrw/error.h"
 #include "mococrw/key_usage.h"
 
+#include "ExecUtil.h"
+
 using namespace mococrw;
 using namespace std::string_literals;
 
@@ -175,20 +177,6 @@ void CATest::SetUp()
 
 }
 
-
-std::string exec(const char* cmd) {
-    std::array<char, 128> buffer;
-    std::string result;
-    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
-    if (!pipe) throw std::runtime_error("popen() failed!");
-    while (!feof(pipe.get())) {
-        if (fgets(buffer.data(), 128, pipe.get()) != NULL) {
-               result += buffer.data();
-        }
-
-    }
-    return result;
-}
 
 void testValiditySpan(const X509Certificate &cert,
                       Asn1Time::Seconds validitySpan,

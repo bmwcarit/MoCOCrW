@@ -26,7 +26,8 @@ namespace mococrw
 using namespace openssl;
 
 CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn,
-                                                     const AsymmetricKeypair &keypair)
+                                                     const AsymmetricKeypair &keypair,
+                                                     const openssl::DigestTypes digestFunction)
         : _req{openssl::_X509_REQ_new()}
 {
     /* setup x509 version number */
@@ -40,13 +41,19 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
 
     auto mctx = _EVP_MD_CTX_create();
 
-    auto digestType = DigestTypes::SHA256;
+    auto digestType = digestFunction;
     if (keypair.getType() == AsymmetricKey::KeyTypes::ECC_ED) {
         digestType = DigestTypes::NONE;
     }
     _EVP_DigestSignInit(mctx.get(), digestType, const_cast<EVP_PKEY*>(keypair.internal()));
 
     _X509_REQ_sign_ctx(_req.get(), mctx.get());
+}
+
+CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn,
+                                                     const AsymmetricKeypair &keypair)
+        : CertificateSigningRequest{dn, keypair, DigestTypes::SHA256}
+{
 }
 
 AsymmetricPublicKey CertificateSigningRequest::getPublicKey() const
@@ -68,9 +75,21 @@ void CertificateSigningRequest::verify() const
 
 std::string CertificateSigningRequest::toPem() const
 {
+    return toPEM();
+}
+
+std::string CertificateSigningRequest::toPEM() const
+{
     BioObject bio{BioObject::Types::MEM};
     _PEM_write_bio_X509_REQ(bio.internal(), _req.get());
     return bio.flushToString();
+}
+
+std::vector<uint8_t> CertificateSigningRequest::toDER() const
+{
+    BioObject bio{BioObject::Types::MEM};
+    _i2d_X509_REQ_bio(bio.internal(), _req.get());
+    return bio.flushToVector();
 }
 
 DistinguishedName CertificateSigningRequest::getSubjectName() const
@@ -90,6 +109,19 @@ CertificateSigningRequest CertificateSigningRequest::fromPEMFile(const std::stri
 {
     FileBio bio{filename, FileBio::FileMode::READ, FileBio::FileType::TEXT};
     return CertificateSigningRequest{_PEM_read_bio_X509_REQ(bio.internal())};
+}
+
+CertificateSigningRequest CertificateSigningRequest::fromDER(const std::vector<uint8_t> &derData)
+{
+    BioObject bio{BioObject::Types::MEM};
+    bio.write(derData);
+    return CertificateSigningRequest{_d2i_X509_REQ_bio(bio.internal())};
+}
+
+CertificateSigningRequest CertificateSigningRequest::fromDERFile(const std::string &filename)
+{
+    FileBio bio{filename, FileBio::FileMode::READ, FileBio::FileType::BINARY};
+    return CertificateSigningRequest{_d2i_X509_REQ_bio(bio.internal())};
 }
 
 CertificateSigningRequest::CertificateSigningRequest(SSL_X509_REQ_Ptr req)

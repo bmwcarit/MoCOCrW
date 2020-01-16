@@ -399,12 +399,21 @@ SSL_X509_Ptr _d2i_X509_bio(BIO* bp)
     return SSL_X509_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_d2i_X509_bio, bp, nullptr)};
 }
 
+SSL_X509_REQ_Ptr _d2i_X509_REQ_bio(BIO* bp)
+{
+    return SSL_X509_REQ_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_d2i_X509_REQ_bio, bp, nullptr)};
+}
+
 
 void _i2d_X509_bio(BIO* bp, X509* x)
 {
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_i2d_X509_bio, bp, x);
 }
 
+void _i2d_X509_REQ_bio(BIO* bp, X509_REQ* x)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_i2d_X509_REQ_bio, bp, x);
+}
 
 void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx)
 {
