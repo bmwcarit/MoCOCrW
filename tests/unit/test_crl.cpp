@@ -157,11 +157,11 @@ TEST_F(CRLTest, testHasCorrectValues)
 {
     EXPECT_EQ(rootCert->getSubjectDistinguishedName(), rootCrl->getIssuerName());
 
-    // Last update: Feb  2 10:35:56 2018 GMT
-    EXPECT_EQ(rootCrl->getLastUpdateAsn1(),  Asn1Time::fromString("20180202103556Z"));
+    // Last Update: Jan 17 16:48:47 2020 GMT
+    EXPECT_EQ(rootCrl->getLastUpdateAsn1(),  Asn1Time::fromString("20200117164847Z"));
 
-    // Next update: Jan  9 10:35:56 2118 GMT
-    EXPECT_EQ(rootCrl->getNextUpdateAsn1(),  Asn1Time::fromString("21180109103556Z"));
+    // Next Update: Dec 24 16:48:47 2119 GMT
+    EXPECT_EQ(rootCrl->getNextUpdateAsn1(),  Asn1Time::fromString("21191224164847Z"));
 }
 
 TEST_F(CRLTest, testThatParsingInvalidPEMFails)
