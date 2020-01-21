@@ -178,7 +178,11 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         COMMAND asymencryptiontests
         WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
     )
-    add_test(RSAPaddingModeTests rsa_padding_mode_tests)
+    add_test(
+        NAME RSAPaddingModeTests
+        COMMAND rsa_padding_mode_tests
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
+    )
 
     # Configure valgrind
     find_program(MEMORYCHECK_COMMAND NAMES valgrind)
