@@ -87,6 +87,8 @@ void MGF1::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const {
                                   _getMDPtrFromDigestType(_hashFunction));
 }
 
+MGF1::~MGF1() = default;
+
 /*
  * PSSPadding
  */

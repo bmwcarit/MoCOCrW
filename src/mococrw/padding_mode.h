@@ -134,6 +134,8 @@ public:
      */
     MGF1(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
 
+    virtual ~MGF1();
+
     void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
 
 private:
