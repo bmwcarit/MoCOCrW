@@ -8,3 +8,4 @@ Table of contents:
 - @subpage example2
 - @subpage example3
 - @subpage example4
+- @subpage example_sym
