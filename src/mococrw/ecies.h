@@ -290,7 +290,7 @@ public:
     ECIESEncryptionCtxBuilder(const AsymmetricPublicKey& bobsKey);
 
     /**
-     * @brief Constructor if the public key is inside a certificate
+     * @brief Constructor for certificates
      * @param bobsCert The certificate of the receiver which contains his/her public key.
      */
     ECIESEncryptionCtxBuilder(const X509Certificate& bobsCert);
