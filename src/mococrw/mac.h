@@ -57,7 +57,7 @@ public:
 
     /**
      * @brief Calculates the tag/mac based on the key, the message and the parameters provided to the constructor
-     * @param key The which shall be used for calculation
+     * @param key The key which shall be used for calculation
      * @param message The message which shall be authenticated
      * @return The message authentication tag
      */
