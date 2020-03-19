@@ -244,7 +244,7 @@ public:
      * @param iv The initialisation vector. The length shall be the same as the key length
      * @return builder instance
      */
-    ECIESCtxBuilder &setSymmetricCipherIv(std::vector<uint8_t> iv);
+    ECIESCtxBuilder &setSymmetricCipherIv(const std::vector<uint8_t>& iv);
 
     /**
      * @brief Sets the salt for the key derivation function (KDF). (Default: empty vector -> not used)
