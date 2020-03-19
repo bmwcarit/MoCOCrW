@@ -26,7 +26,7 @@ namespace mococrw
 
 /**
  * @brief The MessageAuthenticationCode class is the abstract base class for the different implementation of
- * message authentication code.
+ * message authentication codes.
  */
 class MessageAuthenticationCode {
 public:
