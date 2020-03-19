@@ -237,7 +237,7 @@ public:
      * @param padding The padding scheme to be used.
      * @return builder instance
      */
-    ECIESCtxBuilder &setSymmetircCipherPadding(mococrw::SymmetricCipherPadding padding);
+    ECIESCtxBuilder &setSymmetricCipherPadding(mococrw::SymmetricCipherPadding padding);
 
     /**
      * @brief Sets the initialisation vector (IV) for the symmetric encryption. (Default: zeros)
