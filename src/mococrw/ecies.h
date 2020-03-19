@@ -69,7 +69,7 @@ public:
      *
      * The ephemeral key is generated during encryption. This public key (in combination with the private key of the
      * receiver) is necessary for decrypting the ciphertext.
-     * @throws MoCOCrWException if finish() hasn't invoked beforehand
+     * @throws MoCOCrWException if finish() hasn't been invoked beforehand
      * @return The ephemeral key generated during encryption
      */
     AsymmetricPublicKey getEphemeralKey();
