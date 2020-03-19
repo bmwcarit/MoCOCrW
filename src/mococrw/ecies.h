@@ -79,7 +79,7 @@ public:
      *
      * The authentication tag is calculated as the last step during encryption. This tag verifies the
      * authenticity of the message.
-     * @throws MoCOCrWException if finish() hasn't invoked beforehand
+     * @throws MoCOCrWException if finish() hasn't been invoked beforehand
      * @return The tag/mac
      */
     std::vector<uint8_t> getAuthTag();
