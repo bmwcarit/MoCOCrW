@@ -58,7 +58,7 @@ public:
      * 2. Encrypt the plaintext
      * 3. Calculate the tag/mac (use getMac() for getting it)
      *
-     * After invoking this function the ephemeral key and the authentication key can obtained using the getter
+     * After invoking this function, the ephemeral key and the authentication key can obtained using the getter
      * functions.
      * @return The encrypted data.
      */
