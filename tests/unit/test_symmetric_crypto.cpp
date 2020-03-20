@@ -161,8 +161,10 @@ TEST_P(SymmetricCipherTest, DoubleCreationUsesDifferentIVs)
     auto ciphertext0 = encryptor0->finish();
     auto ciphertext1 = encryptor1->finish();
 
-    ASSERT_NE(ciphertext0, ciphertext1)
-        << "Two encryption operations with different IVs should return different ciphertexts.";
+    if (ciphertext0.size() > 0 || ciphertext1.size() > 0) {
+        ASSERT_NE(ciphertext0, ciphertext1)
+            << "Two encryption operations with different IVs should return different ciphertexts.";
+    }
 }
 
 TEST_P(SymmetricCipherTest, EncryptDecryptDifferentPlaintextLength)
@@ -222,7 +224,8 @@ TEST_P(SymmetricCipherTest, EncryptDecryptDifferentPlaintextLength)
 static std::vector<EncrytDecryptTestData> prepareTestDataForMode(SymmetricCipherMode mode)
 {
     static const std::vector<std::string> PLAINTEXT_STRINGS_OF_DIFFERENT_LENGTH
-            {"0",
+            {"", // empty string
+             "0",
              "0123456789", // less than a block
              "0123456789123456", // a block
              "01234567891234567890" // more than a block

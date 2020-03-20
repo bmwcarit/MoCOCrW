@@ -132,7 +132,11 @@ public:
         if (message.size() > (std::numeric_limits<int>::max() - EVP_MAX_BLOCK_LENGTH)) {
             throw MoCOCrWException("Message is too big.");
         }
+
         int processingChunkSize = message.size();
+        if (processingChunkSize <= 0) {
+            return;
+        }
         std::vector<uint8_t> processedChunk(processingChunkSize + EVP_MAX_BLOCK_LENGTH);
 
         _EVP_CipherUpdate(_ctx.get(),
