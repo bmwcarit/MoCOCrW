@@ -601,6 +601,12 @@ X509_CRL *createOpenSSLObject<X509_CRL>()
 }
 
 template<>
+HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_HMAC_CTX_new);
+}
+
+template<>
 void addObjectToStack<STACK_OF(X509), X509>(STACK_OF(X509) *stack, const X509 *obj)
 {
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_sk_X509_push, stack, obj);
@@ -1260,6 +1266,30 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out, const std::vector<uint8_t> &Z, c
     const unsigned char *sinfo_ = reinterpret_cast<const unsigned char*>(sinfo.data());
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ECDH_KDF_X9_63, out_, out.size(), Z_, Z.size(),
                                   sinfo_, sinfo.size(), md);
+}
+
+void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Init_ex, ctx, reinterpret_cast<const void *>(key.data()),
+                                  key.size(), md, impl);
+}
+
+std::vector<uint8_t> _HMAC_Final(HMAC_CTX* ctx) {
+    unsigned int length = EVP_MAX_MD_SIZE;
+    std::vector<uint8_t> md(length);
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Final, ctx, md.data(), &length);
+    md.resize(length);
+    return md;
+}
+
+void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Update, ctx, data.data(), data.size());
+}
+
+SSL_HMAC_CTX_Ptr _HMAC_CTX_new()
+{
+    return createManagedOpenSSLObject<SSL_HMAC_CTX_Ptr>();
 }
 
 }  // ::openssl
