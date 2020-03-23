@@ -329,6 +329,14 @@ public:
     static int SSL_EVP_MD_size(const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noexcept;
+
+    /* KDF */
+    static int SSL_PKCS5_PBKDF2_HMAC(const char *pass, int passlen, const unsigned char *salt, int saltlen, int iter,
+                                     const EVP_MD *digest, int keylen, unsigned char *out) noexcept;
+
+    static int SSL_ECDH_KDF_X9_63(unsigned char *out, size_t outlen, const unsigned char *Z, size_t Zlen,
+                                  const unsigned char *sinfo, size_t sinfolen, const EVP_MD *md) noexcept;
+
 };
 }  //::lib
 }  //::openssl

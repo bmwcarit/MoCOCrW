@@ -919,6 +919,19 @@ int OpenSSLLib::SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noex
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_CTX_set_padding(c, pad);
 }
+
+int OpenSSLLib::SSL_PKCS5_PBKDF2_HMAC(const char *pass, int passlen, const unsigned char *salt, int saltlen,
+                                      int iter,const EVP_MD *digest, int keylen, unsigned char *out) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_PKCS5_PBKDF2_HMAC(pass, passlen, salt, saltlen, iter, digest,
+                                                                           keylen, out);
+}
+
+int OpenSSLLib::SSL_ECDH_KDF_X9_63(unsigned char *out, size_t outlen, const unsigned char *Z, size_t Zlen,
+                                   const unsigned char *sinfo, size_t sinfolen, const EVP_MD *md) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ECDH_KDF_X9_63(out, outlen, Z, Zlen, sinfo, sinfolen, md);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

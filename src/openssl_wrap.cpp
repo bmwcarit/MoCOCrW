@@ -1243,5 +1243,24 @@ EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY,pkey);
 }
+
+void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass, const std::vector<uint8_t> salt, int iter,
+                        const EVP_MD *digest, std::vector<uint8_t> &out)
+{
+    const char *pass_ = reinterpret_cast<const char *>(pass.data());
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_PKCS5_PBKDF2_HMAC, pass_, pass.size(), salt.data(), salt.size(),
+                                  iter, digest, out.size(), out.data());
+}
+
+void _ECDH_KDF_X9_63(std::vector<uint8_t> &out, const std::vector<uint8_t> &Z, const std::vector<uint8_t> &sinfo,
+                     const EVP_MD *md)
+{
+    unsigned char *out_ = reinterpret_cast<unsigned char*>(out.data());
+    const unsigned char *Z_ = reinterpret_cast<const unsigned char*>(Z.data());
+    const unsigned char *sinfo_ = reinterpret_cast<const unsigned char*>(sinfo.data());
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ECDH_KDF_X9_63, out_, out.size(), Z_, Z.size(),
+                                  sinfo_, sinfo.size(), md);
+}
+
 }  // ::openssl
 }  //:: mococrw

@@ -108,6 +108,10 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_executable(symmmemorytests test_symmetric_memory.cpp
         "${SRC_DIR}/symmetric_memory.cpp")
 
+    add_executable(kdftests test_kdf.cpp
+	"${SRC_DIR}/kdf.cpp"
+	${REAL_SOURCES})
+
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
     target_link_libraries(asn1timetests
@@ -142,6 +146,9 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(symmmemorytests
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}  Boost::boost)
+    target_link_libraries(kdftests
+	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+
 
     add_test(
         NAME OpenSSLTest
@@ -219,6 +226,10 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_test(
         NAME SymmetricCipherMemoryModelTest
         COMMAND symmmemorytests
+    )
+    add_test(
+	NAME KdfSchemesTest
+	COMMAND kdftests
     )
 
     # Configure valgrind
