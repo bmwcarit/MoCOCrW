@@ -22,6 +22,7 @@ set(LIBRARY_SOURCES
     csr.cpp
     distinguished_name.cpp
     hash.cpp
+    kdf.cpp
     key.cpp
     key_usage.cpp
     openssl_lib.cpp
@@ -45,6 +46,7 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/error.h
     mococrw/extension.h
     mococrw/hash.h
+    mococrw/kdf.h
     mococrw/key.h
     mococrw/key_usage.h
     mococrw/openssl_lib.h

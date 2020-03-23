@@ -1337,5 +1337,14 @@ enum class ellipticCurveNid
 };
 
 EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
+
+void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass,
+                        const std::vector<uint8_t> salt, int iter,
+                        const EVP_MD *digest, std::vector<uint8_t> &out);
+
+void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
+                     const std::vector<uint8_t> &Z,
+                     const std::vector<uint8_t> &sinfo,
+                     const EVP_MD *md);
 }  //::openssl
 }  //::mococrw
