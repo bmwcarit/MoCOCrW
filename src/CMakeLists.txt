@@ -25,6 +25,7 @@ set(LIBRARY_SOURCES
     kdf.cpp
     key.cpp
     key_usage.cpp
+    mac.cpp
     openssl_lib.cpp
     openssl_wrap.cpp
     subject_key_identifier.cpp
@@ -49,6 +50,7 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/kdf.h
     mococrw/key.h
     mococrw/key_usage.h
+    mococrw/mac.h
     mococrw/openssl_lib.h
     mococrw/openssl_wrap.h
     mococrw/padding_mode.h

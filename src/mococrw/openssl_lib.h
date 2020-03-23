@@ -337,6 +337,13 @@ public:
     static int SSL_ECDH_KDF_X9_63(unsigned char *out, size_t outlen, const unsigned char *Z, size_t Zlen,
                                   const unsigned char *sinfo, size_t sinfolen, const EVP_MD *md) noexcept;
 
+    /* HMAC */
+    static void SSL_HMAC_CTX_free(HMAC_CTX* ctx) noexcept;
+    static HMAC_CTX* SSL_HMAC_CTX_new() noexcept;
+    static int SSL_HMAC_Final(HMAC_CTX* ctx, unsigned char* md, unsigned int* len) noexcept;
+    static int SSL_HMAC_Update(HMAC_CTX* ctx, const unsigned char* data, int len) noexcept;
+    static int SSL_HMAC_Init_ex(HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept;
+
 };
 }  //::lib
 }  //::openssl

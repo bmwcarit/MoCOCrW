@@ -935,6 +935,21 @@ int OpenSSLLib::SSL_ECDH_KDF_X9_63(unsigned char *out, size_t outlen, const unsi
     return ECDH_KDF_X9_62(out, outlen, Z, Zlen, sinfo, sinfolen, md);
 }
 
+int OpenSSLLib::SSL_HMAC_Init_ex(HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept
+{
+    return HMAC_Init_ex(ctx, key, key_len, md, impl);
+}
+int OpenSSLLib::SSL_HMAC_Update(HMAC_CTX* ctx, const unsigned char* data, int len) noexcept
+{
+    return HMAC_Update(ctx, data, len);
+}
+int OpenSSLLib::SSL_HMAC_Final(HMAC_CTX* ctx, unsigned char* md, unsigned int* len) noexcept
+{
+    return HMAC_Final(ctx, md, len);
+}
+HMAC_CTX* OpenSSLLib::SSL_HMAC_CTX_new() noexcept { return HMAC_CTX_new(); }
+
+void OpenSSLLib::SSL_HMAC_CTX_free(HMAC_CTX* ctx) noexcept { HMAC_CTX_free(ctx); }
 }  //::lib
 }  //::openssl
 }  //::mococrw

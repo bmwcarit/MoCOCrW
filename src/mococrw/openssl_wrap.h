@@ -103,6 +103,9 @@ using SSL_EVP_PKEY_CTX_Ptr =
                         SSLDeleter<EVP_PKEY_CTX, lib::OpenSSLLib::SSL_EVP_PKEY_CTX_free>>;
 using SSL_EVP_PKEY_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_PKEY_CTX_Ptr>;
 
+using SSL_HMAC_CTX_Ptr = std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
+using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
+
 using SSL_X509_REQ_Ptr =
         std::unique_ptr<X509_REQ, SSLDeleter<X509_REQ, lib::OpenSSLLib::SSL_X509_REQ_free>>;
 using SSL_X509_REQ_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_REQ_Ptr>;
@@ -1346,5 +1349,11 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
                      const std::vector<uint8_t> &Z,
                      const std::vector<uint8_t> &sinfo,
                      const EVP_MD *md);
+
+void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl);
+std::vector<uint8_t> _HMAC_Final(HMAC_CTX* ctx);
+void _HMAC_Update(HMAC_CTX* ctx, const std::vector<uint8_t> &data);
+SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
+
 }  //::openssl
 }  //::mococrw
