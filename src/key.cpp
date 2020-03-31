@@ -26,6 +26,17 @@
 
 #include "mococrw/openssl_wrap.h"
 
+namespace {
+void ensureEccCurveSupported(mococrw::openssl::ellipticCurveNid nid)
+{
+    if (nid == mococrw::openssl::ellipticCurveNid::Ed448
+            || nid == mococrw::openssl::ellipticCurveNid::Ed25519)
+    {
+        throw mococrw::MoCOCrWException("The given curve is not supported. Ed448 and Ed25519 are not supported");
+    }
+}
+}
+
 namespace mococrw
 {
 using namespace openssl;
@@ -89,6 +100,35 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string&
     bio.write(pem);
     auto key = _PEM_read_bio_PUBKEY(bio.internal());
     return AsymmetricPublicKey{std::move(key)};
+}
+
+AsymmetricPublicKey AsymmetricPublicKey::fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
+                                                     const std::vector<uint8_t> &point)
+{
+    ensureEccCurveSupported(keySpec->curve());
+
+    SSL_EC_KEY_Ptr ec_key = _EC_KEY_oct2key(static_cast<int>(keySpec.get()->curve()), point);
+    SSL_EVP_PKEY_Ptr evp_key(_EVP_PKEY_new());
+    /* As set1 is incrementing the internal ref count, we can and need to invoke the destructor of ec_key here */
+    _EVP_PKEY_set1_EC_KEY(evp_key.get(), ec_key.get());
+
+    return AsymmetricPublicKey{std::move(evp_key)};
+}
+
+std::vector<uint8_t> AsymmetricPublicKey::toECPoint(EllipticCurvePointConversionForm form)
+{
+    if (getType() != AsymmetricKey::KeyTypes::ECC) {
+        throw MoCOCrWException("The function toECPoint can only be invoked for EC keys.");
+    }
+    std::shared_ptr<AsymmetricKey::Spec> keySpec = getKeySpec();
+    auto spec = std::dynamic_pointer_cast<ECCSpec>(keySpec);
+    if (!spec) {
+        /* this is very unlikely as we are already checking if the key type is ECC */
+        throw MoCOCrWException("Failure downcasting from AsymmetricKey::Spec to ECCSpec.");
+    }
+    ensureEccCurveSupported(spec->curve());
+
+    return _EC_KEY_key2buf(internal(), static_cast<point_conversion_form_t>(form));
 }
 
 std::string AsymmetricKeypair::privateKeyToPem(const std::string& pwd) const

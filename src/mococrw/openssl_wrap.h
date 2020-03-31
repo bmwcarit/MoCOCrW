@@ -94,6 +94,8 @@ private:
 /*
  * Wrap all the pointer-types returned by openssl.
  */
+using SSL_EC_KEY_Ptr = std::unique_ptr<EC_KEY, SSLDeleter<EC_KEY, lib::OpenSSLLib::SSL_EC_KEY_free>>;
+
 using SSL_EVP_PKEY_Ptr =
         std::unique_ptr<EVP_PKEY, SSLDeleter<EVP_PKEY, lib::OpenSSLLib::SSL_EVP_PKEY_free>>;
 using SSL_EVP_PKEY_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_PKEY_Ptr>;
@@ -1339,6 +1341,19 @@ enum class ellipticCurveNid
     Ed25519 = NID_ED25519
 };
 
+enum class EllipticCurvePointConversionForm
+{
+    /* the point is encoded as z||x, where the octet z specifies
+     * which solution of the quadratic equation y is  */
+    compressed = POINT_CONVERSION_COMPRESSED,
+    /* the point is encoded as z||x||y, where z is the octet 0x04  */
+    uncompressed = POINT_CONVERSION_UNCOMPRESSED,
+    /* the point is encoded as z||x||y, where the octet z specifies
+     * which solution of the quadratic equation y is  */
+    hybrid = POINT_CONVERSION_HYBRID
+
+};
+
 EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
 
 void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass,
@@ -1355,5 +1370,9 @@ std::vector<uint8_t> _HMAC_Final(HMAC_CTX* ctx);
 void _HMAC_Update(HMAC_CTX* ctx, const std::vector<uint8_t> &data);
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
 
+SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf);
+void _EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key);
+
+std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_t form);
 }  //::openssl
 }  //::mococrw

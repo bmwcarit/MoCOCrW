@@ -61,6 +61,8 @@ private:
     openssl::SSL_EVP_PKEY_SharedPtr _key;
 };
 
+class ECCSpec;
+
 class AsymmetricPublicKey
 {
 public:
@@ -88,6 +90,38 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
     static AsymmetricPublicKey readPublicKeyFromPEM(const std::string& pem);
+
+    /**
+     * @brief Returns a public key object based on the provided EC point
+     *
+     * This function creates a key object based on the point(s) in octet form  and the elliptic curve group given by
+     * keySpec.
+     * The leading identifier (0x03 for compressed, 0x04 for uncompressed points. 0x07 for hybrid points) has to be in
+     * place.
+     *
+     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
+     * MoCOCrWException is thrown.
+     * @throws MoCOCrWException if the given spec is not a elliptic curve spec or an Ed-spec
+     * @param keySpec The key specification for creating the key
+     * @param point The point(s) representing the public key
+     * @return An asymmetric public key
+     */
+    static AsymmetricPublicKey fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
+                                           const std::vector<uint8_t> &point);
+
+    /**
+     * @brief This returns the point(s) of the current AsymmetricPublicKey in octet representation.
+     *
+     * Depending on the form the correct identifier will be prepended to the actual point (0x03 for compressed point,
+     * 0x04 for uncompressed points. 0x07 for hybrid points).
+     *
+     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
+     * MoCOCrWException is thrown.
+     * @throws MoCOCrWException if the given key is not a elliptic curve key or an Ed-key
+     * @param form The transformation form.
+     * @return The octet representation of the public key. The form of the point is defined by the argument form.
+     */
+    std::vector<uint8_t> toECPoint(openssl::EllipticCurvePointConversionForm form);
 
     /**
      * Getters for the internal openSSL object.
