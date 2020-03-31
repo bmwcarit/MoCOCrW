@@ -344,6 +344,14 @@ public:
     static int SSL_HMAC_Update(HMAC_CTX* ctx, const unsigned char* data, int len) noexcept;
     static int SSL_HMAC_Init_ex(HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept;
 
+    /* EC Point import and export */
+    static size_t SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) noexcept;
+    static int SSL_EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key) noexcept;
+    static EC_KEY* SSL_EC_KEY_new_by_curve_name(int nid) noexcept;
+    static void SSL_EC_KEY_free(EC_KEY* key) noexcept;
+    static EC_KEY* SSL_EC_KEY_new() noexcept;
+    static int SSL_EC_KEY_oct2key(EC_KEY* eckey, const unsigned char* buf, size_t len) noexcept;
+
 };
 }  //::lib
 }  //::openssl

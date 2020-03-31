@@ -1292,5 +1292,38 @@ SSL_HMAC_CTX_Ptr _HMAC_CTX_new()
     return createManagedOpenSSLObject<SSL_HMAC_CTX_Ptr>();
 }
 
+SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf)
+{
+    SSL_EC_KEY_Ptr key(OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_KEY_new_by_curve_name, nid));
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EC_KEY_oct2key, key.get(), buf.data(), buf.size());
+    return key;
+}
+
+void _EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_set1_EC_KEY, pkey, key);
+}
+
+std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_t form)
+{
+    /*
+     * This const_cast was added to maintain API compatibility with OpenSSL
+     */
+    EVP_PKEY *evp_ = const_cast<EVP_PKEY*>(evp);
+    unsigned char* pbuf;
+    EC_KEY *key = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY, evp_);
+    size_t length = OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EC_KEY_key2buf, key,
+                                                       form, &pbuf, nullptr);
+    std::vector<uint8_t> result(pbuf, pbuf + length);
+
+    /* The function EC_POINT_point2buf() (same for EC_KEY_key2buf()) allocates a buffer of suitable length and writes
+     * an EC_POINT to it in octet format. The allocated buffer is written to *pbuf and its length is returned. The
+     * caller must free up the allocated buffer with a call to OPENSSL_free(). Since the allocated buffer value is
+     * written to *pbuf the pbuf parameter MUST NOT be NULL.
+     */
+    lib::OpenSSLLib::SSL_OPENSSL_free(pbuf);
+    return result;
+}
+
 }  // ::openssl
 }  //:: mococrw

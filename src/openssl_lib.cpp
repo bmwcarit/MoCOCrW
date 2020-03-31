@@ -950,6 +950,31 @@ int OpenSSLLib::SSL_HMAC_Final(HMAC_CTX* ctx, unsigned char* md, unsigned int* l
 HMAC_CTX* OpenSSLLib::SSL_HMAC_CTX_new() noexcept { return HMAC_CTX_new(); }
 
 void OpenSSLLib::SSL_HMAC_CTX_free(HMAC_CTX* ctx) noexcept { HMAC_CTX_free(ctx); }
+
+int OpenSSLLib::SSL_EC_KEY_oct2key(EC_KEY* eckey, const unsigned char* buf, size_t len) noexcept
+{
+    return EC_KEY_oct2key(eckey, buf, len, NULL);
+}
+EC_KEY* OpenSSLLib::SSL_EC_KEY_new() noexcept
+{
+    return EC_KEY_new();
+}
+void OpenSSLLib::SSL_EC_KEY_free(EC_KEY* key) noexcept
+{
+    EC_KEY_free(key);
+}
+EC_KEY* OpenSSLLib::SSL_EC_KEY_new_by_curve_name(int nid) noexcept
+{
+    return EC_KEY_new_by_curve_name(nid);
+}
+int OpenSSLLib::SSL_EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key) noexcept
+{
+    return EVP_PKEY_set1_EC_KEY(pkey, key);
+}
+size_t OpenSSLLib::SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) noexcept
+{
+    return EC_KEY_key2buf(eckey, form, pbuf, ctx);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

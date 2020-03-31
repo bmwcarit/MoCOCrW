@@ -952,6 +952,30 @@ void OpenSSLLib::SSL_HMAC_CTX_free(HMAC_CTX* ctx) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_HMAC_CTX_free(ctx);
 }
+int OpenSSLLib::SSL_EC_KEY_oct2key(EC_KEY* eckey, const unsigned char* buf, size_t len) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_oct2key(eckey, buf, len);
+}
+EC_KEY* OpenSSLLib::SSL_EC_KEY_new() noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_new();
+}
+void OpenSSLLib::SSL_EC_KEY_free(EC_KEY* key) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_free(key);
+}
+EC_KEY* OpenSSLLib::SSL_EC_KEY_new_by_curve_name(int nid) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_new_by_curve_name(nid);
+}
+int OpenSSLLib::SSL_EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_set1_EC_KEY(pkey, key);
+}
+size_t OpenSSLLib::SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_key2buf(eckey, form, pbuf, ctx);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

@@ -20,6 +20,7 @@
 #include <gmock/gmock.h>
 
 #include "key.cpp"
+#include "util.cpp"
 
 using namespace mococrw;
 using namespace ::testing;
@@ -365,5 +366,70 @@ TEST(KeySpecTest, testThatDefaultParametersAreSane)
 
     ECCSpec nonDefaultEccSpec{openssl::ellipticCurveNid::SECT_283k1};
     ASSERT_EQ(nonDefaultEccSpec.curve(), openssl::ellipticCurveNid::SECT_283k1);
+}
+
+static std::vector<openssl::ellipticCurveNid> getEllipticCurveNids()
+{
+    /* Test the EC public key -> EC point -> EC public key transformation for all supported curves/groups */
+    std::vector<openssl::ellipticCurveNid> testData{
+            openssl::ellipticCurveNid::PRIME_192v1,
+            openssl::ellipticCurveNid::PRIME_256v1,
+            openssl::ellipticCurveNid::SECP_224r1,
+            openssl::ellipticCurveNid::SECP_384r1,
+            openssl::ellipticCurveNid::SECP_521r1,
+            openssl::ellipticCurveNid::SECT_283k1,
+            openssl::ellipticCurveNid::SECT_283r1,
+            openssl::ellipticCurveNid::SECT_409k1,
+            openssl::ellipticCurveNid::SECT_409r1,
+            openssl::ellipticCurveNid::SECT_571k1,
+            openssl::ellipticCurveNid::SECT_571r1
+            /* These two curves are not working:
+            openssl::ellipticCurveNid::Ed448,
+            openssl::ellipticCurveNid::Ed25519
+             * Failures:
+             * unknown file: Failure
+             * C++ exception with description "error:23077074:PKCS12 routines:PKCS12_pbe_crypt:pkcs12 cipherfinal
+             * error: 587690100" thrown in the test body.
+             * [  FAILED  ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/11,
+             * where GetParam() = 4-byte object <40-04 00-00> (86112 ms)
+             * [ RUN      ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/12
+             * unknown file: Failure
+             * C++ exception with description "error:2306A075:PKCS12 routines:PKCS12_item_decrypt_d2i:pkcs12 pbe
+             * crypt error: 587636853" thrown in the test body.
+             * [  FAILED  ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/12,
+             * where GetParam() = 4-byte object <3F-04 00-00> (10410 ms)
+             */
+
+        };
+    return testData;
+}
+
+void testKeyTransformation(openssl::ellipticCurveNid nid, EllipticCurvePointConversionForm form)
+{
+    ECCSpec keySpec{ECCSpec(nid)};
+    AsymmetricKey key(keySpec.generate());
+
+    AsymmetricPublicKey pubKeyOrig = AsymmetricPublicKey(key.internal());
+    std::vector<uint8_t> point = pubKeyOrig.toECPoint(form);
+    AsymmetricPublicKey pubKey = AsymmetricPublicKey::fromECPoint(std::make_unique<ECCSpec>(nid), point);
+
+    ASSERT_THAT(pubKey == pubKeyOrig, true);
+}
+
+void testKeyTransformation(openssl::ellipticCurveNid nid)
+{
+    testKeyTransformation(nid, EllipticCurvePointConversionForm::uncompressed);
+    testKeyTransformation(nid, EllipticCurvePointConversionForm::compressed);
+    testKeyTransformation(nid, EllipticCurvePointConversionForm::hybrid);
+}
+
+class KeyGenerationFromPointTests : public testing::TestWithParam<openssl::ellipticCurveNid> {};
+INSTANTIATE_TEST_CASE_P(keyGenFromPointTest,
+                        KeyGenerationFromPointTests,
+                        testing::ValuesIn(getEllipticCurveNids()));
+
+TEST_P(KeyGenerationFromPointTests, tests)
+{
+    testKeyTransformation(GetParam());
 }
 
