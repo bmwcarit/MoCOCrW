@@ -139,7 +139,8 @@ public:
                     "Further calls to update() are not allowed once finish() was called.");
         }
 
-        if (message.size() > (std::numeric_limits<int>::max() - EVP_MAX_BLOCK_LENGTH)) {
+        if (message.size() > static_cast<std::decay_t<decltype(message)>::size_type>(
+                    std::numeric_limits<int>::max() - EVP_MAX_BLOCK_LENGTH)) {
             throw MoCOCrWException("Message is too big.");
         }
 
