@@ -21,6 +21,7 @@ set(LIBRARY_SOURCES
     crl.cpp
     csr.cpp
     distinguished_name.cpp
+    ecies.cpp
     hash.cpp
     kdf.cpp
     key.cpp
@@ -44,6 +45,7 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/crl.h
     mococrw/csr.h
     mococrw/distinguished_name.h
+    mococrw/ecies.h
     mococrw/error.h
     mococrw/extension.h
     mococrw/hash.h

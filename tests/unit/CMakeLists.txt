@@ -117,6 +117,20 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	"${SRC_DIR}/hash.cpp"
 	${REAL_SOURCES})
 
+    add_executable(eciestests test_ecies.cpp
+	"${SRC_DIR}/ecies.cpp"
+	"${SRC_DIR}/key.cpp"
+	"${SRC_DIR}/x509.cpp"
+	"${SRC_DIR}/asn1time.cpp"
+	"${SRC_DIR}/crl.cpp"
+	"${SRC_DIR}/symmetric_crypto.cpp"
+	"${SRC_DIR}/symmetric_memory.cpp"
+	"${SRC_DIR}/util.cpp"
+	"${SRC_DIR}/mac.cpp"
+	"${SRC_DIR}/hash.cpp"
+	"${SRC_DIR}/kdf.cpp"
+	${REAL_SOURCES})
+
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 
     target_link_libraries(asn1timetests
@@ -154,6 +168,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(kdftests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(mactests
+	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(eciestests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
     add_test(
@@ -240,6 +256,10 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_test(
 	NAME MacSchemesTest
 	COMMAND mactests
+    )
+    add_test(
+	NAME EciesSchemesTest
+	COMMAND eciestests
     )
 
     # Configure valgrind
