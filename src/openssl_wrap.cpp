@@ -1325,5 +1325,49 @@ std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_
     return result;
 }
 
+
+std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *key)
+{
+    size_t secret_len;
+    /* EVP_PKEY_CTX_new: Why const_cast is needed:
+     * - The new object (ctx) has a reference "ecdh->pmeth_engine" (which is a const pointer in EVP_PKEY) from ecdh
+     * - The new object references "ecdh" as ctx->pkey (increases the ref count)
+     * - ctx->pkey is not changed in EVP_PKEY_derive{_init, _set_peer, }
+     *
+     * No idea why EVP_PKEY_CTX_new need a non-const parameter in the first place.
+     * Most probably the const cast correctness is broken in OpenSSL here.
+     */
+    EVP_PKEY *ecdh_ = const_cast<EVP_PKEY*>(key);
+
+    /* EVP_PKEY_derive_set_peer: Why const_cast is allowed:
+     * - a pmeth->ctrl function is executed which returns 1 for EC curves (crypto/ec/ec_pmeth.c:341)
+     * - pub_key is referenced as ctx->peerkey (increases ref count)
+     * - pub_key is not changed in EVP_PKEY_derive
+     *
+     * No idea why EVP_PKEY_derive_set_peer need a non-const parameter in the first place.
+     * Most probably the const cast correctness is broken in OpenSSL here.
+     */
+    EVP_PKEY *pub_key_ = const_cast<EVP_PKEY*>(peerkey);
+
+    /* Create the context for the shared secret derivation */
+    auto ctx = SSL_EVP_PKEY_CTX_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_CTX_new, ecdh_, nullptr)};
+
+    /* Initialise */
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_derive_init, ctx.get());
+
+    /* Provide the peer public key */
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_derive_set_peer, ctx.get(), pub_key_);
+
+    /* Determine buffer length for shared secret */
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_derive, ctx.get(), nullptr, &secret_len);
+
+    std::vector<uint8_t> result(secret_len);
+
+    /* Derive the shared secret */
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_derive, ctx.get(), result.data(), &secret_len);
+
+    return result;
+}
+
 }  // ::openssl
 }  //:: mococrw

@@ -35,6 +35,9 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_t* keylen) = 0;
+    virtual int SSL_EVP_PKEY_derive_set_peer(EVP_PKEY_CTX* ctx, EVP_PKEY* peer) = 0;
+    virtual int SSL_EVP_PKEY_derive_init(EVP_PKEY_CTX* ctx) = 0;
     virtual size_t SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) = 0;
     virtual int SSL_EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key) = 0;
     virtual EC_KEY* SSL_EC_KEY_new_by_curve_name(int nid) = 0;
@@ -321,6 +324,9 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD3(SSL_EVP_PKEY_derive, int(EVP_PKEY_CTX*, unsigned char*, size_t*));
+    MOCK_METHOD2(SSL_EVP_PKEY_derive_set_peer, int(EVP_PKEY_CTX*, EVP_PKEY*));
+    MOCK_METHOD1(SSL_EVP_PKEY_derive_init, int(EVP_PKEY_CTX*));
     MOCK_METHOD4(SSL_EC_KEY_key2buf, size_t(const EC_KEY*, point_conversion_form_t, unsigned char**, BN_CTX*));
     MOCK_METHOD2(SSL_EVP_PKEY_set1_EC_KEY, int(EVP_PKEY*, EC_KEY*));
     MOCK_METHOD1(SSL_EC_KEY_new_by_curve_name, EC_KEY*(int));

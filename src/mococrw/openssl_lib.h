@@ -352,6 +352,11 @@ public:
     static EC_KEY* SSL_EC_KEY_new() noexcept;
     static int SSL_EC_KEY_oct2key(EC_KEY* eckey, const unsigned char* buf, size_t len) noexcept;
 
+    /* ECC: compute on elliptic curves */
+    static int SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_t* keylen) noexcept;
+    static int SSL_EVP_PKEY_derive_set_peer(EVP_PKEY_CTX* ctx, EVP_PKEY* peer) noexcept;
+    static int SSL_EVP_PKEY_derive_init(EVP_PKEY_CTX* ctx) noexcept;
+
 };
 }  //::lib
 }  //::openssl

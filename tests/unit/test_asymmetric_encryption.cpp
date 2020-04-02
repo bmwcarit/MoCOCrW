@@ -448,3 +448,12 @@ TEST_F(AsymmetricEncryptionTest, testUnsuccessfulDecryptionWrongLabelOEAP)
     auto ctxDecrypt = RSAEncryptionPrivateKeyCtx(keyPairs2048bit.privKey, padding);
     EXPECT_THROW(ctxDecrypt.decrypt(OAEPPaddingDataSet.encrypted), MoCOCrWException);
 }
+
+TEST(AsymmetricPublicKeyTest, ecdhSmokeTest)
+{
+    ECCSpec spec;
+    AsymmetricKey key(spec.generate());
+    AsymmetricPublicKey pubKey = spec.generate().internal();
+    /* Just check if the function returns without indicating a failure */
+    EXPECT_NO_THROW(openssl::_EVP_derive_key(pubKey.internal(), key.internal().get()));
+}
