@@ -363,7 +363,7 @@ int _BIO_puts(BIO* bio, std::string buf)
 
 int _BIO_write(BIO* bio, const std::vector<uint8_t> &data)
 {
-    if (data.size() > std::numeric_limits<int>::max()) {
+    if (data.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
         throw OpenSSLException("BIO_write cannot be called with so much data");
     }
 
@@ -376,7 +376,7 @@ int _BIO_write(BIO* bio, const std::vector<uint8_t> &data)
 
 int _BIO_read(BIO* bio, std::vector<uint8_t> &buf, std::size_t numBytes)
 {
-    if (numBytes > std::numeric_limits<int>::max()) {
+    if (numBytes > static_cast<size_t>(std::numeric_limits<int>::max())) {
         throw OpenSSLException("BIO_read cannot be called with so much data");
     }
     buf.resize(numBytes);
@@ -1020,7 +1020,7 @@ uint64_t _X509_get_serialNumber(X509 *x)
 
 void _X509_set_serialNumber(X509 *x, uint64_t serial)
 {
-    if (serial > std::numeric_limits<long>::max()) {
+    if (serial > static_cast<uint64_t>(std::numeric_limits<long>::max())) {
         throw OpenSSLException("Serial number is out of the accepted range.");
     }
 
