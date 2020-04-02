@@ -975,6 +975,18 @@ size_t OpenSSLLib::SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form
 {
     return EC_KEY_key2buf(eckey, form, pbuf, ctx);
 }
+int OpenSSLLib::SSL_EVP_PKEY_derive_init(EVP_PKEY_CTX* ctx) noexcept
+{
+    return EVP_PKEY_derive_init(ctx);
+}
+int OpenSSLLib::SSL_EVP_PKEY_derive_set_peer(EVP_PKEY_CTX* ctx, EVP_PKEY* peer) noexcept
+{
+    return EVP_PKEY_derive_set_peer(ctx, peer);
+}
+int OpenSSLLib::SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_t* keylen) noexcept
+{
+    return EVP_PKEY_derive(ctx, key, keylen);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

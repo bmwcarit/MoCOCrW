@@ -1374,5 +1374,17 @@ SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf);
 void _EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key);
 
 std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_t form);
+/**
+ * @brief _EVP_derive_key calculates a new public key P_new
+ *
+ * For EC: The returned value is the x-coordinate of the EC-Point (not sure for curve448 and 25519).
+ *         The EC-Point is the result of the calculation (P_new = key * peerkey)
+ *
+ * Never use a derived secret directly. Typically it is passed through some hash function to produce a key
+ * @param peerkey The public key
+ * @param key The private key
+ * @return The new public key
+ */
+std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *key);
 }  //::openssl
 }  //::mococrw
