@@ -182,11 +182,9 @@ void testValiditySpan(const X509Certificate &cert,
                       Asn1Time::Seconds validitySpan,
                       Asn1Time certificationTime)
 {
-    // Check that (notAfter - notBefore = validitySpan) and (notBefore = certificationTime),
-    // the last one with allowances for 2 second accuracy
+    // Check that (notAfter - notBefore == validitySpan) and (notBefore == certificationTime).
     EXPECT_EQ(cert.getNotAfterAsn1() - cert.getNotBeforeAsn1(), validitySpan);
-    EXPECT_LT(certificationTime - cert.getNotBeforeAsn1(), Asn1Time::Seconds(2));
-    EXPECT_LT(cert.getNotBeforeAsn1() - certificationTime, Asn1Time::Seconds(2));
+    EXPECT_EQ(cert.getNotBeforeAsn1(), certificationTime);
 }
 
 TEST_F(CATest, testAddExtensionWithSharedPointer)
@@ -294,7 +292,7 @@ TEST_P(CATest, testSignedCSRHasCorrectFields)
 
     CertificateSigningRequest csr{*_certDetails, AsymmetricKeypair::generateRSA()};
     X509Certificate cert = data.ca.signCSR(csr);
-    testValiditySpan(cert, _signParams.certificateValidity(), Asn1Time::now() - std::chrono::seconds{1});
+    testValiditySpan(cert, _signParams.certificateValidity(), _signParams.notBeforeAsn1());
     EXPECT_EQ(csr.getPublicKey(), cert.getPublicKey());
     EXPECT_EQ(*_certDetails, cert.getSubjectDistinguishedName());
     EXPECT_EQ(data.rootCert.getSubjectDistinguishedName(), cert.getIssuerDistinguishedName());
@@ -431,7 +429,7 @@ TEST_F(CATest, testIssueLongLivedCertificate)
     X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
                                                        AsymmetricKeypair::generateRSA()});
 
-    testValiditySpan(cert, validityTime, Asn1Time::now() - std::chrono::seconds{1});
+    testValiditySpan(cert, validityTime, _signParams.notBeforeAsn1());
 
 }
 
