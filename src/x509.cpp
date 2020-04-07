@@ -16,6 +16,11 @@
  * limitations under the License.
  * #L%
  */
+
+#include <fstream>
+#include <boost/range/algorithm_ext/erase.hpp>
+#include <boost/format.hpp>
+
 #include "mococrw/x509.h"
 #include "mococrw/bio.h"
 #include "mococrw/error.h"
@@ -25,23 +30,127 @@
 
 using namespace std::string_literals;
 
+namespace {
+/**
+ * Helper function for reformatPEMCertificate:
+ * Searches for the next occurence of the given marker in pem starting at start
+ * @param pem String to search in
+ * @param marker Marker to search
+ * @param endPos Inidicates if start or end position of the marker shall be returned
+ * @param start Position to start searching at
+ * @return Start of next occurence of marker
+ */
+inline size_t findStartOfNextMarker(const std::string& pem, const std::string& marker, size_t start = 0)
+{
+    return pem.find(marker, start);
+}
+
+/**
+ * Helper function for reformatPEMCertificate:
+ * Searches for the next occurence of the given marker in pem starting at start
+ * @param pem String to search in
+ * @param marker Marker to search
+ * @param endPos Inidicates if start or end position of the marker shall be returned
+ * @param start Position to start searching at
+ * @return End of next occurence of marker
+ */
+inline size_t findEndOfNextMarker(const std::string& pem, const std::string& marker, size_t start = 0)
+{
+    return findStartOfNextMarker(pem, marker, start) + marker.size();
+}
+
+/**
+ * Reformats a PEM encoded certificate to contain only base64 encoded lines that consist
+ * of 64 char at max. This had to be introduced to workaround a bug in OpenSSL that prevents
+ * parsing of PEM certificates that contain the base64 encoded parts in only one line and
+ * the length of the line is a multiple of 254.
+ * Issue Ticket: https://github.com/openssl/openssl/issues/9187
+ * This function only touches the base64 encoded parts between the begin- and end-marker
+ * of the certificate and doesn't touch areas before the start marker or past the end marker.
+ * However, please note that this function only reformats the first certificate found in pem.
+ *
+ * Note: to be removed as soon as the OpenSSL fix is integrated
+ *
+ * @param pem String containing the certificate to be reformatted
+ * @returns Certificate with reformatted base64
+ */
+inline std::string reformatPEMCertificate(const std::string& pem) {
+    // search for begin-marker
+    std::string prevBase64;
+    size_t endBeginMarker = findEndOfNextMarker(pem, "-----BEGIN CERTIFICATE-----");
+
+    // In case of error let's try with the current certificate and let openssl fail
+    // if necessary
+    if (endBeginMarker == std::string::npos) {
+        return pem;
+    }
+
+    // search for end-marker
+    std::string postBase64;
+    size_t startEndMarker = findStartOfNextMarker(pem, "-----END CERTIFICATE-----", endBeginMarker);
+
+    // In case of error let's try with the current certificate and let openssl fail
+    // if necessary
+    if (startEndMarker == std::string::npos) {
+        return pem;
+    }
+
+    // extract everything from beginning of the string until the begin-markers end
+    prevBase64 = pem.substr(0, endBeginMarker);
+    // extract everything from the beginning of the marker until end of the string
+    postBase64 = pem.substr(startEndMarker);
+
+    // extract base64 encoded content
+    std::string base64 = pem.substr(endBeginMarker, startEndMarker - endBeginMarker - 1);
+    boost::range::remove_erase_if(base64, [](char x) { return std::isspace(x); });
+
+    // Insert newline after each 64 chars into base64 encoded content
+    std::string splittedBase64;
+    auto iter = base64.begin();
+    for (; std::distance(iter, base64.end()) >= 64; iter += 64) {
+        std::copy_n(iter, 64, std::back_inserter(splittedBase64));
+        splittedBase64 += "\n";
+    }
+    if (iter != base64.end()) {
+        std::copy(iter, base64.end(), std::back_inserter(splittedBase64));
+    }
+
+    // reassemble string
+    return boost::str(boost::format("%1%\n%2%\n%3%") % prevBase64 % splittedBase64 % postBase64);
+}
+
+}
+
 namespace mococrw
 {
 using namespace openssl;
 
 X509Certificate X509Certificate::fromPEM(const std::string &pem)
 {
+    std::string formattedPem = reformatPEMCertificate(pem);
     BioObject bio{BioObject::Types::MEM};
-    bio.write(pem);
+    bio.write(formattedPem);
     auto cert = _PEM_read_bio_X509(bio.internal());
     return X509Certificate{std::move(cert)};
 }
 
 X509Certificate X509Certificate::fromPEMFile(const std::string &filename)
 {
-    FileBio bio{filename, FileBio::FileMode::READ, FileBio::FileType::TEXT};
-    auto cert = _PEM_read_bio_X509(bio.internal());
-    return X509Certificate{std::move(cert)};
+    // Change to be reverted to previous solution after OpenSSL parsing
+    // bug for PEM certificates has been fixed.
+    // https://github.com/openssl/openssl/issues/9187
+    std::ifstream pemFile(filename);
+    std::stringstream buffer;
+    if (pemFile.is_open()) {
+        buffer << pemFile.rdbuf();
+        pemFile.close();
+    } else {
+        throw std::runtime_error("Couldn't open certificate at: " + filename);
+    }
+    if (pemFile.fail()) {
+        throw std::runtime_error("Error while reading: " + filename);
+    }
+    return fromPEM(buffer.str());
 }
 
 X509Certificate X509Certificate::fromDER(const std::vector<uint8_t> &derData)
