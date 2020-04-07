@@ -59,6 +59,11 @@ protected:
     static const std::string _eccUserKeyPem;
     static const std::string _pemChainEcc;
 
+    // PEM certificate that has the base64 encoded contents in a single
+    // line and the length of the line is a multiple of 254 (1524 = 6*254)
+    // OpenSSL issue to be tested with this: https://github.com/openssl/openssl/issues/9187
+    static const std::string _pemOpenSSLPEMParseBug;
+
     X509Certificate _cert = X509Certificate::fromPEM(_pemString);
 
     std::unique_ptr<X509Certificate> _root1;
@@ -456,6 +461,10 @@ qMPf1Hy8OpsL8cvcxO25/kdpwrhasp7BNZgCOFlbQopy
 -----END CERTIFICATE-----)"
 };
 
+const std::string X509Test::_pemOpenSSLPEMParseBug = R"(-----BEGIN CERTIFICATE-----
+MIIEcjCCAyegAwIBAgIUPLgYY73GEwkikNCKRJrcbCR+TbQwDQYJKoZIhvcNAQELBQAwgZUxCzAJBgNVBAYTAkFVMWMwYQYDVQQIDFpUaGUgR3JlYXQgU3RhdGUgb2YgTG9uZy1XaW5kZWQgQ2VydGlmaWNhdGUgRmllbGQgTmFtZXMgV2hlcmVieSB0byBJbmNyZWFzZSB0aGUgT3V0cHV0IFNpemUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMDA0MDcwMDAwNDJaFw0zMDA0MDUwMDAwNDJaMIGVMQswCQYDVQQGEwJBVTFjMGEGA1UECAxaVGhlIEdyZWF0IFN0YXRlIG9mIExvbmctV2luZGVkIENlcnRpZmljYXRlIEZpZWxkIE5hbWVzIFdoZXJlYnkgdG8gSW5jcmVhc2UgdGhlIE91dHB1dCBTaXplMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggFUMA0GCSqGSIb3DQEBAQUAA4IBQQAwggE8AoIBMwLfmipKB41NPXrbp/T5eu+fndvZq72N/Tq0vZp2dRoz89NEFC3jYVBjp4pmVwCS9F/fGX1tnVfhb9k/4fqiI/y9lBVzxaHyMG/pt0D2nTS8iaMTM7uBeRvB5rUZlEbU8uvv4GXu3CeP/NnVceXruGbPb4IpjfoUbGLvn5oK35h8a+LNY5f7QRBlAXtUwYrdxVzT+CqQ4wIAuqoIVXgRIweveS1ArbS8hOtsVnu1bUAQVKqORHx8gtbOyiA4heTCEOkwh45YV6KW+uLI1wTeE4E9erlI4RwZ7umbBnQai/hYL//AUfQKQhpGbgfyJrS0UYY7WEP/mcFQh0U2EBTXtAy/e4XPiftViR3+pd+G2TJ/JFofDDzJRrceeo9tUnMr0pKtU7oB77lSKgsruKKkhn6lLH8CAwEAAaNTMFEwHQYDVR0OBBYEFIkawSiFUdL6G3jw8qg1WQI8Xi4rMB8GA1UdIwQYMBaAFIkawSiFUdL6G3jw8qg1WQI8Xi4rMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggE0AAHe/+71vykcq9BQ5h2X7MpnkE5n0Yn0Xi24uuCpv59JjABmOdaeT6XBQ5UJN8WfidawgzbJ6WiWgjflaMfRfjsdCJRgvdw0gfXXXrsseJMeMYnw1hQTGuB83BKjXBdL6zb45qGf2Fgjm3aNW2NUVM+Q2QfMjoKx13hTyDh9l5nOhMv/Rkygcx1Row2WbkvrhxvCLxY0VhL7RuPV8K0ogKicv8VJgQriOUVTTkqBP1xUimKSTaNaZ8KAnC7thxxZHxsNa45a6AouPSzyAOPZQgCJW83OIFxvWsdYU1KvP1wmoi1XC9giSQ/5sLPu/eAYTzmY+Xd6Sq8dF8uyodeI2gFu3AzC28PVKeUriIGfxaqEUn+aXx5W+r8JTE6fQ9mBo9YxJBXG+OTIFgHR27q2dJwqK9c=
+-----END CERTIFICATE-----)";
+
 TEST_F(X509Test, testParsingX509CertificateFromPem)
 {
     using ::testing::NotNull;
@@ -579,7 +588,7 @@ TEST_F(X509Test, test1970EdgeCaseAsn1DateShort)
 {
     // Not Before: Jan  1 00:01:00 1970 GMT
     // Not After : May 16 00:01:00 9952 GMT
-    
+
     auto notBeforeAsn1 = _year1970->getNotBeforeAsn1();
     auto notAfterAsn1 = _year1970->getNotAfterAsn1();
 
@@ -856,3 +865,15 @@ TEST_F(X509Test,  testGivenUserId)
     ASSERT_THAT(subject.givenName(), Eq("myGN"));
     ASSERT_THAT(subject.userId(), Eq("myUID"));
 }
+
+// OpenSSL can't parse PEM certificates that have the base64 encoded string in
+// one line and the length of the line is a multiple of 254.
+// https://github.com/openssl/openssl/issues/9187
+// This test ensures that our workaorund is working.
+// Previously, parsing such certificates threw an OpenSSLException with the message:
+//   error:00000000:lib(0):func(0):reason(0): 0
+TEST_F(X509Test, testOpenSSLPemParsingWorkaround)
+{
+    EXPECT_NO_THROW(X509Certificate::fromPEM(X509Test::_pemOpenSSLPEMParseBug));
+}
+
