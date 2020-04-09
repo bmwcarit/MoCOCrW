@@ -142,13 +142,16 @@ X509Certificate X509Certificate::fromPEMFile(const std::string &filename)
     if (pemFile.is_open()) {
         buffer << pemFile.rdbuf();
         pemFile.close();
-    } else {
-        throw std::runtime_error("Couldn't open certificate at: " + filename);
+        if (!pemFile.fail()) {
+            return fromPEM(buffer.str());
+        }
     }
-    if (pemFile.fail()) {
-        throw std::runtime_error("Error while reading: " + filename);
-    }
-    return fromPEM(buffer.str());
+
+    // previous solutions
+    // if reformatting fails, let openssl try (and fail if needed)
+    FileBio bio{filename, FileBio::FileMode::READ, FileBio::FileType::TEXT};
+    auto cert = _PEM_read_bio_X509(bio.internal());
+    return X509Certificate{std::move(cert)};
 }
 
 X509Certificate X509Certificate::fromDER(const std::vector<uint8_t> &derData)
