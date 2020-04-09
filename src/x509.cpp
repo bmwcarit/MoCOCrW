@@ -107,13 +107,11 @@ inline std::string reformatPEMCertificate(const std::string& pem) {
     // Insert newline after each 64 chars into base64 encoded content
     std::string splittedBase64;
     auto iter = base64.begin();
-    for (; std::distance(iter, base64.end()) >= 64; iter += 64) {
+    for (; std::distance(iter, base64.end()) > 64; iter += 64) {
         std::copy_n(iter, 64, std::back_inserter(splittedBase64));
         splittedBase64 += "\n";
     }
-    if (iter != base64.end()) {
-        std::copy(iter, base64.end(), std::back_inserter(splittedBase64));
-    }
+    std::copy(iter, base64.end(), std::back_inserter(splittedBase64));
 
     // reassemble string
     return boost::str(boost::format("%1%\n%2%\n%3%") % prevBase64 % splittedBase64 % postBase64);
