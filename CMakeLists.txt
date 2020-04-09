@@ -45,6 +45,16 @@ if(CMAKE_BUILD_TYPE STREQUAL Coverage)
     find_package(Coverage REQUIRED)
 endif()
 
+if(CMAKE_BUILD_TYPE STREQUAL ASAN)
+    include(AddressSanitizerTarget)
+endif()
+if(CMAKE_BUILD_TYPE STREQUAL UBSAN)
+    include(UBSanitizerTarget)
+endif()
+if(CMAKE_BUILD_TYPE STREQUAL TSAN)
+    include(ThreadSanitizerTarget)
+endif()
+
 ###############################################################################
 # Documentation
 ###############################################################################
