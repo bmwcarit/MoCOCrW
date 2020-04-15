@@ -21,6 +21,10 @@
 #include <memory>
 #include <vector>
 
+#include <openssl/crypto.h>
+
+#include "mococrw/error.h"
+
 namespace mococrw
 {
 namespace utility
@@ -34,5 +38,45 @@ std::string toHex(const std::vector<uint8_t> &data);
 std::vector<uint8_t> fromHex(const std::string &hexData);
 
 std::vector<uint8_t> cryptoRandomBytes(size_t length);
+
+template<typename T>
+void vectorCleanse(std::vector<T> &vec)
+{
+    OPENSSL_cleanse(vec.data(), vec.size() * sizeof(T));
+}
+
+/**
+ * RAII wrapper that executes a lambda on destruction
+ */
+
+class Finally {
+public:
+    /**
+     * Create a new finally object, which will run the given function when it
+     * goes out of scope.
+     *
+     * @param[in] func Function to run on destruction.
+     */
+    template<class T>
+    Finally(T&& func)
+        : _func(std::forward<T>(func)) {}
+
+    Finally(const Finally& other) = delete;
+    Finally(Finally&& other) = delete;
+    Finally& operator=(const Finally& other) = delete;
+    Finally& operator=(Finally&& other) = delete;
+
+    ~Finally() {
+        if (_func) {
+            _func();
+        }
+    }
+
+private:
+    /// Function to be called on shutdown.
+    std::function<void()> _func;
+};
+
+
 }  //::utility
 }  //::mococrw
