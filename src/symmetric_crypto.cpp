@@ -36,14 +36,24 @@ namespace mococrw
 
 using namespace openssl;
 
-namespace {
+size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize)
+{
+    if (keySize == SymmetricCipherKeySize::S_128) {
+        return 128 / 8;
+    } else if (keySize == SymmetricCipherKeySize::S_256) {
+        return 256 / 8;
+    }
+
+    throw MoCOCrWException("Key size is not supported.");
+}
+
 
 /**
  * Get the default length of the IV in bytes given the cipher mode.
  *
  * @return The IV length in bytes.
  */
-size_t getDefaultIVLength(SymmetricCipherMode mode) {
+size_t AESCipherBuilder::getDefaultIVLength(SymmetricCipherMode mode) {
     switch (mode) {
         case SymmetricCipherMode::GCM:
             return 12;
@@ -54,7 +64,7 @@ size_t getDefaultIVLength(SymmetricCipherMode mode) {
     throw MoCOCrWException("Could not determine default IV length for cipher mode "
         + std::to_string(static_cast<std::underlying_type_t<decltype(mode)>>(mode)));
 }
-}
+
 
 class AESCipher::Impl
 {
