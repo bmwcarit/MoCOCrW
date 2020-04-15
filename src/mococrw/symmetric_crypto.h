@@ -57,6 +57,13 @@ enum class SymmetricCipherPadding
 };
 
 /**
+ * @brief Returns the length of the symmetric key in bytes
+ * @param keySize The key size in enum representation
+ * @return The size of the key in bytes
+ */
+size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize);
+
+/**
  * Abstract interface for symmetric encryption and decryption.
  *
  * This interface defines cipher type and mode agnostic interface for one-shot and stream-based
@@ -309,6 +316,13 @@ public:
      * @return builder instance
      */
     AESCipherBuilder &setIV(const std::vector<uint8_t> &iv);
+
+    /**
+     * @brief Get the default length of the IV in bytes given the cipher mode.
+     * @param mode The mode
+     * @return The length of the IV in bytes.
+     */
+    static size_t getDefaultIVLength(SymmetricCipherMode mode);
 
     /**
      * Set length of authentication tag for authenticated encryption.
