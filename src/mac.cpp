@@ -31,7 +31,7 @@ MessageAuthenticationCode::~MessageAuthenticationCode() = default;
 class HMAC::Impl
 {
 public:
-    Impl(openssl::DigestTypes hashFunction, const std::vector<uint8_t> key)
+    Impl(openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
     {
         const EVP_MD* digestFn = _getMDPtrFromDigestType(hashFunction);
 
@@ -90,7 +90,7 @@ private:
     std::vector<uint8_t> _result;
 };
 
-HMAC::HMAC(mococrw::openssl::DigestTypes hashFunction, const std::vector<uint8_t>& key)
+HMAC::HMAC(mococrw::openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
 {
     _impl = std::make_unique<HMAC::Impl>(hashFunction, key);
 }
