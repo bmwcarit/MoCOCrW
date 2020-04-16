@@ -166,15 +166,15 @@ public:
     }
 
 private:
-    bool _decipherOnly;
-    bool _encipherOnly;
-    bool _cRLSign;
-    bool _keyCertSign;
-    bool _keyAgreement;
-    bool _dataEncipherment;
-    bool _keyEncipherment;
-    bool _nonRepudiation;
-    bool _digitalSignature;
+    bool _decipherOnly = false;
+    bool _encipherOnly = false;
+    bool _cRLSign = false;
+    bool _keyCertSign = false;
+    bool _keyAgreement = false;
+    bool _dataEncipherment = false;
+    bool _keyEncipherment = false;
+    bool _nonRepudiation = false;
+    bool _digitalSignature = false;
 };
 
 class KeyUsageExtension::Builder
