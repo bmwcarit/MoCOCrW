@@ -162,13 +162,15 @@ public:
         static_assert(std::is_base_of<ExtensionBase, T>::value,
                       "Extension is not derived from ExtensionBase");
 
-        _sp._extensions[extension.getNid()] = std::make_shared<T>(std::move(extension));
+        auto nid = extension.getNid();
+        _sp._extensions[nid] = std::make_shared<T>(std::move(extension));
         return *this;
     }
 
     Builder& addExtension(std::shared_ptr<ExtensionBase> extension)
     {
-        _sp._extensions[extension->getNid()] = std::move(extension);
+        auto nid = extension->getNid();
+        _sp._extensions[nid] = std::move(extension);
         return *this;
     }
 
