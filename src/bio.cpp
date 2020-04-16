@@ -59,7 +59,7 @@ std::string BioObject::flushToString()
         if (count > buffsize) {
             // _BIO_gets() reads at most buffer.size() bytes out of a bio so if count is bigger
             // than buffsize, it indicates a bug in OpenSSL or some other severe problem.
-            throw new std::runtime_error(
+            throw std::runtime_error(
                     "OpenSSL corrupted the memory. Your best option now is to terminate.");
         }
         ostream << std::string{buffer.begin(), buffer.begin() + count};
@@ -87,7 +87,7 @@ std::vector<uint8_t> BioObject::flushToVector()
             break;
         }
         if (static_cast<std::size_t>(count) > buffSize) {
-            throw new std::runtime_error(
+            throw std::runtime_error(
                     "OpenSSL corrupted the memory. Your best option now is to terminate.");
         }
         outputBuffer.insert(outputBuffer.end(), tmpBuffer.begin(), tmpBuffer.end());
