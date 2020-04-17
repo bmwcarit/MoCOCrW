@@ -170,6 +170,9 @@ using SSL_STACK_X509_CRL_Ptr =
                         SSLDeleter<STACK_OF(X509_CRL), lib::OpenSSLLib::SSL_sk_X509_CRL_free>>;
 using SSL_STACK_X509_CRL_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_STACK_X509_CRL_Ptr>;
 
+using SSL_ECDSA_SIG_Ptr = std::unique_ptr<ECDSA_SIG, SSLDeleter<ECDSA_SIG, lib::OpenSSLLib::SSL_ECDSA_SIG_free>>;
+using SSL_ECDSA_SIG_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ECDSA_SIG_Ptr>;
+
 using time_point = std::chrono::system_clock::time_point;
 
 /* Below are is the "wrapped" OpenSSL library. By convetion, all functions start with an
@@ -1386,5 +1389,28 @@ std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_
  * @return The new public key
  */
 std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *key);
+
+/* ECDSA Special */
+/**
+ * Set the r and s signature components from r and s a bignums
+ */
+void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s);
+
+/**
+ * Get the serialized ECSDA signature in ASN.1 format from ECSDA_SIG object
+ */
+std::vector<uint8_t> _i2d_ECSDA_SIG(const ECDSA_SIG*);
+
+/* Bignum related */
+
+/**
+ * Generate an OpenSSL bignum from the big-endian plain bytes representation
+ * of an unsigned integer.
+ *
+ * @return A smart pointer to the bignum object
+ * @throw OpenSSLException is a problem occurs during the conversion
+ */
+SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen);
+
 }  //::openssl
 }  //::mococrw

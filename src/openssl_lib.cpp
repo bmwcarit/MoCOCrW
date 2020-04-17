@@ -987,6 +987,27 @@ int OpenSSLLib::SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_
 {
     return EVP_PKEY_derive(ctx, key, keylen);
 }
+BIGNUM* OpenSSLLib::SSL_BN_bin2bn(const unsigned char* s, int len, BIGNUM*  ret) noexcept
+{
+    return BN_bin2bn(s, len, ret);
+}
+
+ECDSA_SIG* OpenSSLLib::SSL_ECDSA_SIG_new() noexcept
+{
+    return ECDSA_SIG_new();
+}
+void OpenSSLLib::SSL_ECDSA_SIG_free(ECDSA_SIG* sig) noexcept
+{
+    ECDSA_SIG_free(sig);
+}
+int OpenSSLLib::SSL_ECDSA_SIG_set0(ECDSA_SIG* sig, BIGNUM* r, BIGNUM* s) noexcept
+{
+    return ECDSA_SIG_set0(sig, r, s);
+}
+int OpenSSLLib::SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char ** pp) noexcept
+{
+    return i2d_ECDSA_SIG(sig, pp);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

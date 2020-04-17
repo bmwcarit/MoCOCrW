@@ -130,6 +130,38 @@ using OpensslCallIsPositive =
 using OpensslCallPtr = ::cppc::CallCheckContext<::cppc::IsNotNullptrReturnCheckPolicy,
                                                 OpenSSLExceptionErrorPolicy>;
 
+
+template<typename T>
+class OpenSSLGuardedOutputBuffer {
+public:
+    OpenSSLGuardedOutputBuffer() : _ptr{nullptr} {}
+    OpenSSLGuardedOutputBuffer(const OpenSSLGuardedOutputBuffer<T>&) = delete;
+    OpenSSLGuardedOutputBuffer(OpenSSLGuardedOutputBuffer<T>&&) = delete;
+
+    OpenSSLGuardedOutputBuffer<T> &operator=(const OpenSSLGuardedOutputBuffer<T>&) = delete;
+    OpenSSLGuardedOutputBuffer<T> &operator=(OpenSSLGuardedOutputBuffer<T>&&) = delete;
+
+    ~OpenSSLGuardedOutputBuffer() {
+        if (_ptr != nullptr) {
+            lib::OpenSSLLib::SSL_OPENSSL_free(_ptr);
+            _ptr = nullptr;
+        }
+    }
+
+    bool operator==(std::nullptr_t) const {
+        return _ptr == nullptr;
+    }
+
+    bool operator!=(std::nullptr_t) const {
+        return !(*this == nullptr);
+    }
+
+    T *&get() { return _ptr; };
+
+private:
+    T *_ptr;
+};
+
 SSL_EVP_PKEY_Ptr _EVP_PKEY_new()
 {
     return SSL_EVP_PKEY_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_new)};
@@ -607,6 +639,12 @@ HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
 }
 
 template<>
+ECDSA_SIG *createOpenSSLObject<ECDSA_SIG>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_new);
+}
+
+template<>
 void addObjectToStack<STACK_OF(X509), X509>(STACK_OF(X509) *stack, const X509 *obj)
 {
     OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_sk_X509_push, stack, obj);
@@ -1012,6 +1050,13 @@ std::vector<uint8_t> Asn1IntegerToBinary(ASN1_INTEGER *number)
     return serialNumber;
 }
 
+SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen) {
+    if (dataLen > static_cast<size_t>(std::numeric_limits<int>::max())) {
+        throw OpenSSLException("INT_MAX is the maximum supported size for BIGNUM");
+    }
+    return SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_BN_bin2bn, data, static_cast<int>(dataLen), nullptr)};
+}
+
 uint64_t _X509_get_serialNumber(X509 *x)
 {
     auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
@@ -1248,6 +1293,31 @@ void _CRYPTO_malloc_init()
 EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY,pkey);
+}
+
+void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s) {
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_set0, sig, r.release(), s.release());
+}
+
+std::vector<uint8_t> _i2d_ECSDA_SIG(const ECDSA_SIG *sig) {
+    OpenSSLGuardedOutputBuffer<unsigned char> outputBuffer;
+    /**
+     * The OpenSSL documentation for i2d_ECDSA_SIG is incomplete. As a parameter like unsigned char **pp
+     * already suggests, this is an output parameter. If *pp is nullptr, OpenSSL will allocate the memory
+     * needed to store the DER-encoded signature for us. This memory is then to be freed by the caller.
+     * In order to allow for simple error handling, the RAII-style minimal unique_ptr OpenSSLGuardedOutputBuffer
+     * is used. It provides access to the internal pointer via get() and frees the memory if it isn't a
+     *  nullptr at the time of destruction.
+     */
+    int result = lib::OpenSSLLib::SSL_i2d_ECDSA_SIG(sig, &outputBuffer.get());
+    if (result <= 0) {
+        throw OpenSSLException("ECSDA Signature serialization to DER failed.");
+    } else {
+        if (outputBuffer == nullptr) {
+            throw OpenSSLException("ECSDA Signature serialization to DER failed: Returned no data");
+        }
+        return std::vector<uint8_t>(outputBuffer.get(), outputBuffer.get() + result);
+    }
 }
 
 void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass, const std::vector<uint8_t> salt, int iter,
