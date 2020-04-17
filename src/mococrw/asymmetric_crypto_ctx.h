@@ -501,11 +501,40 @@ public:
      */
     ~ECDSASignaturePublicKeyCtx();
 
+    /**
+     * Verifies an ECSDA signature against the given digest hash.
+     * It expects the ECSDA signature in the common ASN.1 encoding
+     * format SEQUENCE (INT r , INT s)
+     */
     void verifyDigest(const std::vector<uint8_t> &signature,
                       const std::vector<uint8_t> &digest) override;
 
+    /**
+     * Verifies an ECSDA signature against the given message
+     * It expects the ECSDA signature in the common ASN.1 encoding
+     * format SEQUENCE (INT r , INT s)
+     */
     void verifyMessage(const std::vector<uint8_t> &signature,
                        const std::vector<uint8_t> &message) override;
+
+
+    /**
+     * Verifies an ECSDA signature against the given digest hash.
+     * It expects the ECSDA signature in the IEEE 1363 format in which
+     * the two integers r and s are padded to the length of the ECC key
+     * and then just (binary)-concatenated together
+     */
+    void verifyDigestIEEE1363(const std::vector<uint8_t> &signature,
+                              const std::vector<uint8_t> &digest);
+
+    /**
+     * Verifies an ECSDA signature against the given message.
+     * It expects the ECSDA signature in the IEEE 1363 format in which
+     * the two (unsigned) integers r and s are padded to the length of
+     * the ECC key and then just (binary)-concatenated together
+     */
+    void verifyMessageIEEE1363(const std::vector<uint8_t> &signature,
+                               const std::vector<uint8_t> &message);
 
 private:
     /**

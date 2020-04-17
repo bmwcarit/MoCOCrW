@@ -44,6 +44,11 @@ public:
     virtual void SSL_EC_KEY_free(EC_KEY* key) = 0;
     virtual EC_KEY* SSL_EC_KEY_new() = 0;
     virtual int SSL_EC_KEY_oct2key(EC_KEY* eckey, const unsigned char* buf, size_t len) = 0;
+    virtual int SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char ** pp) = 0;
+    virtual int SSL_ECDSA_SIG_set0(ECDSA_SIG* sig, BIGNUM* r, BIGNUM* s) = 0;
+    virtual void SSL_ECDSA_SIG_free(ECDSA_SIG* sig) = 0;
+    virtual ECDSA_SIG* SSL_ECDSA_SIG_new() = 0;
+    virtual BIGNUM* SSL_BN_bin2bn(const unsigned char* s, int len, BIGNUM*  ret) = 0;
     virtual void SSL_HMAC_CTX_free(HMAC_CTX* ctx) = 0;
     virtual HMAC_CTX* SSL_HMAC_CTX_new() = 0;
     virtual int SSL_HMAC_Final(HMAC_CTX* ctx, unsigned char* md, unsigned int* len) = 0;
@@ -333,6 +338,12 @@ public:
     MOCK_METHOD1(SSL_EC_KEY_free, void(EC_KEY*));
     MOCK_METHOD0(SSL_EC_KEY_new, EC_KEY*());
     MOCK_METHOD3(SSL_EC_KEY_oct2key, int(EC_KEY*, const unsigned char*, size_t));
+    MOCK_METHOD2(SSL_i2d_ECDSA_SIG, int(const ECDSA_SIG*, unsigned char **));
+    MOCK_METHOD3(SSL_ECDSA_SIG_set0, int(ECDSA_SIG*, BIGNUM*, BIGNUM*));
+    MOCK_METHOD1(SSL_ECDSA_SIG_set0, int(ECDSA_SIG*));
+    MOCK_METHOD1(SSL_ECDSA_SIG_free, void(ECDSA_SIG*));
+    MOCK_METHOD0(SSL_ECDSA_SIG_new, ECDSA_SIG*());
+    MOCK_METHOD3(SSL_BN_bin2bn, BIGNUM*(const unsigned char*, int, BIGNUM* ));
     MOCK_METHOD1(SSL_HMAC_CTX_free, void(HMAC_CTX*));
     MOCK_METHOD0(SSL_HMAC_CTX_new, HMAC_CTX*());
     MOCK_METHOD3(SSL_HMAC_Final, int(HMAC_CTX*, unsigned char*, unsigned int*));

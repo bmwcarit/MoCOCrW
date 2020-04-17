@@ -80,6 +80,9 @@ protected:
     static const std::vector<uint8_t>& _validPKCS1SignatureSHA256;
     static const std::vector<uint8_t>& _validEccSignatureSHA1;
 
+    static const std::vector<uint8_t>& _validEccIEEE1363SignatureSHA1;
+    static const std::vector<uint8_t>& _eccIEEE1363SignatureSHA1SwappedInts;
+
     /* Pre-configured padding modes for RSA operations */
     static const std::shared_ptr<PKCSPadding> _PKCSPadding;
     static const std::shared_ptr<PSSPadding> _PSSPadding;
@@ -571,6 +574,24 @@ const std::vector<uint8_t>& SignatureTest::_validEccSignatureSHA1 = SignatureTes
 const std::vector<uint8_t>& SignatureTest::_validEd448Signature = SignatureTestData[12].validSignature;
 const std::vector<uint8_t>& SignatureTest::_validEd25519Signature = SignatureTestData[14].validSignature;
 
+const std::vector<uint8_t>& SignatureTest::_validEccIEEE1363SignatureSHA1 = {
+    /* r */
+    0x08, 0x2d, 0x04, 0x4c, 0x12, 0xf1, 0x9a, 0xab, 0x29, 0x58, 0x5c, 0x58, 0x44, 0xab, 0x67, 0xc9,
+    0x33, 0x0c, 0x2e, 0x20, 0x04, 0xf5, 0xa3, 0xc1, 0x14, 0xdf, 0x26, 0xed, 0x13, 0x7e, 0x5d, 0xc0,
+    /* s */
+    0x59, 0x5f, 0xd6, 0x88, 0xaa, 0x2e, 0x29, 0xde, 0xf9, 0x38, 0x58, 0x7d, 0x58, 0x28, 0xd7, 0x79,
+    0x9a, 0xd6, 0x20, 0x30, 0xae, 0x7e, 0xfb, 0x04, 0xa9, 0x70, 0xec, 0x0b, 0x17, 0xf3, 0x2d, 0x20,
+};
+
+const std::vector<uint8_t>& SignatureTest::_eccIEEE1363SignatureSHA1SwappedInts = {
+    /* s */
+    0x59, 0x5f, 0xd6, 0x88, 0xaa, 0x2e, 0x29, 0xde, 0xf9, 0x38, 0x58, 0x7d, 0x58, 0x28, 0xd7, 0x79,
+    0x9a, 0xd6, 0x20, 0x30, 0xae, 0x7e, 0xfb, 0x04, 0xa9, 0x70, 0xec, 0x0b, 0x17, 0xf3, 0x2d, 0x20,
+    /* r */
+    0x08, 0x2d, 0x04, 0x4c, 0x12, 0xf1, 0x9a, 0xab, 0x29, 0x58, 0x5c, 0x58, 0x44, 0xab, 0x67, 0xc9,
+    0x33, 0x0c, 0x2e, 0x20, 0x04, 0xf5, 0xa3, 0xc1, 0x14, 0xdf, 0x26, 0xed, 0x13, 0x7e, 0x5d, 0xc0,
+};
+
 const std::vector<uint8_t> SignatureTest::signVerifyTestMessage = {
     'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'
 };
@@ -743,6 +764,76 @@ TEST_F(SignatureTest, testUnsuccessfulEccVerificationWithWrongPublicKey)
     auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_invalidEccPublicKey, DigestTypes::SHA1);
     ASSERT_THROW(verifyCtx1.verifyDigest(_validEccSignatureSHA1,  _testMessageDigestSHA1),
                  MoCOCrWException);
+}
+
+/**
+ * @brief Successful validation of IEEE 1363 encoded ECDSA signature
+ */
+TEST_F(SignatureTest, testSuccessfulEccVerificationInIEEE1363Format)
+{
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_NO_THROW(verifyCtx1.verifyDigestIEEE1363(_validEccIEEE1363SignatureSHA1,  _testMessageDigestSHA1));
+}
+
+/**
+ * @brief Successful validation of IEEE 1363 encoded ECDSA signature for message
+ */
+TEST_F(SignatureTest, testSuccessfulEccMessageVerificationInIEEE1363Format)
+{
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_NO_THROW(verifyCtx1.verifyMessageIEEE1363(_validEccIEEE1363SignatureSHA1,  signVerifyTestMessage));
+}
+
+/**
+ * @brief Failed validation of IEEE 1363 encoded ECDSA signature with r and s swapped
+ */
+TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenRandSAreSwapped)
+{
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(_eccIEEE1363SignatureSHA1SwappedInts,  signVerifyTestMessage), MoCOCrWException);
+}
+
+/**
+ * @brief Failed message validation of IEEE 1363 encoded ECDSA signature with r and s swapped
+ */
+TEST_F(SignatureTest, testfailedEccMessageVerificationInIEEE1363FormatWhenRandSAreSwapped)
+{
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_THROW(verifyCtx1.verifyMessageIEEE1363(_eccIEEE1363SignatureSHA1SwappedInts,  _testMessageDigestSHA1), MoCOCrWException);
+}
+
+/**
+ * @brief Failed validation of IEEE 1363 encoded ECDSA signature when signature too short
+ */
+TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenSignatureTooShort)
+{
+    auto eccIEEE1363Signature = _validEccIEEE1363SignatureSHA1;
+    eccIEEE1363Signature.resize(eccIEEE1363Signature.size()-2);
+
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
+}
+
+/**
+ * @brief Failed validation of IEEE 1363 encoded ECDSA signature when signature too long
+ */
+TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenSignatureTooLong)
+{
+    auto eccIEEE1363Signature = _validEccIEEE1363SignatureSHA1;
+    eccIEEE1363Signature.push_back(23);
+    eccIEEE1363Signature.push_back(42);
+
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
+}
+
+/**
+ * @brief Failed validation of IEEE 1363 encoded ECDSA signature with standard validation call
+ */
+TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenASN1Expected)
+{
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
+    ASSERT_THROW(verifyCtx1.verifyDigest(_validEccIEEE1363SignatureSHA1,  _testMessageDigestSHA1), MoCOCrWException);
 }
 
 /**

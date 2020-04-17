@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2018-2020 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -512,10 +512,36 @@ namespace mococrw {
             throw MoCOCrWException(e.what());
         }
     }
-    
+
+    void ECDSASignaturePublicKeyCtx::verifyDigestIEEE1363(const std::vector<uint8_t> &signature,
+                                                          const std::vector<uint8_t> &messageDigest) {
+        /* We reformat the signature to the ASN.1 format understood by OpenSSL and then pass it on
+         * to the standard verification function.
+         */
+        size_t keySizeBytes = (_impl->key.getKeySize() + 7) / 8;
+        if (signature.size() != 2*keySizeBytes) {
+            throw MoCOCrWException("Invalid signature size.");
+        }
+        auto r = _BN_bin2bn(signature.data(), keySizeBytes);
+        auto s = _BN_bin2bn(signature.data() + keySizeBytes, keySizeBytes);
+        if (r == nullptr || s == nullptr) {
+            throw MoCOCrWException("Cannot extract ECSDA signature components");
+        }
+        auto ecdsa = createManagedOpenSSLObject<SSL_ECDSA_SIG_Ptr>();
+        _ECDSA_SIG_set0(ecdsa.get(), std::move(r), std::move(s));
+        auto asn1Signature = _i2d_ECSDA_SIG(ecdsa.get());
+        return verifyDigest(asn1Signature, messageDigest);
+    }
+
+
     void ECDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
                                                    const std::vector<uint8_t> &message) {
         verifyDigest(signature, createHash(_impl->hashFunction, message));
+    }
+
+    void ECDSASignaturePublicKeyCtx::verifyMessageIEEE1363(const std::vector<uint8_t> &signature,
+                                                           const std::vector<uint8_t> &message) {
+        verifyDigestIEEE1363(signature, createHash(_impl->hashFunction, message));
     }
 
     /* ###########
