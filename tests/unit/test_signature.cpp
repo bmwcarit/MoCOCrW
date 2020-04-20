@@ -771,8 +771,9 @@ TEST_F(SignatureTest, testUnsuccessfulEccVerificationWithWrongPublicKey)
  */
 TEST_F(SignatureTest, testSuccessfulEccVerificationInIEEE1363Format)
 {
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_NO_THROW(verifyCtx1.verifyDigestIEEE1363(_validEccIEEE1363SignatureSHA1,  _testMessageDigestSHA1));
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_NO_THROW(verifyCtx1.verifyDigest(_validEccIEEE1363SignatureSHA1,  _testMessageDigestSHA1));
 }
 
 /**
@@ -780,8 +781,9 @@ TEST_F(SignatureTest, testSuccessfulEccVerificationInIEEE1363Format)
  */
 TEST_F(SignatureTest, testSuccessfulEccMessageVerificationInIEEE1363Format)
 {
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_NO_THROW(verifyCtx1.verifyMessageIEEE1363(_validEccIEEE1363SignatureSHA1,  signVerifyTestMessage));
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_NO_THROW(verifyCtx1.verifyMessage(_validEccIEEE1363SignatureSHA1,  signVerifyTestMessage));
 }
 
 /**
@@ -789,8 +791,9 @@ TEST_F(SignatureTest, testSuccessfulEccMessageVerificationInIEEE1363Format)
  */
 TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenRandSAreSwapped)
 {
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(_eccIEEE1363SignatureSHA1SwappedInts,  signVerifyTestMessage), MoCOCrWException);
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_THROW(verifyCtx1.verifyDigest(_eccIEEE1363SignatureSHA1SwappedInts,  signVerifyTestMessage), MoCOCrWException);
 }
 
 /**
@@ -798,8 +801,9 @@ TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenRandSAreSwapp
  */
 TEST_F(SignatureTest, testfailedEccMessageVerificationInIEEE1363FormatWhenRandSAreSwapped)
 {
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_THROW(verifyCtx1.verifyMessageIEEE1363(_eccIEEE1363SignatureSHA1SwappedInts,  _testMessageDigestSHA1), MoCOCrWException);
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_THROW(verifyCtx1.verifyMessage(_eccIEEE1363SignatureSHA1SwappedInts,  _testMessageDigestSHA1), MoCOCrWException);
 }
 
 /**
@@ -810,8 +814,9 @@ TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenSignatureTooS
     auto eccIEEE1363Signature = _validEccIEEE1363SignatureSHA1;
     eccIEEE1363Signature.resize(eccIEEE1363Signature.size()-2);
 
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_THROW(verifyCtx1.verifyDigest(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
 }
 
 /**
@@ -823,8 +828,9 @@ TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenSignatureTooL
     eccIEEE1363Signature.push_back(23);
     eccIEEE1363Signature.push_back(42);
 
-    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1);
-    ASSERT_THROW(verifyCtx1.verifyDigestIEEE1363(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA1,
+                                                 ECSDASignatureFormat::IEEE1363);
+    ASSERT_THROW(verifyCtx1.verifyDigest(eccIEEE1363Signature,  _testMessageDigestSHA1), MoCOCrWException);
 }
 
 /**
