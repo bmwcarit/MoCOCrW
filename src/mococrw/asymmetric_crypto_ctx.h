@@ -458,6 +458,13 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
+/** @brief Serialization formats for ECDSA signatures
+ */
+enum class ECSDASignatureFormat {
+    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
+    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
+               *   as specified in IEEE 1363 */
+};
 
 /**
  * @brief ECDSASignaturePublicKeyCtx
@@ -480,12 +487,34 @@ public:
     /**
      * @brief Constructor
      *
+     * @param key The public key to be used
+     * @param hashFunction The hash function to be used
+     * @param sigFormat The format that in which signatures are provided
+     * @throw MoCOCrWException If key is not an ECC public key
+     */
+    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
+                               ECSDASignatureFormat sigFormat);
+
+    /**
+     * @brief Constructor
+     *
      * @param cert The certificate containing the public key to be used
      * @param hashFunction The hash function to be used
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
      */
     ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
                                openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
+
+    /**
+     * @brief Constructor
+     *
+     * @param cert The certificate containing the public key to be used
+     * @param hashFunction The hash function to be used
+     * @param sigFormat The format that in which signatures are provided
+     * @throw MoCOCrWException If cert doesn't contain an ECC public key
+     */
+    ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
+                               ECSDASignatureFormat sigFormat);
     /**
      * @brief Copy Constructor
      */
@@ -501,40 +530,11 @@ public:
      */
     ~ECDSASignaturePublicKeyCtx();
 
-    /**
-     * Verifies an ECSDA signature against the given digest hash.
-     * It expects the ECSDA signature in the common ASN.1 encoding
-     * format SEQUENCE (INT r , INT s)
-     */
     void verifyDigest(const std::vector<uint8_t> &signature,
                       const std::vector<uint8_t> &digest) override;
 
-    /**
-     * Verifies an ECSDA signature against the given message
-     * It expects the ECSDA signature in the common ASN.1 encoding
-     * format SEQUENCE (INT r , INT s)
-     */
     void verifyMessage(const std::vector<uint8_t> &signature,
                        const std::vector<uint8_t> &message) override;
-
-
-    /**
-     * Verifies an ECSDA signature against the given digest hash.
-     * It expects the ECSDA signature in the IEEE 1363 format in which
-     * the two integers r and s are padded to the length of the ECC key
-     * and then just (binary)-concatenated together
-     */
-    void verifyDigestIEEE1363(const std::vector<uint8_t> &signature,
-                              const std::vector<uint8_t> &digest);
-
-    /**
-     * Verifies an ECSDA signature against the given message.
-     * It expects the ECSDA signature in the IEEE 1363 format in which
-     * the two (unsigned) integers r and s are padded to the length of
-     * the ECC key and then just (binary)-concatenated together
-     */
-    void verifyMessageIEEE1363(const std::vector<uint8_t> &signature,
-                               const std::vector<uint8_t> &message);
 
 private:
     /**

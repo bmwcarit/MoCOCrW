@@ -463,20 +463,96 @@ namespace mococrw {
         return signDigest(createHash(_impl->hashFunction, message));
     }
 
+namespace {
+    std::vector<uint8_t> _IEEE1363EcSignatureToAsn1ECSignature(const std::vector<uint8_t> &signature,
+                                                               size_t keySizeBytes) {
+        if (signature.size() != 2*keySizeBytes) {
+            throw MoCOCrWException("Invalid signature size.");
+        }
+        auto r = _BN_bin2bn(signature.data(), keySizeBytes);
+        auto s = _BN_bin2bn(signature.data() + keySizeBytes, keySizeBytes);
+        if (r == nullptr || s == nullptr) {
+            throw MoCOCrWException("Cannot extract ECSDA signature components");
+        }
+        auto ecdsa = createManagedOpenSSLObject<SSL_ECDSA_SIG_Ptr>();
+        _ECDSA_SIG_set0(ecdsa.get(), std::move(r), std::move(s));
+        return _i2d_ECSDA_SIG(ecdsa.get());
+    }
+}
+
     /*
      * PIMPL-Class for ECDSASignaturePublicKeyCtx
      */
     class ECDSASignaturePublicKeyCtx::Impl : public ECDSAImpl<AsymmetricPublicKey> {
-        using ECDSAImpl<AsymmetricPublicKey>::ECDSAImpl;
+    public:
+        Impl(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction, ECSDASignatureFormat format)
+            : ECDSAImpl{key, hashFunction},
+              _sigFormat{format}
+            {}
+
+        void verifyDigest(const std::vector<uint8_t> &signature,
+                          const std::vector<uint8_t> &messageDigest) {
+            if (_sigFormat == ECSDASignatureFormat::IEEE1363) {
+                size_t keySizeBytes = (key.getKeySize() + 7) / 8;
+                auto asn1Signature = _IEEE1363EcSignatureToAsn1ECSignature(signature, keySizeBytes);
+                _verifyAsn1(asn1Signature, messageDigest);
+            } else if (_sigFormat == ECSDASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
+                _verifyAsn1(signature, messageDigest);
+            } else {
+                throw MoCOCrWException("ECDSA Signature type not recognized.");
+            }
+        }
+
+        void verifyMessage(const std::vector<uint8_t> &signature,
+                           const std::vector<uint8_t> &message) {
+            verifyDigest(signature, createHash(hashFunction, message));
+        }
+
+    private:
+        void _verifyAsn1(const std::vector<uint8_t> &signature,
+                         const std::vector<uint8_t> &messageDigest) {
+
+            size_t expectedDigestSize = Hash::getDigestSize(hashFunction);
+            if (messageDigest.size() != expectedDigestSize) {
+                throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
+                                                    % expectedDigestSize).str());
+            }
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(key.internal());
+                _EVP_PKEY_verify_init(keyCtx.get());
+
+                _EVP_PKEY_verify(keyCtx.get(),
+                                 reinterpret_cast<const unsigned char *>(signature.data()),
+                                 signature.size(),
+                                 reinterpret_cast<const unsigned char *>(messageDigest.data()),
+                                 messageDigest.size());
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+        }
+
+        ECSDASignatureFormat _sigFormat;
     };
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+                                                           openssl::DigestTypes hashFunction,
+                                                           ECSDASignatureFormat format)
+        : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(key, hashFunction, format)) {}
+
+    ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
                                                            openssl::DigestTypes hashFunction)
-        : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(key, hashFunction)) {}
+        : ECDSASignaturePublicKeyCtx(key, hashFunction, ECSDASignatureFormat::ASN1_SEQUENCE_OF_INTS) {}
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
                                                            openssl::DigestTypes hashFunction)
         : ECDSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction) {}
+
+    ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+                                                           openssl::DigestTypes hashFunction,
+                                                           ECSDASignatureFormat format)
+        : ECDSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction, format) {}
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const ECDSASignaturePublicKeyCtx& other)
         : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}
@@ -491,57 +567,13 @@ namespace mococrw {
 
     void ECDSASignaturePublicKeyCtx::verifyDigest(const std::vector<uint8_t> &signature,
                                                   const std::vector<uint8_t> &messageDigest) {
-
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
-        if (messageDigest.size() != expectedDigestSize) {
-            throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
-                                                  % expectedDigestSize).str());
-        }
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            _EVP_PKEY_verify_init(keyCtx.get());
-
-            _EVP_PKEY_verify(keyCtx.get(),
-                             reinterpret_cast<const unsigned char *>(signature.data()),
-                             signature.size(),
-                             reinterpret_cast<const unsigned char *>(messageDigest.data()),
-                             messageDigest.size());
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
-    }
-
-    void ECDSASignaturePublicKeyCtx::verifyDigestIEEE1363(const std::vector<uint8_t> &signature,
-                                                          const std::vector<uint8_t> &messageDigest) {
-        /* We reformat the signature to the ASN.1 format understood by OpenSSL and then pass it on
-         * to the standard verification function.
-         */
-        size_t keySizeBytes = (_impl->key.getKeySize() + 7) / 8;
-        if (signature.size() != 2*keySizeBytes) {
-            throw MoCOCrWException("Invalid signature size.");
-        }
-        auto r = _BN_bin2bn(signature.data(), keySizeBytes);
-        auto s = _BN_bin2bn(signature.data() + keySizeBytes, keySizeBytes);
-        if (r == nullptr || s == nullptr) {
-            throw MoCOCrWException("Cannot extract ECSDA signature components");
-        }
-        auto ecdsa = createManagedOpenSSLObject<SSL_ECDSA_SIG_Ptr>();
-        _ECDSA_SIG_set0(ecdsa.get(), std::move(r), std::move(s));
-        auto asn1Signature = _i2d_ECSDA_SIG(ecdsa.get());
-        return verifyDigest(asn1Signature, messageDigest);
+        _impl->verifyDigest(signature, messageDigest);
     }
 
 
     void ECDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
                                                    const std::vector<uint8_t> &message) {
-        verifyDigest(signature, createHash(_impl->hashFunction, message));
-    }
-
-    void ECDSASignaturePublicKeyCtx::verifyMessageIEEE1363(const std::vector<uint8_t> &signature,
-                                                           const std::vector<uint8_t> &message) {
-        verifyDigestIEEE1363(signature, createHash(_impl->hashFunction, message));
+        _impl->verifyMessage(signature, message);
     }
 
     /* ###########
