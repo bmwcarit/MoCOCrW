@@ -39,10 +39,14 @@ public:
             tmp += "a string which will be concatenated multiple times-";
         }
         _plaintext = {tmp.begin(), tmp.end()};
+
+        std::string associatedData = "This string will be authenticated.";
+        _associatedData = {associatedData.begin(), associatedData.end()};
     }
 
     std::vector<uint8_t> _secretKey;
     std::vector<uint8_t> _plaintext;
+    std::vector<uint8_t> _associatedData;
 };
 
 struct SymmetricCipherReferenceTestData {
@@ -531,4 +535,81 @@ TEST_F(SymmetricAuthenticatedCipherTest, throwsWhenWrongTagIsUsed) {
     decryptor->setAuthTag(tag);
 
     ASSERT_THROW(decryptor->finish(), MoCOCrWException);
+}
+
+TEST_F(SymmetricAuthenticatedCipherTest, authenticatesAssociatedData) {
+    auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.buildAuthenticatedEncryptor();
+
+    encryptor->addAssociatedData(_associatedData);
+    encryptor->update(_plaintext);
+    auto ciphertext = encryptor->finish();
+    auto tag = encryptor->getAuthTag();
+
+    auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.setIV(encryptor->getIV()).buildAuthenticatedDecryptor();
+
+    decryptor->addAssociatedData(_associatedData);
+    decryptor->update(ciphertext);
+    decryptor->setAuthTag(tag);
+    auto decryptedText = decryptor->finish();
+    ASSERT_THAT(decryptedText, ::testing::ElementsAreArray(_plaintext));
+}
+
+TEST_F(SymmetricAuthenticatedCipherTest, throwsIfaddAssociatedDataCalledAfterUpdate) {
+    auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.buildAuthenticatedEncryptor();
+
+    encryptor->update(_plaintext);
+    ASSERT_THROW(encryptor->addAssociatedData(_associatedData), MoCOCrWException);
+}
+
+TEST_F(SymmetricAuthenticatedCipherTest, throwsIfAssociatedDataMissingOrModified) {
+    auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.buildAuthenticatedEncryptor();
+
+    encryptor->addAssociatedData(_associatedData);
+    encryptor->update(_plaintext);
+    auto ciphertext = encryptor->finish();
+    auto tag = encryptor->getAuthTag();
+
+    auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.setIV(encryptor->getIV()).buildAuthenticatedDecryptor();
+    decryptor->setAuthTag(tag);
+    _associatedData[2] ^= 1;
+    decryptor->addAssociatedData(_associatedData);
+    decryptor->update(ciphertext);
+
+    ASSERT_THROW(decryptor->finish(), MoCOCrWException);
+
+    auto decryptor2 = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                      SymmetricCipherKeySize::S_256,
+                                      _secretKey}.setIV(encryptor->getIV()).buildAuthenticatedDecryptor();
+    decryptor2->setAuthTag(tag);
+    decryptor2->update(ciphertext);
+
+    ASSERT_THROW(decryptor2->finish(), MoCOCrWException);
+}
+
+TEST_F(SymmetricAuthenticatedCipherTest, cipherTextSameWithAndWithoutAssociatedData) {
+    const std::vector<uint8_t> iv = utility::fromHex("db0a66d2e812a3416c72f9c10280d100");
+    auto aesCipherBuilder = AESCipherBuilder{SymmetricCipherMode::GCM,
+                                             SymmetricCipherKeySize::S_256,
+                                             _secretKey}.setIV(iv);
+
+    auto encryptor1 = aesCipherBuilder.buildAuthenticatedEncryptor();
+    encryptor1->addAssociatedData(_associatedData);
+    encryptor1->update(_plaintext);
+    auto ciphertext1 = encryptor1->finish();
+
+    auto encryptor2 = aesCipherBuilder.buildAuthenticatedEncryptor();
+    encryptor2->update(_plaintext);
+    auto ciphertext2 = encryptor2->finish();
+
+    ASSERT_EQ(ciphertext1, ciphertext2);
 }
