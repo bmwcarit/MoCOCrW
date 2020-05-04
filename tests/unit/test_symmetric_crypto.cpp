@@ -504,8 +504,8 @@ TEST_F(SymmetricAuthenticatedCipherTest, throwsWhenCiphertextWasModified) {
     auto ciphertext = encryptor->finish();
     auto tag = encryptor->getAuthTag();
 
-    // flip a byte in authenticated ciphertext
-    ciphertext[4] ^= ciphertext[4];
+    // flip a bit in authenticated ciphertext
+    ciphertext[4] ^= 1;
 
     auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
                                       SymmetricCipherKeySize::S_256,
@@ -525,8 +525,8 @@ TEST_F(SymmetricAuthenticatedCipherTest, throwsWhenWrongTagIsUsed) {
     auto ciphertext = encryptor->finish();
     auto tag = encryptor->getAuthTag();
 
-    // flip a byte in the tag
-    tag[4] ^= tag[4];
+    // flip a bit in the tag
+    tag[4] ^= 1;
 
     auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM,
                                       SymmetricCipherKeySize::S_256,
