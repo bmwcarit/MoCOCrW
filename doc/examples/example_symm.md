@@ -57,12 +57,19 @@ assert(std::equal(plaintext.begin(), plaintext.end(), decryptedtext.begin()));
 
 Authenticated ciphers not only encrypt data but also compute authentication tag over it. It allows to detect if data was modified after it was encrypted.
 
+It is also possible to associate additional unencrypted data with the message. The authentication tag will ensure the integrity of both encrypted and unencrypted data in that case. This is, e.g., used to protect the integrity of header fields that contain metadata that need to be visible on transport.
+
 Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption we take computed authentication tag and carry it along with the message for further authentication.
 
 ```c++
 
 std::string message{"This is a message we going to encrypt and then, hopefully, decrypt."};
 std::vector<uint8_t> plaintext{message.begin(), message.end()};
+
+// Optional: Associated data
+std::string data{"This is a message we are not going to encrypt but want to make sure arrived unchanged."};
+std::vector<uint8_t> associatedData{data.begin(), data.end()};
+
 
 auto secretKey = utility::cryptoRandomBytes(256/8);
 
@@ -78,6 +85,9 @@ auto secretKey = utility::cryptoRandomBytes(256/8);
 // function will throw.
 auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
 
+// Optional step: Associating additional unencrypted data with the message
+encryptor->addAssociatedData(associatedData);
+
 encryptor->update(plaintext);
 auto ciphertext = encryptor->finish();
 
@@ -90,6 +100,10 @@ auto authTag = encryptor->getAuthTag();
 //
 
 auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
+
+// Optional step: If associated data was set during encryption, add it here for the integrity check
+decryptor->addAssociatedData(associatedData);
+
 decryptor->update(ciphertext);
 
 // Set authentication tag **before** calling `finish()`.

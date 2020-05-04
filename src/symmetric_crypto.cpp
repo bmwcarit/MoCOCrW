@@ -160,6 +160,27 @@ public:
             processedChunk.resize(processingChunkSize);
             _bufferStrategy->write(std::move(processedChunk));
         }
+
+        _isUpdated = true;
+    }
+
+    void addAssociatedData(const std::vector<uint8_t> &associatedData)
+    {
+        if (_isUpdated) {
+            throw MoCOCrWException(
+                    "Further calls to addAssociatedData() are not allowed once update() was called.");
+        }
+        if (_isFinished) {
+            throw MoCOCrWException(
+                    "Further calls to addAssociatedData() are not allowed once finish() was called.");
+        }
+
+        int len = 0;
+        _EVP_CipherUpdate(_ctx.get(),
+                           NULL,
+                           &len,
+                           associatedData.data(),
+                           associatedData.size());
     }
 
     std::vector<uint8_t> read(size_t length)
@@ -239,6 +260,7 @@ private:
     SSL_EVP_CIPHER_CTX_Ptr _ctx = nullptr;
     std::unique_ptr<CipherMemoryStrategyI> _bufferStrategy = nullptr;
     bool _isFinished = false;
+    bool _isUpdated = false;
 
     using EVPCipherConstructor = const EVP_CIPHER *(*)();
 
@@ -336,6 +358,10 @@ void AuthenticatedAESCipher::setAuthTag(const std::vector<uint8_t> &tag)
     _impl->setAuthTag(tag);
 }
 
+void AuthenticatedAESCipher::addAssociatedData(const std::vector<uint8_t> &associatedData)
+{
+    _impl->addAssociatedData(associatedData);
+}
 
 const size_t AESCipherBuilder::DefaultAuthTagLength = 16;
 

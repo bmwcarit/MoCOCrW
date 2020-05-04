@@ -202,6 +202,18 @@ public:
      * @return the auth tag for this encryption operation
      */
     virtual std::vector<uint8_t> getAuthTag() const = 0;
+
+    /**
+     * Add associated data.
+     *
+     * This function adds the associated data in AEAD modes for authenticating while encrypting or verifying while
+     * decrypting. addAssociatedData() can be called multiple times but it must be called before finalizing decryption
+     * using SymmetricCipherI::finish() and before putting encrypted data to the message
+     * using SymmetricCipherI::update()
+     *
+     * @param associatedData chunk of data to associate/verify.
+     */
+    virtual void addAssociatedData(const std::vector<uint8_t> &associatedData) = 0;
 };
 
 class AESCipherBuilder;
@@ -253,6 +265,7 @@ public:
     // Implementation of AuthenticatedEncryptionI
     std::vector<uint8_t> getAuthTag() const override;
     void setAuthTag(const std::vector<uint8_t> &tag) override;
+    void addAssociatedData(const std::vector<uint8_t> &associatedData) override;
 
 private:
     friend AESCipherBuilder;
