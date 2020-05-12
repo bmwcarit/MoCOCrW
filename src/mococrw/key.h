@@ -94,10 +94,10 @@ public:
     /**
      * @brief Returns a public key object based on the provided EC point
      *
-     * This function creates a key object based on the point(s) in octet form  and the elliptic curve group given by
+     * This function creates a key object based on the point(s) in octet form and the elliptic curve group given by
      * keySpec.
-     * The leading identifier (0x03 for compressed, 0x04 for uncompressed points. 0x07 for hybrid points) has to be in
-     * place.
+     * The leading byte with the point conversion form identifier (0x02 or 0x03 for compressed, 0x04 for uncompressed,
+     * 0x06 or 0x07 for hybrid points) has to be in place.
      *
      * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
      * MoCOCrWException is thrown.
@@ -112,8 +112,8 @@ public:
     /**
      * @brief This returns the point(s) of the current AsymmetricPublicKey in octet representation.
      *
-     * Depending on the form the correct identifier will be prepended to the actual point (0x03 for compressed point,
-     * 0x04 for uncompressed points. 0x07 for hybrid points).
+     * Depending on the conversion form the correct identifier will be prepended to the actual point (0x02 or 0x03 for
+     * compressed form, 0x04 for uncompressed form. 0x06 or 0x07 for hybrid form).
      *
      * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
      * MoCOCrWException is thrown.
@@ -122,6 +122,17 @@ public:
      * @return The octet representation of the public key. The form of the point is defined by the argument form.
      */
     std::vector<uint8_t> toECPoint(openssl::EllipticCurvePointConversionForm form);
+
+    /**
+     * @brief Get length of the point of the current AsymmetricPublicKey in octet representation
+     *
+     * Depending on the public key length and the elliptic curve point conversion form, the public key will take different
+     * amount of bytes when encoded. This function can be used to conveniently deduct the encoded length while deserializing.
+     * @param form Conversion form
+     * @return Encoded public key size in bytes
+     * @throws MoCOCrWException if the key is not of type AsymmetricKey::KeyTypes::ECC
+     */
+    size_t getECOctetLength(openssl::EllipticCurvePointConversionForm form);
 
     /**
      * Getters for the internal openSSL object.

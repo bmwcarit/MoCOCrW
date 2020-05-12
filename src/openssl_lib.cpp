@@ -130,6 +130,11 @@ const EC_GROUP* OpenSSLLib::SSL_EC_KEY_get0_group(const EC_KEY *key) noexcept
     return EC_KEY_get0_group(key);
 }
 
+int OpenSSLLib::SSL_EC_GROUP_get_degree(const EC_GROUP *group) noexcept
+{
+    return EC_GROUP_get_degree(group);
+}
+
 int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept
 {
     return EC_GROUP_get_curve_name(group);
@@ -484,10 +489,10 @@ STACK_OF(X509)* OpenSSLLib::SSL_sk_X509_new_null() noexcept
 
 int OpenSSLLib::SSL_sk_X509_push(STACK_OF(X509)* stack, const X509 *crt) noexcept
 {
-    /* 
+    /*
      * This const_cast was added to maintain API compatibility with OpenSSL, and const
-     * correctness is reestablished inside the function call via a cast to const.   
-     */ 
+     * correctness is reestablished inside the function call via a cast to const.
+     */
     return sk_X509_push(stack,  const_cast<X509*>(crt));
 }
 
@@ -693,10 +698,10 @@ STACK_OF(X509_CRL)* OpenSSLLib::SSL_sk_X509_CRL_new_null() noexcept
 
 int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept
 {
-    /* 
+    /*
      * This const_cast was added to maintain API compatibility with OpenSSL, and const
-     * correctness is reestablished inside the function call via a cast to const.   
-     */ 
+     * correctness is reestablished inside the function call via a cast to const.
+     */
     return sk_X509_CRL_push(stack, const_cast<X509_CRL*>(crl));
 }
 
