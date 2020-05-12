@@ -131,6 +131,23 @@ std::vector<uint8_t> AsymmetricPublicKey::toECPoint(EllipticCurvePointConversion
     return _EC_KEY_key2buf(internal(), static_cast<point_conversion_form_t>(form));
 }
 
+size_t AsymmetricPublicKey::getECOctetLength(openssl::EllipticCurvePointConversionForm form)
+{
+    if (getType() != AsymmetricKey::KeyTypes::ECC) {
+        throw MoCOCrWException("The function getECOctetLength can only be invoked for EC keys.");
+    }
+
+    // See SEC1 section 2.3.3 Elliptic-Curve-Point-to-Octet-String Conversion.
+    // Length is ceil((log2(q))/8)+1 for compressed form and 2*ceil((log2(q))/8)+1 for uncompressed form
+    // where q is the field size which is NOT necessarily the same as key size as the latter can be smaller.
+    const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(internal()));
+    unsigned int field_size = _EC_GROUP_get_degree(group);
+    unsigned int field_size_bytes = (field_size + 7) / 8;
+    size_t enc_len_bytes =
+        form == openssl::EllipticCurvePointConversionForm::compressed ? 1 + field_size_bytes : 1 + 2 * field_size_bytes;
+    return enc_len_bytes;
+}
+
 std::string AsymmetricKeypair::privateKeyToPem(const std::string& pwd) const
 {
     BioObject bio{BioObject::Types::MEM};

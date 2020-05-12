@@ -302,6 +302,12 @@ void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc);
 const EC_GROUP* _EC_KEY_get0_group(const EC_KEY *key);
 
 /**
+ * EC_GROUP_get_degree gets the degree of the field. For Fp fields this will be the number of bits in p. For F2^m
+ * fields this will be the value m.
+ */
+int _EC_GROUP_get_degree(const EC_GROUP *group);
+
+/**
  * Gets the NID of the elliptic curve used to generate the EC key.
  */
 int _EC_GROUP_get_curve_name(const EC_GROUP *group);

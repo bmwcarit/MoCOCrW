@@ -411,6 +411,7 @@ void testKeyTransformation(openssl::ellipticCurveNid nid, EllipticCurvePointConv
 
     AsymmetricPublicKey pubKeyOrig = AsymmetricPublicKey(key.internal());
     std::vector<uint8_t> point = pubKeyOrig.toECPoint(form);
+    ASSERT_EQ(pubKeyOrig.getECOctetLength(form), point.size());
     AsymmetricPublicKey pubKey = AsymmetricPublicKey::fromECPoint(std::make_unique<ECCSpec>(nid), point);
 
     ASSERT_THAT(pubKey == pubKeyOrig, true);

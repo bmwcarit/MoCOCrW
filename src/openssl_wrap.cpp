@@ -263,6 +263,11 @@ const EC_GROUP* _EC_KEY_get0_group(const EC_KEY *key)
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_KEY_get0_group, key);
 }
 
+int _EC_GROUP_get_degree(const EC_GROUP *group)
+{
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EC_GROUP_get_degree, group);
+}
+
 int _EC_GROUP_get_curve_name(const EC_GROUP *group)
 {
     return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EC_GROUP_get_curve_name, group);

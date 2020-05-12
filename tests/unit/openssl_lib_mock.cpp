@@ -182,6 +182,11 @@ const EC_GROUP* OpenSSLLib::SSL_EC_KEY_get0_group(const EC_KEY *key) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_get0_group(key);
 }
 
+int OpenSSLLib::SSL_EC_GROUP_get_degree(const EC_GROUP *group) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_GROUP_get_degree(group);
+}
+
 int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_GROUP_get_curve_name(group);
