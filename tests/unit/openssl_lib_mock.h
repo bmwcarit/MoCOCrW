@@ -35,6 +35,10 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) = 0;
+    virtual const BIGNUM* SSL_ECDSA_SIG_get0_s(const ECDSA_SIG* sig) = 0;
+    virtual const BIGNUM* SSL_ECDSA_SIG_get0_r(const ECDSA_SIG* sig) = 0;
+    virtual ECDSA_SIG* SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig, const unsigned char** pp, long len) = 0;
     virtual int SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_t* keylen) = 0;
     virtual int SSL_EVP_PKEY_derive_set_peer(EVP_PKEY_CTX* ctx, EVP_PKEY* peer) = 0;
     virtual int SSL_EVP_PKEY_derive_init(EVP_PKEY_CTX* ctx) = 0;
@@ -330,6 +334,10 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD3(SSL_BN_bn2binpad, int(const BIGNUM*, unsigned char*, int));
+    MOCK_METHOD1(SSL_ECDSA_SIG_get0_s, const BIGNUM*(const ECDSA_SIG*));
+    MOCK_METHOD1(SSL_ECDSA_SIG_get0_r, const BIGNUM*(const ECDSA_SIG*));
+    MOCK_METHOD3(SSL_d2i_ECDSA_SIG, ECDSA_SIG*(ECDSA_SIG**, const unsigned char**, long));
     MOCK_METHOD3(SSL_EVP_PKEY_derive, int(EVP_PKEY_CTX*, unsigned char*, size_t*));
     MOCK_METHOD2(SSL_EVP_PKEY_derive_set_peer, int(EVP_PKEY_CTX*, EVP_PKEY*));
     MOCK_METHOD1(SSL_EVP_PKEY_derive_init, int(EVP_PKEY_CTX*));

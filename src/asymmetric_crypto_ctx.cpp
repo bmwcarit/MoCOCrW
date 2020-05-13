@@ -400,11 +400,30 @@ namespace mococrw {
      * #  ECDSA  #
      * ###########
      */
+
 namespace {
+    /**
+     * This is required for backwards compatibility, since we had a typo in ECDSA for a while.
+     */
     ECDSASignatureFormat SDAtoDSASignatureFormat (ECSDASignatureFormat sigFormat) {
         return static_cast<ECDSASignatureFormat>(static_cast<int>(sigFormat));
     }
+
+    std::vector<uint8_t> _Asn1ECSignatureToIEEE1363EcSignature(const std::vector<uint8_t> &signature,
+                                                               size_t keySizeBytes) {
+        auto ecdsa = _d2i_ECDSA_SIG(signature);
+
+        auto r = _ECDSA_SIG_get0_r(ecdsa.get());
+        auto s = _ECDSA_SIG_get0_s(ecdsa.get());
+
+        std::vector<uint8_t> ieee = _BN_bn2binpad(r, keySizeBytes);
+        std::vector<uint8_t> s_vec =_BN_bn2binpad(s, keySizeBytes);
+        ieee.insert(ieee.end(), s_vec.begin(), s_vec.end());
+
+        return ieee;
+    }
 }
+
     /*
      * Common base class for all PIMPL classes of the ECDSA contexts
      *
@@ -413,7 +432,8 @@ namespace {
     template <class Key>
     class ECDSAImpl : public SignatureCtxImpl {
     public:
-        ECDSAImpl(const Key& key, openssl::DigestTypes hashFunction) : SignatureCtxImpl(hashFunction), key(key) {
+        ECDSAImpl(const Key& key, openssl::DigestTypes hashFunction, ECDSASignatureFormat sigFormat)
+            : SignatureCtxImpl(hashFunction), key(key), _sigFormat(sigFormat) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::ECC) {
                 throw mococrw::MoCOCrWException("Expected ECC Key for ECC signatures");
@@ -421,18 +441,57 @@ namespace {
         }
 
         Key key;
+    protected:
+        ECDSASignatureFormat _sigFormat;
     };
+
 
     /*
      * PIMPL-Class for ECDSASignaturePrivateKeyCtx
      */
     class ECDSASignaturePrivateKeyCtx::Impl : public ECDSAImpl<AsymmetricPrivateKey> {
+    public:
         using ECDSAImpl<AsymmetricPrivateKey>::ECDSAImpl;
+
+        std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) {
+            std::vector<uint8_t> signature = _signAsn1(messageDigest);
+            if (_sigFormat == ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
+                return signature;
+            } else if (_sigFormat == ECDSASignatureFormat::IEEE1363) {
+                return _Asn1ECSignatureToIEEE1363EcSignature(signature, (key.getKeySize() + 7) / 8);
+            } else {
+                throw MoCOCrWException("ECDSA Signature type not recognized.");
+            }
+        }
+
+    private:
+        std::vector<uint8_t> _signAsn1(const std::vector<uint8_t> &messageDigest) {
+            size_t expectedDigestSize = Hash::getDigestSize(hashFunction);
+            if (messageDigest.size() != expectedDigestSize) {
+                throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
+                                                      % expectedDigestSize).str());
+            }
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(key.internal());
+                _EVP_PKEY_sign_init(keyCtx.get());
+
+                return signHelper(keyCtx, messageDigest);
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+        }
     };
 
     ECDSASignaturePrivateKeyCtx::ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
                                                              openssl::DigestTypes hashFunction)
-        : _impl(std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(key, hashFunction)) {}
+        : _impl(std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(key, hashFunction, ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS)) {}
+
+    ECDSASignaturePrivateKeyCtx::ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
+                                                             openssl::DigestTypes hashFunction,
+                                                             ECDSASignatureFormat sigFormat)
+        : _impl(std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(key, hashFunction, sigFormat)) {}
 
     ECDSASignaturePrivateKeyCtx::ECDSASignaturePrivateKeyCtx(const ECDSASignaturePrivateKeyCtx& other)
         : _impl(std::make_unique<ECDSASignaturePrivateKeyCtx::Impl>(*(other._impl))) {}
@@ -445,21 +504,7 @@ namespace {
     ECDSASignaturePrivateKeyCtx::~ECDSASignaturePrivateKeyCtx() = default;
 
     std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signDigest(const std::vector<uint8_t> &messageDigest) {
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
-        if (messageDigest.size() != expectedDigestSize) {
-            throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
-                                                  % expectedDigestSize).str());
-        }
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            _EVP_PKEY_sign_init(keyCtx.get());
-
-            return signHelper(keyCtx, messageDigest);
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
+        return _impl->signDigest(messageDigest);
     }
 
     std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
@@ -488,10 +533,7 @@ namespace {
      */
     class ECDSASignaturePublicKeyCtx::Impl : public ECDSAImpl<AsymmetricPublicKey> {
     public:
-        Impl(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction, ECDSASignatureFormat format)
-            : ECDSAImpl{key, hashFunction},
-              _sigFormat{format}
-            {}
+        using ECDSAImpl<AsymmetricPublicKey>::ECDSAImpl;
 
         void verifyDigest(const std::vector<uint8_t> &signature,
                           const std::vector<uint8_t> &messageDigest) {
@@ -535,8 +577,6 @@ namespace {
                 throw MoCOCrWException(e.what());
             }
         }
-
-        ECDSASignatureFormat _sigFormat;
     };
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
@@ -566,7 +606,6 @@ namespace {
                                                            openssl::DigestTypes hashFunction,
                                                            ECDSASignatureFormat format)
         : ECDSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction, format) {}
-
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const ECDSASignaturePublicKeyCtx& other)
         : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}

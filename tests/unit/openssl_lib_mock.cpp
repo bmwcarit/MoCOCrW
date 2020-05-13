@@ -1013,6 +1013,22 @@ int OpenSSLLib::SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char ** pp) noe
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_i2d_ECDSA_SIG(sig, pp);
 }
+ECDSA_SIG* OpenSSLLib::SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig, const unsigned char** pp, long len) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_d2i_ECDSA_SIG(sig, pp, len);
+}
+const BIGNUM* OpenSSLLib::SSL_ECDSA_SIG_get0_r(const ECDSA_SIG* sig) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ECDSA_SIG_get0_r(sig);
+}
+const BIGNUM* OpenSSLLib::SSL_ECDSA_SIG_get0_s(const ECDSA_SIG* sig) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ECDSA_SIG_get0_s(sig);
+}
+int OpenSSLLib::SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_BN_bn2binpad(a, to, tolen);
+}
 }  //::lib
 }  //::openssl
 }  //::mococrw

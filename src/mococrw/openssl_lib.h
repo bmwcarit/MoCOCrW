@@ -57,11 +57,15 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static ECDSA_SIG* SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig, const unsigned char** pp, long len) noexcept;
     static int SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char ** pp) noexcept;
     static int SSL_ECDSA_SIG_set0(ECDSA_SIG* sig, BIGNUM* r, BIGNUM* s) noexcept;
+    static const BIGNUM* SSL_ECDSA_SIG_get0_s(const ECDSA_SIG* sig) noexcept;
+    static const BIGNUM* SSL_ECDSA_SIG_get0_r(const ECDSA_SIG* sig) noexcept;
     static void SSL_ECDSA_SIG_free(ECDSA_SIG* sig) noexcept;
     static ECDSA_SIG* SSL_ECDSA_SIG_new() noexcept;
     static BIGNUM* SSL_BN_bin2bn(const unsigned char* s, int len, BIGNUM*  ret) noexcept;
+    static int SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) noexcept;
     static int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept;
     static X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept;
     static int SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noexcept;
