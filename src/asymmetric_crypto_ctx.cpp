@@ -400,7 +400,11 @@ namespace mococrw {
      * #  ECDSA  #
      * ###########
      */
-
+namespace {
+    ECDSASignatureFormat SDAtoDSASignatureFormat (ECSDASignatureFormat sigFormat) {
+        return static_cast<ECDSASignatureFormat>(static_cast<int>(sigFormat));
+    }
+}
     /*
      * Common base class for all PIMPL classes of the ECDSA contexts
      *
@@ -418,7 +422,6 @@ namespace mococrw {
 
         Key key;
     };
-
 
     /*
      * PIMPL-Class for ECDSASignaturePrivateKeyCtx
@@ -472,11 +475,11 @@ namespace {
         auto r = _BN_bin2bn(signature.data(), keySizeBytes);
         auto s = _BN_bin2bn(signature.data() + keySizeBytes, keySizeBytes);
         if (r == nullptr || s == nullptr) {
-            throw MoCOCrWException("Cannot extract ECSDA signature components");
+            throw MoCOCrWException("Cannot extract ECDSA signature components");
         }
         auto ecdsa = createManagedOpenSSLObject<SSL_ECDSA_SIG_Ptr>();
         _ECDSA_SIG_set0(ecdsa.get(), std::move(r), std::move(s));
-        return _i2d_ECSDA_SIG(ecdsa.get());
+        return _i2d_ECDSA_SIG(ecdsa.get());
     }
 }
 
@@ -485,18 +488,18 @@ namespace {
      */
     class ECDSASignaturePublicKeyCtx::Impl : public ECDSAImpl<AsymmetricPublicKey> {
     public:
-        Impl(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction, ECSDASignatureFormat format)
+        Impl(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction, ECDSASignatureFormat format)
             : ECDSAImpl{key, hashFunction},
               _sigFormat{format}
             {}
 
         void verifyDigest(const std::vector<uint8_t> &signature,
                           const std::vector<uint8_t> &messageDigest) {
-            if (_sigFormat == ECSDASignatureFormat::IEEE1363) {
+            if (_sigFormat == ECDSASignatureFormat::IEEE1363) {
                 size_t keySizeBytes = (key.getKeySize() + 7) / 8;
                 auto asn1Signature = _IEEE1363EcSignatureToAsn1ECSignature(signature, keySizeBytes);
                 _verifyAsn1(asn1Signature, messageDigest);
-            } else if (_sigFormat == ECSDASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
+            } else if (_sigFormat == ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
                 _verifyAsn1(signature, messageDigest);
             } else {
                 throw MoCOCrWException("ECDSA Signature type not recognized.");
@@ -533,17 +536,22 @@ namespace {
             }
         }
 
-        ECSDASignatureFormat _sigFormat;
+        ECDSASignatureFormat _sigFormat;
     };
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
                                                            openssl::DigestTypes hashFunction,
                                                            ECSDASignatureFormat format)
+        : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(key, hashFunction, SDAtoDSASignatureFormat(format))) {}
+
+    ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+                                                           openssl::DigestTypes hashFunction,
+                                                           ECDSASignatureFormat format)
         : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(key, hashFunction, format)) {}
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
                                                            openssl::DigestTypes hashFunction)
-        : ECDSASignaturePublicKeyCtx(key, hashFunction, ECSDASignatureFormat::ASN1_SEQUENCE_OF_INTS) {}
+        : ECDSASignaturePublicKeyCtx(key, hashFunction, ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS) {}
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
                                                            openssl::DigestTypes hashFunction)
@@ -552,7 +560,13 @@ namespace {
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
                                                            openssl::DigestTypes hashFunction,
                                                            ECSDASignatureFormat format)
+        : ECDSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction, SDAtoDSASignatureFormat(format)) {}
+
+    ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+                                                           openssl::DigestTypes hashFunction,
+                                                           ECDSASignatureFormat format)
         : ECDSASignaturePublicKeyCtx(cert.getPublicKey(), hashFunction, format) {}
+
 
     ECDSASignaturePublicKeyCtx::ECDSASignaturePublicKeyCtx(const ECDSASignaturePublicKeyCtx& other)
         : _impl(std::make_unique<ECDSASignaturePublicKeyCtx::Impl>(*(other._impl))) {}

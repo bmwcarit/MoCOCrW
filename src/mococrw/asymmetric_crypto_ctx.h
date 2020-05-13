@@ -409,6 +409,24 @@ private:
 };
 
 /**
+ * @brief Serialization formats for ECDSA signatures
+ */
+enum class ECSDASignatureFormat {
+    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
+    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
+               *   as specified in IEEE 1363 */
+};
+
+/**
+ * @brief Serialization formats for ECDSA signatures (correctly spelled)
+ */
+enum class ECDSASignatureFormat {
+    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
+    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
+               *   as specified in IEEE 1363 */
+};
+
+/**
  * @brief ECDSASignaturePrivateKeyCtx
  *
  * This class supports signing messages and digests using ECDSA
@@ -458,14 +476,6 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
-/** @brief Serialization formats for ECDSA signatures
- */
-enum class ECSDASignatureFormat {
-    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
-    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
-               *   as specified in IEEE 1363 */
-};
-
 /**
  * @brief ECDSASignaturePublicKeyCtx
  *
@@ -498,6 +508,17 @@ public:
     /**
      * @brief Constructor
      *
+     * @param key The public key to be used
+     * @param hashFunction The hash function to be used
+     * @param sigFormat The format that in which signatures are provided
+     * @throw MoCOCrWException If key is not an ECC public key
+     */
+    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
+                               ECDSASignatureFormat sigFormat);
+
+    /**
+     * @brief Constructor
+     *
      * @param cert The certificate containing the public key to be used
      * @param hashFunction The hash function to be used
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
@@ -515,6 +536,18 @@ public:
      */
     ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
                                ECSDASignatureFormat sigFormat);
+
+    /**
+     * @brief Constructor
+     *
+     * @param cert The certificate containing the public key to be used
+     * @param hashFunction The hash function to be used
+     * @param sigFormat The format that in which signatures are provided
+     * @throw MoCOCrWException If cert doesn't contain an ECC public key
+     */
+    ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
+                               ECDSASignatureFormat sigFormat);
+
     /**
      * @brief Copy Constructor
      */

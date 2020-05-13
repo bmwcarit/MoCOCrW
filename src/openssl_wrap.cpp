@@ -1299,7 +1299,7 @@ void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s) {
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_set0, sig, r.release(), s.release());
 }
 
-std::vector<uint8_t> _i2d_ECSDA_SIG(const ECDSA_SIG *sig) {
+std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG *sig) {
     OpenSSLGuardedOutputBuffer<unsigned char> outputBuffer;
     /**
      * The OpenSSL documentation for i2d_ECDSA_SIG is incomplete. As a parameter like unsigned char **pp
@@ -1311,10 +1311,10 @@ std::vector<uint8_t> _i2d_ECSDA_SIG(const ECDSA_SIG *sig) {
      */
     int result = lib::OpenSSLLib::SSL_i2d_ECDSA_SIG(sig, &outputBuffer.get());
     if (result <= 0) {
-        throw OpenSSLException("ECSDA Signature serialization to DER failed.");
+        throw OpenSSLException("ECDSA Signature serialization to DER failed.");
     } else {
         if (outputBuffer == nullptr) {
-            throw OpenSSLException("ECSDA Signature serialization to DER failed: Returned no data");
+            throw OpenSSLException("ECDSA Signature serialization to DER failed: Returned no data");
         }
         return std::vector<uint8_t>(outputBuffer.get(), outputBuffer.get() + result);
     }
