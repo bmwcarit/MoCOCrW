@@ -1403,9 +1403,9 @@ std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *ke
 void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s);
 
 /**
- * Get the serialized ECSDA signature in ASN.1 format from ECSDA_SIG object
+ * Get the serialized ECDSA signature in ASN.1 format from ECDSA_SIG object
  */
-std::vector<uint8_t> _i2d_ECSDA_SIG(const ECDSA_SIG*);
+std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG*);
 
 /* Bignum related */
 
