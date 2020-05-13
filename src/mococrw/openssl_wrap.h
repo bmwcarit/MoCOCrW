@@ -1397,9 +1397,24 @@ std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *ke
 void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s);
 
 /**
+ * Get the r signature component as bignum
+ */
+const BIGNUM* _ECDSA_SIG_get0_r(const ECDSA_SIG* sig);
+
+/**
+ * Get the s signature component as bignum
+ */
+const BIGNUM* _ECDSA_SIG_get0_s(const ECDSA_SIG* sig);
+
+/**
  * Get the serialized ECDSA signature in ASN.1 format from ECDSA_SIG object
  */
 std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG*);
+
+/**
+ * Create ECDSA_SIG object from serialized ECDSA signature.
+ */
+SSL_ECDSA_SIG_Ptr _d2i_ECDSA_SIG(const std::vector<uint8_t>& signature);
 
 /* Bignum related */
 
@@ -1411,6 +1426,17 @@ std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG*);
  * @throw OpenSSLException is a problem occurs during the conversion
  */
 SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen);
+
+/**
+ * Write an OpenSSL bignum in big-endian plain bytes representation of an
+ * unsigned integer. Returned vector will be padded if necessary.
+ *
+ * @param bignum Number to serialize
+ * @param tolen Length of the vector that will be returned
+ * @return Vector containing serialized number
+ * @throw OpenSSLException if tolen bytes cannot hold bignum
+ */
+std::vector<uint8_t> _BN_bn2binpad(const BIGNUM *bignum, int tolen);
 
 }  //::openssl
 }  //::mococrw

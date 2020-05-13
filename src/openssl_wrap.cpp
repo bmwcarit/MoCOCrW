@@ -1057,6 +1057,12 @@ SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen) {
     return SSL_BIGNUM_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_BN_bin2bn, data, static_cast<int>(dataLen), nullptr)};
 }
 
+std::vector<uint8_t> _BN_bn2binpad(const BIGNUM *bignum, int tolen) {
+    std::vector<uint8_t> out(tolen);
+    OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_BN_bn2binpad, bignum, out.data(), tolen);
+    return out;
+}
+
 uint64_t _X509_get_serialNumber(X509 *x)
 {
     auto serialNumber = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_get_serialNumber, x);
@@ -1299,6 +1305,14 @@ void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s) {
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_set0, sig, r.release(), s.release());
 }
 
+const BIGNUM* _ECDSA_SIG_get0_r(const ECDSA_SIG* sig) {
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_get0_r, sig);
+}
+
+const BIGNUM* _ECDSA_SIG_get0_s(const ECDSA_SIG* sig) {
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_get0_s, sig);
+}
+
 std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG *sig) {
     OpenSSLGuardedOutputBuffer<unsigned char> outputBuffer;
     /**
@@ -1318,6 +1332,11 @@ std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG *sig) {
         }
         return std::vector<uint8_t>(outputBuffer.get(), outputBuffer.get() + result);
     }
+}
+
+SSL_ECDSA_SIG_Ptr _d2i_ECDSA_SIG(const std::vector<uint8_t>& signature) {
+    const uint8_t* ptr = signature.data();
+    return SSL_ECDSA_SIG_Ptr{OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_d2i_ECDSA_SIG, nullptr, &ptr, signature.size())};
 }
 
 void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass, const std::vector<uint8_t> salt, int iter,

@@ -834,6 +834,38 @@ TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenSignatureTooL
 }
 
 /**
+ * @brief Test that generated signature in IEEE1363 format can be verified successfully.
+ */
+TEST_F(SignatureTest, testSuccessfulEccMessageSigningAndVerificationInIEEE1363Format)
+{
+    auto signCtx1 = ECDSASignaturePrivateKeyCtx(_validEccPrivateKey, DigestTypes::SHA256,
+                                                ECDSASignatureFormat::IEEE1363);
+
+    auto signature = signCtx1.signMessage(signVerifyTestMessage);
+
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA256,
+                                                 ECDSASignatureFormat::IEEE1363);
+    ASSERT_NO_THROW(verifyCtx1.verifyMessage(signature,  signVerifyTestMessage));
+}
+
+/**
+ * @brief Test that modified generated signature in IEEE1363 format fails verification.
+ */
+TEST_F(SignatureTest, testUnsuccessfulEccMessageSigningAndVerificationInIEEE1363Format)
+{
+    auto signCtx1 = ECDSASignaturePrivateKeyCtx(_validEccPrivateKey, DigestTypes::SHA256,
+                                                ECDSASignatureFormat::IEEE1363);
+
+    auto signature = signCtx1.signMessage(signVerifyTestMessage);
+
+    signature[0] ^= 1;
+
+    auto verifyCtx1 = ECDSASignaturePublicKeyCtx(_validEccPublicKey, DigestTypes::SHA256,
+                                                 ECDSASignatureFormat::IEEE1363);
+    ASSERT_THROW(verifyCtx1.verifyMessage(signature,  signVerifyTestMessage), MoCOCrWException);
+}
+
+/**
  * @brief Failed validation of IEEE 1363 encoded ECDSA signature with standard validation call
  */
 TEST_F(SignatureTest, testfailedEccVerificationInIEEE1363FormatWhenASN1Expected)

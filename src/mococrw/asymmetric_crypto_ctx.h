@@ -409,7 +409,7 @@ private:
 };
 
 /**
- * @brief Serialization formats for ECDSA signatures
+ * @brief Serialization formats for ECDSA signatures (with typo)
  */
 enum class ECSDASignatureFormat {
     ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
@@ -418,7 +418,7 @@ enum class ECSDASignatureFormat {
 };
 
 /**
- * @brief Serialization formats for ECDSA signatures (correctly spelled)
+ * @brief Serialization formats for ECDSA signatures
  */
 enum class ECDSASignatureFormat {
     ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
@@ -443,6 +443,17 @@ public:
      */
     ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
                                 openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
+
+    /**
+     * @brief Constructor
+     *
+     * @param key The private key to be used
+     * @param hashFunction The hash function to be used
+     * @param sigFormat The format of the generated signature
+     * @throw MoCOCrWException If key is not an ECC private key
+     */
+    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key, openssl::DigestTypes hashFunction,
+                                ECDSASignatureFormat sigFormat);
 
     /**
      * @brief Copy Constructor
@@ -502,6 +513,7 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If key is not an ECC public key
      */
+    [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
     ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
                                ECSDASignatureFormat sigFormat);
 
@@ -534,6 +546,7 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
      */
+    [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
     ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
                                ECSDASignatureFormat sigFormat);
 
