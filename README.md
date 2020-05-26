@@ -20,23 +20,30 @@ OpenSSL with the following goals in mind:
 This library is the work-in-progress result of the above ideas.
 
 ## Support
-
-We currently support OpenSSL in the 1.0.2 branch. An update to OpenSSL 1.1 is
-planned but currently **not** supported. It is developed and tested mainly for
-an x86_64 target with Linux. However, there is no general limitation to that.
+We currently support OpenSSL 1.1.1 in the openssl1.1 branch. The support for
+OpenSSL 1.0.\<x\> (in the master and the openssl1.0.2 branch) has been dropped. These
+branches are **not** maintained anymore. The library is developed and tested mainly for
+x86_64 and aarch64 targets with Linux. However, there is no general limitation to that.
 
 
 The library provides end-user interfaces for:
  * X509 certificate processing
  * X509 certificate CA functionality
  * CRLs
- * RSA key management
+ * RSA Encryption and Signatures
+ * ECDSA Signatures
+ * EdDSA Signatures
+ * ECIES Encryption (according to IEEE 1363a-2004)
+ * PBKDF2 and X963KDF Key derivation
+ * HMAC
+ * AES Encryption (including GCM to support authenticated encryption with additional data)
+ * SHA 1/2/3 Hashing
 
 ## Building
 
 The library contains CMake build scripts. As a dependency, your build environment should
 have development packages for the following libraries installed:
- * OpenSSL (1.0.2 branch)
+ * OpenSSL (1.1.1 branch)
  * Boost
  * gtest/gmock
 
@@ -52,7 +59,7 @@ The bci.config file is used by our internal validation environment, please just 
 
 ## Installation / Usage / Packaging
 
-MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a a cmake
+MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a cmake
 exported target that you can use in your projects. A minimal example how to use this cmake
 integration can be found in `tests/sdk`. This can also be used as an integration test if you
 want to ship MoCOCrW with an SDK.
@@ -75,3 +82,8 @@ on the project build directory run:
 
 cmake -DBUILD_DOCUMENTATION=ON ..
 make doc
+
+## Versioning and Releases
+This library applies versioning similar to what is described at [semver.org](https://semver.org).
+In addition, we are keeping soversion and library version in sync and will create major releases
+even though it would not be necessary according to Semantic Versioning (e.g. due to break of ABI)
