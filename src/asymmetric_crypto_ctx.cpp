@@ -100,16 +100,6 @@ namespace mococrw {
 
 
     /*
-     * Base class for signature contexts that support specifying a hash function
-     */
-    class SignatureCtxImpl {
-    public:
-        SignatureCtxImpl(openssl::DigestTypes hashFunction) : hashFunction(hashFunction) {}
-
-        openssl::DigestTypes hashFunction;
-    };
-
-    /*
      * ####################
      * #  RSA Encryption  #
      * ####################
@@ -127,15 +117,15 @@ namespace mococrw {
         /*
          * Constructor that checks the type of the given key
          */
-        RSAImpl(const Key& key, std::shared_ptr<PaddingBase> padding) : key(key), padding(padding) {
+        RSAImpl(const Key& key, std::shared_ptr<PaddingBase> padding) : _key(key), _padding(padding) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::RSA) {
                 throw MoCOCrWException("Expected RSA Key for RSA operation");
             }
         }
-
-        Key key;
-        std::shared_ptr<PaddingBase> padding;
+    protected:
+        Key _key;
+        std::shared_ptr<PaddingBase> _padding;
     };
 
 
@@ -149,7 +139,39 @@ namespace mococrw {
      * PIMPL-Class of RSAEncryptionPrivateKeyCtx
      */
     class RSAEncryptionPrivateKeyCtx::Impl : public RSAEncryptionImpl<AsymmetricPrivateKey> {
+    public:
         using RSAEncryptionImpl<AsymmetricPrivateKey>::RSAEncryptionImpl;
+        std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message) {
+            size_t decryptedMessageLen{0};
+            SSL_RSA_ENCRYPTION_DATA_Ptr decryptedMessage{nullptr};
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
+                _EVP_PKEY_decrypt_init(keyCtx.get());
+
+                /* Preform padding specific configurations*/
+                _padding->prepareOpenSSLContext(keyCtx);
+
+                /* First call to determine the buffer length */
+                _EVP_PKEY_decrypt(keyCtx.get(), nullptr, &decryptedMessageLen,
+                                  reinterpret_cast<const unsigned char *>(message.data()),
+                                  message.size());
+
+                decryptedMessage.reset(static_cast<unsigned char*>(
+                                               _OPENSSL_malloc(static_cast<int>(decryptedMessageLen))));
+
+                /* Second call to perform the actual decryption */
+                _EVP_PKEY_decrypt(keyCtx.get(), decryptedMessage.get(), &decryptedMessageLen,
+                                  reinterpret_cast<const unsigned char *>(message.data()),
+                                  message.size());
+
+            } catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+
+            return std::vector<uint8_t>(decryptedMessage.get(),
+                                        decryptedMessage.get() + decryptedMessageLen);
+        }
     };
 
     RSAEncryptionPrivateKeyCtx::RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
@@ -167,42 +189,63 @@ namespace mococrw {
     }
 
     std::vector<uint8_t> RSAEncryptionPrivateKeyCtx::decrypt(const std::vector<uint8_t>& message) {
-        size_t decryptedMessageLen{0};
-        SSL_RSA_ENCRYPTION_DATA_Ptr decryptedMessage{nullptr};
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            _EVP_PKEY_decrypt_init(keyCtx.get());
-
-            /* Preform padding specific configurations*/
-            _impl->padding->prepareOpenSSLContext(keyCtx);
-
-            /* First call to determine the buffer length */
-            _EVP_PKEY_decrypt(keyCtx.get(), nullptr, &decryptedMessageLen,
-                              reinterpret_cast<const unsigned char *>(message.data()),
-                              message.size());
-
-            decryptedMessage.reset(static_cast<unsigned char*>(
-                                           _OPENSSL_malloc(static_cast<int>(decryptedMessageLen))));
-
-            /* Second call to perform the actual decryption */
-            _EVP_PKEY_decrypt(keyCtx.get(), decryptedMessage.get(), &decryptedMessageLen,
-                              reinterpret_cast<const unsigned char *>(message.data()),
-                              message.size());
-
-        } catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
-
-        return std::vector<uint8_t>(decryptedMessage.get(),
-                                    decryptedMessage.get() + decryptedMessageLen);
+        return _impl->decrypt(message);
     }
 
     /*
      * PIMPL-Class of RSAEncryptionPublicKeyCtx
      */
     class RSAEncryptionPublicKeyCtx::Impl : public RSAEncryptionImpl<AsymmetricPublicKey> {
+    public:
         using RSAEncryptionImpl<AsymmetricPublicKey>::RSAEncryptionImpl;
+        std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message) {
+            SSL_RSA_ENCRYPTION_DATA_Ptr encryptedMessage{nullptr};
+            size_t encryptedMessageLen{0};
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
+                if (!keyCtx.get()) {
+                    throw MoCOCrWException("Encryption context is empty");
+                }
+
+                // Check if message can be encrypted using the given key
+                if (static_cast<size_t>(std::numeric_limits<int>::max()) < message.size()) {
+                    throw MoCOCrWException("Message size exceeds possible key size");
+                } else if (!_padding->checkMessageSize(_key, message.size())) {
+                    throw MoCOCrWException((boost::format{"Message of size %1% can't be encrypted using"
+                                                          " the given key and padding"}
+                                                          % message.size()).str());
+                }
+
+                _EVP_PKEY_encrypt_init(keyCtx.get());
+                _padding->prepareOpenSSLContext(keyCtx);
+
+                /* First call to determine the buffer length */
+                _EVP_PKEY_encrypt(keyCtx.get(),
+                                  nullptr,
+                                  &encryptedMessageLen,
+                                  reinterpret_cast<const unsigned char *>(message.data()),
+                                  message.size());
+
+                /* Allocate memory for the buffer, based on the size returned by _EVP_PKEY_encrypt */
+                encryptedMessage.reset(static_cast<unsigned char*>(
+                                               _OPENSSL_malloc(static_cast<int>(encryptedMessageLen))));
+
+                /* Second call to perform the actual encryption */
+                _EVP_PKEY_encrypt(keyCtx.get(),
+                                  encryptedMessage.get(),
+                                  &encryptedMessageLen,
+                                  reinterpret_cast<const unsigned char *>(message.data()),
+                                  message.size());
+
+            } catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+
+            return std::vector<uint8_t>(encryptedMessage.get(),
+                                        encryptedMessage.get() + encryptedMessageLen);
+
+        }
     };
 
     RSAEncryptionPublicKeyCtx::RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
@@ -224,52 +267,7 @@ namespace mococrw {
     }
 
     std::vector<uint8_t> RSAEncryptionPublicKeyCtx::encrypt(const std::vector<uint8_t>& message) {
-        SSL_RSA_ENCRYPTION_DATA_Ptr encryptedMessage{nullptr};
-        size_t encryptedMessageLen{0};
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            if (!keyCtx.get()) {
-                throw MoCOCrWException("Encryption context is empty");
-            }
-
-            // Check if message can be encrypted using the given key
-            if (static_cast<size_t>(std::numeric_limits<int>::max()) < message.size()) {
-                throw MoCOCrWException("Message size exceeds possible key size");
-            } else if (!_impl->padding->checkMessageSize(_impl->key, message.size())) {
-                throw MoCOCrWException((boost::format{"Message of size %1% can't be encrypted using"
-                                                      " the given key and padding"}
-                                                      % message.size()).str());
-            }
-
-            _EVP_PKEY_encrypt_init(keyCtx.get());
-            _impl->padding->prepareOpenSSLContext(keyCtx);
-
-            /* First call to determine the buffer length */
-            _EVP_PKEY_encrypt(keyCtx.get(),
-                              nullptr,
-                              &encryptedMessageLen,
-                              reinterpret_cast<const unsigned char *>(message.data()),
-                              message.size());
-
-            /* Allocate memory for the buffer, based on the size returned by _EVP_PKEY_encrypt */
-            encryptedMessage.reset(static_cast<unsigned char*>(
-                                           _OPENSSL_malloc(static_cast<int>(encryptedMessageLen))));
-
-            /* Second call to perform the actual encryption */
-            _EVP_PKEY_encrypt(keyCtx.get(),
-                              encryptedMessage.get(),
-                              &encryptedMessageLen,
-                              reinterpret_cast<const unsigned char *>(message.data()),
-                              message.size());
-
-        } catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
-
-        return std::vector<uint8_t>(encryptedMessage.get(),
-                                    encryptedMessage.get() + encryptedMessageLen);
-
+        return _impl->encrypt(message);
     }
 
     /*
@@ -284,10 +282,12 @@ namespace mococrw {
      * Implements the retrieving of the hash function to be used of the stored padding object
      */
     template <class Key>
-    class RSASignatureImpl : public RSAImpl<Key, RSASignaturePadding>, public SignatureCtxImpl {
+    class RSASignatureImpl : public RSAImpl<Key, RSASignaturePadding> {
     public:
         RSASignatureImpl(const Key& key, openssl::DigestTypes hashFunction, std::shared_ptr<RSASignaturePadding> padding)
-            : RSAImpl<Key, RSASignaturePadding>(key, padding), SignatureCtxImpl(hashFunction) {}
+            : RSAImpl<Key, RSASignaturePadding>(key, padding), _hashFunction(hashFunction) {}
+    protected:
+        openssl::DigestTypes _hashFunction;
     };
 
     /*
@@ -295,6 +295,30 @@ namespace mococrw {
      */
     class RSASignaturePrivateKeyCtx::Impl : public RSASignatureImpl<AsymmetricPrivateKey> {
         using RSASignatureImpl<AsymmetricPrivateKey>::RSASignatureImpl;
+    public:
+        std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) {
+            size_t expectedDigestSize = Hash::getDigestSize(_hashFunction);
+            if (messageDigest.size() != expectedDigestSize) {
+                throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
+                                                      % expectedDigestSize).str());
+            }
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
+                _EVP_PKEY_sign_init(keyCtx.get());
+
+                _padding->prepareOpenSSLContext(keyCtx, _hashFunction);
+
+                return signHelper(keyCtx, messageDigest);
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+        }
+
+        std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) {
+            return signDigest(createHash(_hashFunction, message));
+        }
     };
 
     RSASignaturePrivateKeyCtx::RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
@@ -313,34 +337,49 @@ namespace mococrw {
     RSASignaturePrivateKeyCtx::~RSASignaturePrivateKeyCtx() = default;
 
     std::vector<uint8_t> RSASignaturePrivateKeyCtx::signDigest(const std::vector<uint8_t> &messageDigest) {
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
-        if (messageDigest.size() != expectedDigestSize) {
-            throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
-                                                  % expectedDigestSize).str());
-        }
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            _EVP_PKEY_sign_init(keyCtx.get());
-
-            _impl->padding->prepareOpenSSLContext(keyCtx, _impl->hashFunction);
-
-            return signHelper(keyCtx, messageDigest);
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
+        return _impl->signDigest(messageDigest);
     }
 
     std::vector<uint8_t> RSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
-        return signDigest(createHash(_impl->hashFunction, message));
+        return _impl->signMessage(message);
     }
 
     /*
      * PIMPL-Class for RSASignaturePublicKeyCtx
      */
     class RSASignaturePublicKeyCtx::Impl : public RSASignatureImpl<AsymmetricPublicKey> {
+    public:
         using RSASignatureImpl<AsymmetricPublicKey>::RSASignatureImpl;
+        void verifyDigest(const std::vector<uint8_t> &signature,
+                                                    const std::vector<uint8_t> &messageDigest) {
+
+            size_t expectedDigestSize = Hash::getDigestSize(_hashFunction);
+            if (messageDigest.size() != expectedDigestSize) {
+                throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
+                                                      % expectedDigestSize).str());
+            }
+
+            try {
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
+                _EVP_PKEY_verify_init(keyCtx.get());
+
+                _padding->prepareOpenSSLContext(keyCtx, _hashFunction);
+
+                _EVP_PKEY_verify(keyCtx.get(),
+                                 reinterpret_cast<const unsigned char *>(signature.data()),
+                                 signature.size(),
+                                 reinterpret_cast<const unsigned char *>(messageDigest.data()),
+                                 messageDigest.size());
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+        }
+
+        void verifyMessage(const std::vector<uint8_t> &signature,
+                           const std::vector<uint8_t> &message) {
+            verifyDigest(signature, createHash(_hashFunction, message));
+        }
     };
 
 
@@ -366,33 +405,12 @@ namespace mococrw {
 
     void RSASignaturePublicKeyCtx::verifyDigest(const std::vector<uint8_t> &signature,
                                                 const std::vector<uint8_t> &messageDigest) {
-
-        size_t expectedDigestSize = Hash::getDigestSize(_impl->hashFunction);
-        if (messageDigest.size() != expectedDigestSize) {
-            throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
-                                                  % expectedDigestSize).str());
-        }
-
-        try {
-            auto keyCtx = _EVP_PKEY_CTX_new(_impl->key.internal());
-            _EVP_PKEY_verify_init(keyCtx.get());
-
-            _impl->padding->prepareOpenSSLContext(keyCtx, _impl->hashFunction);
-
-            _EVP_PKEY_verify(keyCtx.get(),
-                             reinterpret_cast<const unsigned char *>(signature.data()),
-                             signature.size(),
-                             reinterpret_cast<const unsigned char *>(messageDigest.data()),
-                             messageDigest.size());
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
+        _impl->verifyDigest(signature, messageDigest);
     }
 
     void RSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
                                                  const std::vector<uint8_t> &message) {
-        verifyDigest(signature, createHash(_impl->hashFunction, message));
+        _impl->verifyMessage(signature, message);
     }
 
 
@@ -430,19 +448,20 @@ namespace {
      * Implements the check if the given key is a ECC key in the constructor.
      */
     template <class Key>
-    class ECDSAImpl : public SignatureCtxImpl {
+    class ECDSAImpl {
     public:
         ECDSAImpl(const Key& key, openssl::DigestTypes hashFunction, ECDSASignatureFormat sigFormat)
-            : SignatureCtxImpl(hashFunction), key(key), _sigFormat(sigFormat) {
+            : _key(key), _sigFormat(sigFormat), _hashFunction(hashFunction) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::ECC) {
                 throw mococrw::MoCOCrWException("Expected ECC Key for ECC signatures");
             }
         }
 
-        Key key;
     protected:
+        Key _key;
         ECDSASignatureFormat _sigFormat;
+        openssl::DigestTypes _hashFunction;
     };
 
 
@@ -458,22 +477,26 @@ namespace {
             if (_sigFormat == ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
                 return signature;
             } else if (_sigFormat == ECDSASignatureFormat::IEEE1363) {
-                return _Asn1ECSignatureToIEEE1363EcSignature(signature, (key.getKeySize() + 7) / 8);
+                return _Asn1ECSignatureToIEEE1363EcSignature(signature, (_key.getKeySize() + 7) / 8);
             } else {
                 throw MoCOCrWException("ECDSA Signature type not recognized.");
             }
         }
 
+        std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) {
+            return signDigest(createHash(_hashFunction, message));
+        }
+
     private:
         std::vector<uint8_t> _signAsn1(const std::vector<uint8_t> &messageDigest) {
-            size_t expectedDigestSize = Hash::getDigestSize(hashFunction);
+            size_t expectedDigestSize = Hash::getDigestSize(_hashFunction);
             if (messageDigest.size() != expectedDigestSize) {
                 throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
                                                       % expectedDigestSize).str());
             }
 
             try {
-                auto keyCtx = _EVP_PKEY_CTX_new(key.internal());
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
                 _EVP_PKEY_sign_init(keyCtx.get());
 
                 return signHelper(keyCtx, messageDigest);
@@ -508,7 +531,7 @@ namespace {
     }
 
     std::vector<uint8_t> ECDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
-        return signDigest(createHash(_impl->hashFunction, message));
+        return _impl->signMessage(message);
     }
 
 namespace {
@@ -538,7 +561,7 @@ namespace {
         void verifyDigest(const std::vector<uint8_t> &signature,
                           const std::vector<uint8_t> &messageDigest) {
             if (_sigFormat == ECDSASignatureFormat::IEEE1363) {
-                size_t keySizeBytes = (key.getKeySize() + 7) / 8;
+                size_t keySizeBytes = (_key.getKeySize() + 7) / 8;
                 auto asn1Signature = _IEEE1363EcSignatureToAsn1ECSignature(signature, keySizeBytes);
                 _verifyAsn1(asn1Signature, messageDigest);
             } else if (_sigFormat == ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS) {
@@ -550,21 +573,21 @@ namespace {
 
         void verifyMessage(const std::vector<uint8_t> &signature,
                            const std::vector<uint8_t> &message) {
-            verifyDigest(signature, createHash(hashFunction, message));
+            verifyDigest(signature, createHash(_hashFunction, message));
         }
 
     private:
         void _verifyAsn1(const std::vector<uint8_t> &signature,
                          const std::vector<uint8_t> &messageDigest) {
 
-            size_t expectedDigestSize = Hash::getDigestSize(hashFunction);
+            size_t expectedDigestSize = Hash::getDigestSize(_hashFunction);
             if (messageDigest.size() != expectedDigestSize) {
                 throw MoCOCrWException((boost::format{"Expected digest of size %1%"}
                                                     % expectedDigestSize).str());
             }
 
             try {
-                auto keyCtx = _EVP_PKEY_CTX_new(key.internal());
+                auto keyCtx = _EVP_PKEY_CTX_new(_key.internal());
                 _EVP_PKEY_verify_init(keyCtx.get());
 
                 _EVP_PKEY_verify(keyCtx.get(),
@@ -642,21 +665,43 @@ namespace {
     template <class Key>
     class EdDSAImpl {
     public:
-        EdDSAImpl(const Key& key) : key(key) {
+        EdDSAImpl(const Key& key) : _key(key) {
             // Not really nice but necessary since we can't get rid of the generic keypair
             if (key.getType() != AsymmetricKey::KeyTypes::ECC_ED) {
                 throw mococrw::MoCOCrWException("Expected Ed448 or Ed25519 Key for EdDSA signatures");
             }
         }
 
-        Key key;
+    protected:
+        Key _key;
     };
 
     /*
      * PIMPL-Class for EdDSASignaturePrivateKeyCtx
      */
     class EdDSASignaturePrivateKeyCtx::Impl : public EdDSAImpl<AsymmetricPrivateKey> {
+    public:
         using EdDSAImpl<AsymmetricPrivateKey>::EdDSAImpl;
+        std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) {
+            std::vector<uint8_t> signature;
+            try {
+                auto mctx = _EVP_MD_CTX_create();
+                _EVP_DigestSignInit(mctx.get(), DigestTypes::NONE, const_cast<EVP_PKEY*>(_key.internal()));
+
+                // This determines the buffer length
+                size_t siglen = 0;
+                _EVP_DigestSign(mctx.get(), nullptr, &siglen, message.data(), message.size());
+
+                signature.resize(siglen);
+                _EVP_DigestSign(mctx.get(), signature.data(), &siglen, message.data(), message.size());
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+
+            return signature;
+        }
+
     };
 
     EdDSASignaturePrivateKeyCtx::EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key)
@@ -673,30 +718,25 @@ namespace {
     }
 
     std::vector<uint8_t> EdDSASignaturePrivateKeyCtx::signMessage(const std::vector<uint8_t> &message) {
-        std::vector<uint8_t> signature;
-        try {
-            auto mctx = _EVP_MD_CTX_create();
-            _EVP_DigestSignInit(mctx.get(), DigestTypes::NONE, const_cast<EVP_PKEY*>(_impl->key.internal()));
-
-            // This determines the buffer length
-            size_t siglen = 0;
-            _EVP_DigestSign(mctx.get(), nullptr, &siglen, message.data(), message.size());
-
-            signature.resize(siglen);
-            _EVP_DigestSign(mctx.get(), signature.data(), &siglen, message.data(), message.size());
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
-
-        return signature;
+        return _impl->signMessage(message);
     }
 
     /*
      * PIMPL-Class for EdDSASignaturePublicKeyCtx
      */
     class EdDSASignaturePublicKeyCtx::Impl : public EdDSAImpl<AsymmetricPublicKey> {
+    public:
         using EdDSAImpl<AsymmetricPublicKey>::EdDSAImpl;
+        void verifyMessage(const std::vector<uint8_t> &signature, const std::vector<uint8_t> &message) {
+            try {
+                auto mctx = _EVP_MD_CTX_create();
+                _EVP_DigestVerifyInit(mctx.get(), openssl::DigestTypes::NONE, _key.internal());
+                _EVP_DigestVerify(mctx.get(), signature.data(), signature.size(), message.data(), message.size());
+            }
+            catch (const OpenSSLException &e) {
+                throw MoCOCrWException(e.what());
+            }
+        }
     };
 
     EdDSASignaturePublicKeyCtx::EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key)
@@ -717,14 +757,7 @@ namespace {
 
     void EdDSASignaturePublicKeyCtx::verifyMessage(const std::vector<uint8_t> &signature,
                                                    const std::vector<uint8_t> &message) {
-        try {
-            auto mctx = _EVP_MD_CTX_create();
-            _EVP_DigestVerifyInit(mctx.get(), openssl::DigestTypes::NONE, _impl->key.internal());
-            _EVP_DigestVerify(mctx.get(), signature.data(), signature.size(), message.data(), message.size());
-        }
-        catch (const OpenSSLException &e) {
-            throw MoCOCrWException(e.what());
-        }
+        _impl->verifyMessage(signature, message);
     }
 
 }
