@@ -51,6 +51,7 @@ void OpenSSLLibMockManager::resetMock()
 void OpenSSLLibMockManager::destroy()
 {
     std::lock_guard<std::mutex> _lock(_mutex);
+    // NOLINTNEXTLINE(clang-analyzer-optin.cplusplus.VirtualCall)
     _mock.reset();
 }
 
