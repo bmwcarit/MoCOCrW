@@ -88,7 +88,7 @@ size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize);
  *   auto iv = encryptor->getIV();
  *
  *   // Decryption
- *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, secretKey}.setIV(iv).buildDecryptor();
+ *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
  *   decryptor->update(ciphertext);
  *   auto decryptedText = decryptor->finish();
  * @endcode
@@ -169,7 +169,7 @@ public:
  *   auto tag = encryptor->getAuthTag();
  *
  *   // Decryption
- *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
+ *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
  *   decryptor->update(ciphertext);
  *   decryptor->setAuthTag(tag);
  *   std::vector<uint8_t> decryptedText;
@@ -279,7 +279,7 @@ private:
  * Factory for creating AES ciphers.
  *
  * @code
- * auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, secretKey}.setIV(iv).buildDecryptor();
+ * auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
  * @endcode
  */
 class AESCipherBuilder
