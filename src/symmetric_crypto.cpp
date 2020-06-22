@@ -19,17 +19,15 @@
 
 #include "mococrw/symmetric_memory.h"
 
-// for explicit_bzero(3)
-#include <string.h>
-
 #include <string>
 #include <type_traits>
 
 #include <openssl/evp.h>
 
 #include "mococrw/error.h"
-#include "mococrw/symmetric_crypto.h"
 #include "mococrw/openssl_wrap.h"
+#include "mococrw/symmetric_crypto.h"
+#include "mococrw/util.h"
 
 namespace mococrw
 {
@@ -373,12 +371,7 @@ AESCipherBuilder::AESCipherBuilder(SymmetricCipherMode mode, SymmetricCipherKeyS
 
 AESCipherBuilder::~AESCipherBuilder()
 {
-    // Explicitly overwrite the key memory, but check for size() > 0, since
-    // std::vector<T>::data() is allowed to return a nullptr if the size is 0.
-    if (_secretKey.size() > 0) {
-        ::explicit_bzero(reinterpret_cast<void *>(_secretKey.data()),
-                         _secretKey.size() * sizeof(decltype(_secretKey)::value_type));
-    }
+    utility::vectorCleanse(_secretKey);
 }
 
 AESCipherBuilder &AESCipherBuilder::setIV(const std::vector<uint8_t> &iv)

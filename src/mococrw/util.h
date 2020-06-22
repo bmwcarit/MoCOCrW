@@ -42,7 +42,11 @@ std::vector<uint8_t> cryptoRandomBytes(size_t length);
 template<typename T>
 void vectorCleanse(std::vector<T> &vec)
 {
-    OPENSSL_cleanse(vec.data(), vec.size() * sizeof(T));
+    // Explicitly overwrite the memory, but check for size() > 0, since
+    // std::vector<T>::data() is allowed to return a nullptr if the size is 0.
+    if (vec.size() > 0) {
+        OPENSSL_cleanse(vec.data(), vec.size() * sizeof(T));
+    }
 }
 
 /**
