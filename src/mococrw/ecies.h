@@ -357,8 +357,12 @@ public:
     std::unique_ptr<ECIESEncryptionCtx> buildEncryptionCtx(AsymmetricPublicKey bobsKey);
 
     /**
-     * @overload std::unique_ptr<ECIESEncryptionCtx> buildEncryptionCtx(const AsymmetricPublicKey& bobsKey);
+     * @brief Create the ECIES encryption context.
+     *
+     * Call this function after you have set the options, which differ from the default value
+     * @throws MoCOCrWException If a required parameter is not set.
      * @param bobsCert The certificate of the receiver. This must contain a public key.
+     * @return An ECIES encryption context, which can be used for encryption.
      */
     std::unique_ptr<ECIESEncryptionCtx> buildEncryptionCtx(X509Certificate bobsCert);
 
