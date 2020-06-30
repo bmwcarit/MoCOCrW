@@ -1226,7 +1226,7 @@ void _EVP_DigestSign(EVP_MD_CTX* ctx,
  * public key.
  *
  * @param ctx The context to be set up for verification.
- * @param md The digest type (@see DigestTypes)
+ * @param type The digest type (@see DigestTypes)
  * @param pkey The public key to be used.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.

@@ -65,7 +65,7 @@ public:
      *
      * The comparison happens in constant time.
      * @throws MoCOCrWException if the verification fails because the values or their lengths differ.
-     * @param hmacValue The value which shall be compared to the calculated value
+     * @param macValue The value which shall be compared to the calculated value
      */
     virtual void verify(const std::vector<uint8_t> &macValue) = 0;
 };
