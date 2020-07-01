@@ -1,11 +1,10 @@
-Usage Examples {#examples}
-============
+# Usage Examples
 
 Table of contents:
 
-- @subpage example1
-- @subpage example5
-- @subpage example2
-- @subpage example3
-- @subpage example4
-- @subpage example_sym
+- [Asymmetric Key Example](example_asymm_key.md)
+- [Asymmetric Crypto API](example_asymm_crypto.md)
+- [Certification Authority Example](example_ca.md)
+- [Hash Example](example_hash.md)
+- [Working with X509 certificates](example_x509.md)
+- [Symmetric Crypto API](example_symm.md)
