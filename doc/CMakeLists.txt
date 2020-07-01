@@ -6,7 +6,6 @@
 if(BUILD_DOCUMENTATION)
 
     set(DOC_SOURCE_DIRS "${PROJECT_SOURCE_DIR}/src")
-    set(DOC_EXAMPLE_DIR "${PROJECT_SOURCE_DIR}/doc/examples")
     set(MAIN_PAGE_FILE "${PROJECT_SOURCE_DIR}/README.md")
     set(GEN_DOC_AUTOLINK_SUPPORT  "YES")
     set(GEN_DOC_ENABLED_SECTIONS  "MainPageEnabled")
@@ -19,9 +18,15 @@ if(BUILD_DOCUMENTATION)
     # Set doxygen configuration for Api documentation
     set(GEN_DOC_OUTPUT_DIRECTORY  "${CMAKE_BINARY_DIR}/doc")
     set(GEN_DOC_DIR               "${CMAKE_BINARY_DIR}/doc")
-
+    set(DOC_EXAMPLE_DIR           "${GEN_DOC_OUTPUT_DIRECTORY}/src")
 
     configure_file(${CMAKE_SOURCE_DIR}/cmake/Doxyfile.in ${CMAKE_BINARY_DIR}/doc/Doxyfile @ONLY)
+
+    add_custom_target(doc-gen
+            python3 "${CMAKE_CURRENT_SOURCE_DIR}/doxify.py" "${PROJECT_SOURCE_DIR}/doc/examples" "${GEN_DOC_OUTPUT_DIRECTORY}/src"
+            COMMENT "Generating API documentation with Doxygen" VERBATIM
+            SOURCES ${DOXYGEN_FILES}
+    )
 
     # Add a target to generate API documentation with Doxygen ('make doc')
     add_custom_target(doc
@@ -30,6 +35,8 @@ if(BUILD_DOCUMENTATION)
             COMMENT "Generating API documentation with Doxygen" VERBATIM
             SOURCES ${DOXYGEN_FILES}
             )
+
+    add_dependencies(doc doc-gen)
 
     file(MAKE_DIRECTORY ${GEN_DOC_OUTPUT_DIRECTORY})
 

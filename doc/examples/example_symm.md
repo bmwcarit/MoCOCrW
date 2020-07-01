@@ -1,10 +1,10 @@
-# Symmetric Crypto API {#example_sym}
+# Symmetric Crypto API
 
 ## Encrypting messages in one-shot mode
 
 The code below demonstrates encryption and then further decryption of a simple message. The example also shows how to generate random encryption key and IV.
 
-```c++
+```cpp
 
 using namespace mococrw;
 
@@ -61,7 +61,7 @@ It is also possible to associate additional unencrypted data with the message. T
 
 Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption we take computed authentication tag and carry it along with the message for further authentication.
 
-```c++
+```cpp
 
 std::string message{"This is a message we going to encrypt and then, hopefully, decrypt."};
 std::vector<uint8_t> plaintext{message.begin(), message.end()};
@@ -79,9 +79,9 @@ auto secretKey = utility::cryptoRandomBytes(256/8);
 
 // Create cipher similarly to the previous example with two differences:
 // * use mode which supports authenticated encryption such as GCM
-// * explicitly build authenticated encryptor with `buildAuthenticatedEncryptor`.
+// * explicitly build authenticated encryptor with 'buildAuthenticatedEncryptor'.
 //
-// If you try to build authenticated cipher with mode which does not support it, `build`
+// If you try to build authenticated cipher with mode which does not support it, 'build'
 // function will throw.
 auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
 
@@ -129,7 +129,7 @@ Symmetric encryption interface also supports streaming use-case. It allows encry
 
 The following example demonstrates how to use stream mode with authenticated cipher.
 
-```c++
+```cpp
 
 std::string message;
 for (size_t i = 0; i < 1024; i++) {

@@ -1,14 +1,13 @@
-Certification Authority Example {#example2}
-===========================================
-Certification Authority
-=======================
+# Certification Authority Example
 
-Chain of Trust 
---------------
+# Certification Authority
+
+## Chain of Trust
+
 The example bellow shows how to create a self-signed root certificate with an RSA key
 and use it to sign a new certificate with a CSR
 
-\code{.cpp}
+```cpp
 //Generate an RSA key pair
 AsymmetricKeypair rootRSAKey = AsymmetricKeypair::generateRSA();
 
@@ -55,7 +54,7 @@ CertificateSigningRequest csr{certDetails, intRSAKey};
 
 X509Certificate intCert = rootRsaCa.signCSR(csr);
 
-//The generation of a client certificate implies setting the CA constraint extension to false. 
+//The generation of a client certificate implies setting the CA constraint extension to false.
 
 BasicConstraintsExtension clientConstraint{false, 1};
-\endcode
+```
