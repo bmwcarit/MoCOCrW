@@ -80,8 +80,13 @@ you to submit bugs or contact us via github if there is an issue.
 In order to generate the doxygen documentation please follow the next steps:
 on the project build directory run:
 
-cmake -DBUILD_DOCUMENTATION=ON ..
+```
+cmake -DBUILD_DOCUMENTATION=ON -DDOCUMENTATION_INSTALL_DESTINATION=/<path to doc folder> ..
 make doc
+```
+
+If the option `DOCUMENTATION_INSTALL_DESTINATION` is omitted, the documentation will only be built
+but not installed.
 
 ## Versioning and Releases
 This library applies versioning similar to what is described at [semver.org](https://semver.org).

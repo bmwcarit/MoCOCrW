@@ -50,15 +50,15 @@ class MessageVerificationCtx {
 #### Example
 If a context supports both, signing messages and message digest, the following code snippets are equal. For simplicity it is assumed that SHA256 is used to create the signed hash.
 ```cpp
-    std::shared_ptr<DigestSignatureCtx> ctx = ...; // Hash Function set to SHA256
+    std::shared_ptr<mococrw::DigestSignatureCtx> ctx = ...; // Hash Function set to SHA256
     std::vector<uint8_t> message = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
     std::vector<uint8_t> digest = mococrw::Hash::sha256(message);
     std::vector<uint8_t> signature = ctx->signDigest(digest);
 ```
 ```cpp
-    std::shared_ptr<MessageSignatureCtx> = ...; // Hash Function set to SHA256
+    std::shared_ptr<mococrw::MessageSignatureCtx> = ...; // Hash Function set to SHA256
     std::vector<uint8_t> message = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd'};
-    std::vector<uint8_t> siganture = ctx->signMessage(message)
+    std::vector<uint8_t> signature = ctx->signMessage(message)
 ```
 
 The verification contexts behave similarly.
@@ -394,3 +394,68 @@ mococrw::ECDSASignaturePublicKeyCtx verifyCtx = mococrw::ECDSASignaturePublicKey
 mococrw::ECDSASignaturePrivateKeyCtx signCtx = mococrw::ECDSASignaturePrivateKeyCtx(key, mococrw::openssl::DigestTypes::SHA512);
 ```
 
+## Signature Formats
+MoCOCrW supports two different formats for the signature:
+* `mococrw::ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS`:
+  Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62
+* `mococrw::ECDSASignatureFormat::IEEE1363`:
+  Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length as specified in IEEE 1363
+
+MoCOCrW offers the following overloads to specify the signature formats:
+* `mococrw::ECDSASignaturePublicKeyCtx(const mococrw::AsymmetricPublicKey&, mococrw::openssl::DigestTypes, mococrw::ECDSASignatureFormat)`
+* `mococrw::ECDSASignaturePrivateKeyCtx(const mococrw::AsymmetricPrivateKey&, mococrw::openssl::DigestTypes, mococrw::ECDSASignatureFormat)`
+
+# EdDSA
+
+Please note that EdDSA only implements signMessage/verifyMessage methods. That is, the hash to be signed can not be specified manually.
+
+## Verification
+
+```cpp
+std::string pubKey= R"(-----BEGIN PUBLIC KEY-----
+...
+-----END PUBLIC KEY-----)";
+
+std::vector<uint8_t> message = {...};
+std::vector<uint8_t> signature = {...};
+
+mococrw::AsymmetricPublicKey key = mococrw::AsymmetricKeypair::readPublicKeyFromPEM(pubKey);
+
+/*
+ * ...
+ */
+
+mococrw::EdDSASignaturePublicKeyCtx ctx(key);
+
+try {
+    // Hash of message is calculated automatically
+    ctx.verifyMessage(signature, message);
+}
+catch (const MoCOCrWException &e)  {
+    std::cerr << "Invalid Signature" << std:endl;
+    ...
+}
+
+```
+
+## Signing
+
+```cpp
+std::string privKey= R"(-----BEGIN PRIVATE KEY-----
+...
+-----END PRIVATE KEY-----)";
+
+std::vector<uint8_t> message = {...};
+std::vector<uint8_t> signature;
+
+mococrw::AsymmetricPrivateKey key = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(privKey, "");
+
+/*
+ * ...
+ */
+
+mococrw::EdDSASignaturePrivateKeyCtx ctx(key);
+
+// Hash of message is calculated automatically
+signature = ctx.signMessage(message);
+```
