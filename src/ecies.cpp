@@ -73,7 +73,7 @@ public:
             return std::make_unique<mococrw::HMAC>(openssl::DigestTypes::SHA512, key);
         });
 
-        setMacKeySize(512 / 8);
+        setMacKeySize(Hash::getDigestSize(openssl::DigestTypes::SHA512));
     }
 
     void setDefaultSymmetricCipherFactoryFunction(Mode encryptionMode)
