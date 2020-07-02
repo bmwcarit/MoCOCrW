@@ -4,31 +4,31 @@
 
 ## Key Generation with default values
 
-The following code is going to generate a RSA key.
+The following code is going to generate an RSA key.
 A default-spec is an RSASpec with 2048 bit modulus.
-In this case the variable to receive the key is rsaKeyPair.
+In this case, the variable to receive the key is rsaKeyPair.
 ```cpp
 mococrw::AsymmetricKeypair rsaKeyPair = mococrw::AsymmetricKeypair::generateRSA();
 ```
 
 The following code is going to generate an ECC key.
 A default-spec is an ECCspec with a PRIME_256v1 curve (aka NIST P-256 or secp256r1).
-In this case the variable to receive the key is eccKeyPair.
+In this case, the variable to receive the key is eccKeyPair.
 ```cpp
 mococrw::AsymmetricKeypair eccKeyPair = mococrw::AsymmetricKeypair::generateECC();
 ```
 
 ## Custom Key Generation
 
-It's possible to generate custom keys by providing the generate method with a RSASpec or ECCSpec.
+It's possible to generate custom keys by providing the generate method with an RSASpec or ECCSpec.
 
 ## Custom RSA Key
 
 A default RSA key size is set up in case none is specified by the user.
-In this example the function receives a RSASpec parameter with a size of 1024.
+In this example, the function receives an RSASpec parameter with a size of 1024.
 The variable _rsaKeyPair1024 will hold the RSA key generated.
 ```cpp
-mococrw::AsymmetricKeypair rsaKeyPair1024 = AsymmetricKeypair::generate(mococrw::RSASpec{1024});
+mococrw::AsymmetricKeypair rsaKeyPair1024 = mococrw::AsymmetricKeypair::generate(mococrw::RSASpec{1024});
 ```
 
 ## Custom ECC Key
@@ -50,7 +50,7 @@ SECT_571r1 = NID_sect571r1,
 ```
 
 ```cpp
-mococrw::AsymmetricKeypair eccKeyPairSect571r1 = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECT_571r1});
+mococrw::AsymmetricKeypair eccKeyPairSect571r1 = mococrw::AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECT_571r1});
 ```
 
 # Saving Asymmetric Keys in PEM format
@@ -77,7 +77,7 @@ const std::string pemOfPrivateKey = eccPrivKey.privateKeyToPem("password");
 
 ## Reading a Public Key from a PEM string
 
-The following variables pemEccPrivKeySect409k1 and pemEccPubKeySect409k1 are strings which are going to hold the Private and the Public PEM's Key.
+The following variables pemEccPrivKeySect409k1 and pemEccPubKeySect409k1 hold a PEM representation of the public and private key, respectively.
 
 Public Key:
 ```cpp
@@ -94,7 +94,7 @@ mococrw::AsymmetricPublicKey eccPubKey = mococrw::AsymmetricPublicKey::readPubli
 
 ## Reading a Private Key from PEM
 
-The correct password must be written to get the private key.
+The correct password must be provided to get the private key.
 Private Key:
 ```cpp
 std::string pemEccPrivKeySect409k1{R"(-----BEGIN PRIVATE KEY-----

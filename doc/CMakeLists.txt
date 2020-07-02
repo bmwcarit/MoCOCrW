@@ -40,12 +40,13 @@ if(BUILD_DOCUMENTATION)
 
     file(MAKE_DIRECTORY ${GEN_DOC_OUTPUT_DIRECTORY})
 
-    install(
-            DIRECTORY ${GEN_DOC_OUTPUT_DIRECTORY}
-            DESTINATION ${GEN_DOC_DIR}
-    )
+    if(DOCUMENTATION_INSTALL_DESTINATION)
+        install(
+                DIRECTORY ${GEN_DOC_OUTPUT_DIRECTORY}/html/
+                DESTINATION ${DOCUMENTATION_INSTALL_DESTINATION}/mococrw.html
+        )
+    endif()
 
 endif()
-
 
 

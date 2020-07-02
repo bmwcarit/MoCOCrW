@@ -14,7 +14,7 @@ std::vector<uint8_t> plaintext{message.begin(), message.end()};
 // Generate random encryption key.
 // NOTE: Always prefer library built-in cryptographically secure random number generator to
 // other sources of random number generation.
-auto secretKey = utility::cryptoRandomBytes(256/8);
+std::vector<uint8_t> secretKey = utility::cryptoRandomBytes(256/8);
 
 //
 // Encryption
@@ -22,22 +22,22 @@ auto secretKey = utility::cryptoRandomBytes(256/8);
 
 // Create symmetric cipher for encryption.
 // NOTE: we do not specify IV and AESCipherBuilder will generate a random one.
-auto encryptor = AESCipherBuilder{SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, secretKey}.buildEncryptor();
+std::unique_ptr<AuthenticatedAESCipher> encryptor = AESCipherBuilder{SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, secretKey}.buildEncryptor();
 
 // This example demonstrates one-shot operation mode which means plaintext message is first
 // encrypted and later decrypted in one piece.
 encryptor->update(plaintext);
-auto ciphertext = encryptor->finish();
+std::vector<uint8_t> ciphertext = encryptor->finish();
 
 // Get the Initialization Vector. We will need it, together with the key, for decryption
-auto iv = encryptor->getIV();
+std::vector<uint8_t> iv = encryptor->getIV();
 
 //
 // Decryption
 //
 
 // Use the same parameters as for encryption but explicitly specify the IV.
-auto decryptor = AESCipherBuilder{SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
+std::unique_ptr<AuthenticatedAESCipher> decryptor = AESCipherBuilder{SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
 decryptor->update(ciphertext);
 
 std::vector<uint8_t> decryptedtext;
@@ -62,6 +62,7 @@ It is also possible to associate additional unencrypted data with the message. T
 Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption we take computed authentication tag and carry it along with the message for further authentication.
 
 ```cpp
+using namespace mococrw;
 
 std::string message{"This is a message we going to encrypt and then, hopefully, decrypt."};
 std::vector<uint8_t> plaintext{message.begin(), message.end()};
@@ -71,7 +72,7 @@ std::string data{"This is a message we are not going to encrypt but want to make
 std::vector<uint8_t> associatedData{data.begin(), data.end()};
 
 
-auto secretKey = utility::cryptoRandomBytes(256/8);
+std::vector<uint8_t> secretKey = utility::cryptoRandomBytes(256/8);
 
 //
 // Encryption
@@ -83,23 +84,23 @@ auto secretKey = utility::cryptoRandomBytes(256/8);
 //
 // If you try to build authenticated cipher with mode which does not support it, 'build'
 // function will throw.
-auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
+std::unique_ptr<AuthenticatedAESCipher> encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
 
 // Optional step: Associating additional unencrypted data with the message
 encryptor->addAssociatedData(associatedData);
 
 encryptor->update(plaintext);
-auto ciphertext = encryptor->finish();
+std::vector<uint8_t> ciphertext = encryptor->finish();
 
-auto iv = encryptor->getIV();
+std::vector<uint8_t> iv = encryptor->getIV();
 // In addition to getting IV of the encrypted block of data we also get authentication tag.
-auto authTag = encryptor->getAuthTag();
+std::vector<uint8_t> authTag = encryptor->getAuthTag();
 
 //
 // Decryption
 //
 
-auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
+std::unique_ptr<AuthenticatedAESCipher> decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
 
 // Optional step: If associated data was set during encryption, add it here for the integrity check
 decryptor->addAssociatedData(associatedData);
@@ -123,13 +124,14 @@ assert(std::equal(plaintext.begin(), plaintext.end(), decryptedtext.begin()));
 
 ```
 
-## Steaming-mode
+## Streaming-mode
 
 Symmetric encryption interface also supports streaming use-case. It allows encryption of big chunks of data without loading them into memory. The implementation is optimized to avoid unnecessary copies of the input and output buffers when used with fixed block sizes in streaming en-/decryption.
 
 The following example demonstrates how to use stream mode with authenticated cipher.
 
 ```cpp
+using namespace mococrw;
 
 std::string message;
 for (size_t i = 0; i < 1024; i++) {
@@ -137,13 +139,13 @@ for (size_t i = 0; i < 1024; i++) {
 }
 std::vector<uint8_t> plaintext{message.begin(), message.end()};
 
-auto secretKey = utility::cryptoRandomBytes(256/8);
+std::vector<uint8_t> secretKey = utility::cryptoRandomBytes(256/8);
 
 //
 // Encryption
 //
 
-auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
+std::unique_ptr<AuthenticatedAESCipher> encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
 
 std::vector<uint8_t> ciphertext;
 
@@ -170,17 +172,17 @@ while (packetIterator < plaintext.end() - packetSize) {
 // authentication tag can be computed.
 // Please also note that if you use other cipher in stream mode, `finish()` might actually
 // return some encrypted data.
-auto finalEncryptedChunk = encryptor->finish();
+std::vector<uint8_t> finalEncryptedChunk = encryptor->finish();
 std::copy(std::begin(finalEncryptedChunk), std::end(finalEncryptedChunk), std::back_inserter(ciphertext));
 
-auto iv = encryptor->getIV();
-auto authTag = encryptor->getAuthTag();
+std::vector<uint8_t> iv = encryptor->getIV();
+std::vector<uint8_t> authTag = encryptor->getAuthTag();
 
 //
 // Decryption
 //
 
-auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
+std::unique_ptr<AuthenticatedAESCipher> decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
 
 
 // You can mix `update()`, `read()` and `readAll()`. For example, in the code below we first
@@ -207,7 +209,7 @@ while (packetIterator < ciphertext.end()) {
     packetIterator += packetSize;
 }
 //... read all remaining decrypted data in one chunk.
-auto decryptedPacket = decryptor->readAll();
+std::vector<uint8_t> decryptedPacket = decryptor->readAll();
 std::copy(std::begin(decryptedPacket), std::end(decryptedPacket), std::back_inserter(decryptedtext));
 
 decryptor->setAuthTag(authTag);

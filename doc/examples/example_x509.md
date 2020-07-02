@@ -72,40 +72,41 @@ In the example bellow we are loading two certificates from their respective PEM 
 and then are verifying if the intCert was signed by the rootCert
 
 ```cpp
-X509Certificate rootCert = X509Certificate::fromPEM("rootPemString");
-X509Certificate intCert = X509Certificate::fromPEM("intPemString");
+mococrw::X509Certificate rootCert = mococrw::X509Certificate::fromPEM("rootPemString");
+mococrw::X509Certificate intCert = mococrw::X509Certificate::fromPEM("intPemString");
 
-void X509Certificate::verify(rootCert, intCert);
+mococrw::X509Certificate::verify(rootCert, intCert);
 ```
 
 X509Certificate class also provides methods to get various types of information like issuer
 and subject distinguished name, certificate validity, serial number and public key.
 
 ```cpp
-X509Certificate cert = X509Certificate::fromPEM(intPemString);
+mococrw::X509Certificate cert = mococrw::X509Certificate::fromPEM(intPemString);
 
-DistinguishedName issDN = cert.getIssuerDistinguishedName();
-DistinguishedName subjDN = cert.getSubjectDistinguishedName();
+mococrw::DistinguishedName issDN = cert.getIssuerDistinguishedName();
+mococrw::DistinguishedName subjDN = cert.getSubjectDistinguishedName();
 uint64_t serialN = cert.getSerialNumber();
 std::chrono::system_clock::time_point validity = X509Certificate::getNotAfter();
-AsymmetricPublicKey pubK = cert.getPublicKey();
+mococrw::AsymmetricPublicKey pubK = cert.getPublicKey();
 ```
 
 A certificate can be written to a PEM format.
 
 ```cpp
-X509Certificate cert;
+mococrw::X509Certificate cert;
 std::string certToPem = cert.toPEM();
 ```
 
 It's possible to add more parameters to the Certificate verification by providing the verify method
 with a VerificationCtx Object where we can set a CRL (certificate revocation list),
 a time check verification and others.
-In the example bellow we can see an example where we create a context that enables
+In the example below, we can see an example where we create a context that enables
 a time check verification.
 
 ```cpp
-X509Certificate cert = X509Certificate::fromPEM(intPemString);
-VerificationContext ctx = ctx.setVerificationCheckTime(cert.getNotBeforeAsn1() - Asn1Time::Seconds(1));
-void cert.verify(ctx);
+mococrw::X509Certificate cert = mococrw::X509Certificate::fromPEM(intPemString);
+mococrw::X509Certificate::VerificationContext ctx;
+ctx.setVerificationCheckTime(cert.getNotBeforeAsn1() - Asn1Time::Seconds(1));
+cert.verify(ctx);
 ```
