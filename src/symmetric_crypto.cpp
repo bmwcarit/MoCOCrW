@@ -88,7 +88,7 @@ public:
         size_t expectedKeySize = _EVP_CIPHER_CTX_key_length(_ctx.get());
         if (secretKey.size() != expectedKeySize) {
             auto formatter = boost::format("Invalid size of Key %d bytes. Must be %d bytes.");
-            formatter % _iv.size() % expectedKeySize;
+            formatter % secretKey.size() % expectedKeySize;
             throw MoCOCrWException(formatter.str());
         }
 
