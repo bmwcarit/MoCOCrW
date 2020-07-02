@@ -99,13 +99,20 @@ TEST_F(ECIESTests, testWithoutSalt)
 TEST_F(ECIESTests, testWithSalts)
 {
     std::vector<uint8_t> kdfSalt = {'T', 'e', 's', 't', 'K', 'D', 'F'};
-    std::vector<uint8_t> macSalt = {'T', 'e', 's', 't', 'M', 'A', 'C'};;
+    std::vector<uint8_t> macSalt = {'T', 'e', 's', 't', 'M', 'A', 'C'};
     std::vector<uint8_t> testString = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'};
+    encBuilder.setKDFSalt(kdfSalt);
+    encBuilder.setMACSalt(macSalt);
+
     auto encCtx = encBuilder.buildEncryptionCtx(secp384PublicKey);
+
     encCtx->update(testString);
     auto ciphertext = encCtx->finish();
     auto mac = encCtx->getMAC();
     auto ephKey = encCtx->getEphemeralKey();
+
+    decBuilder.setKDFSalt(kdfSalt);
+    decBuilder.setMACSalt(macSalt);
 
     auto decCtx = decBuilder.buildDecryptionCtx(secp384Key, ephKey);
     decCtx->update(ciphertext);

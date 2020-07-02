@@ -44,7 +44,7 @@ class ECIESCtxBuilder;
  * - The public EC key of the recipient (P_recipient)
  * - The agreed cipher (values in brackets are defaults if not changed/set):
  *   - EC group/curve (e.g. secp384r1)
- *   - symmetric cipher (e.g. AES-CBC, no padding, IV=0x00)
+ *   - symmetric cipher (e.g. AES-CBC, PKCS7 padding, IV=0x00)
  *   - key derivation function (KDF) (e.g. X9.63)
  *   - message authentication code (MAC) (e.g. HMAC-SHA512)
  *   - optional salts for MAC and KDF
@@ -246,10 +246,13 @@ class ECIESCtxBuilder
 {
 public:
     /**
-     * @brief constructor
+     * @brief Constructor
      */
     ECIESCtxBuilder();
 
+    /**
+     * @brief Destructor
+     */
     ~ECIESCtxBuilder();
 
     /**
@@ -308,14 +311,14 @@ public:
      \code{.cpp}
         auto cipherDecFunc = [](const std::vector<uint8_t> &key) -> std::unique_ptr<AESCipher> {
             return AESCipherBuilder(SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, key)
-                    .setIV(std::vector<uint8_t>(AESCipherBuilder::getDefaultIVLength(mode)))
+                    .setIV(std::vector<uint8_t>(AESCipherBuilder::getDefaultIVLength(SymmetricCipherKeySize::S_256)))
                     .setPadding(SymmetricCipherPadding::PKCS)
                     .buildDecryptor();
         };
 
         auto cipherEncFunc = [](const std::vector<uint8_t> &key) -> std::unique_ptr<AESCipher> {
             return AESCipherBuilder(SymmetricCipherMode::CBC, SymmetricCipherKeySize::S_256, key)
-                    .setIV(std::vector<uint8_t>(AESCipherBuilder::getDefaultIVLength(mode)))
+                    .setIV(std::vector<uint8_t>(AESCipherBuilder::getDefaultIVLength(SymmetricCipherKeySize::S_256)))
                     .setPadding(SymmetricCipherPadding::PKCS)
                     .buildEncryptor();
         };
