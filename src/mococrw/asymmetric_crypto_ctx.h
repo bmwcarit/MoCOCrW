@@ -512,6 +512,8 @@ public:
      * @param hashFunction The hash function to be used
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If key is not an ECC public key
+     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey&, openssl::DigestTypes, ECDSASignatureFormat)
+     *             which expects ECDSASignatureFormat instead of ECSDASignatureFormat
      */
     [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
     ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
@@ -545,6 +547,8 @@ public:
      * @param hashFunction The hash function to be used
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
+     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const X509Certificate&, openssl::DigestTypes, ECDSASignatureFormat)
+     *             which expects ECDSASignatureFormat instead of ECSDASignatureFormat
      */
     [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
     ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
