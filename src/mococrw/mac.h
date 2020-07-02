@@ -59,9 +59,8 @@ public:
      * @brief Verifies the MAC
      *
      * This function compares the given value (macValue), with the value calculated during finish().
-     * Invoke finish() before calling verify().
+     * If finish() hasn't been already invoked, it is implicitly invoked by this method.
      * The length of the calculated value and the given value has to be the same!
-     * This function also finishes the MAC if finish is not invoked in advance.
      *
      * The comparison happens in constant time.
      * @throws MoCOCrWException if the verification fails because the values or their lengths differ.
