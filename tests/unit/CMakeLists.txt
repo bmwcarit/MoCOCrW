@@ -27,6 +27,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     set(REAL_SOURCES "${SRC_DIR}/openssl_lib.cpp" ${LIB_SOURCES})
 
     find_package(Threads)
+    include_directories(${UTILS_DIR})
 
     add_executable(openssltest test_opensslwrapper.cpp ${MOCK_SOURCES})
 

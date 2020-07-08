@@ -87,6 +87,7 @@ set(MOCOCRW_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #TODO set(DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+set(UTILS_DIR ${CMAKE_CURRENT_SOURCE_DIR}/utils)
 
 # Enable all subprojects to find each other's include files
 include_directories(${SRC_DIR})

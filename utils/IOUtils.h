@@ -51,6 +51,13 @@ auto openSSLObjectFromFile(const std::string &filename)
     return Func({buffer.data(), buffer.size()});
 }
 
+template<class Res, Res(Func)(const std::string&, const std::string&)>
+auto openSSLObjectFromFile(const std::string &filename, const std::string &password)
+{
+    auto buffer = bytesFromFile<char>(filename);
+    return Func({buffer.data(), buffer.size()}, password);
+}
+
 mococrw::X509Certificate loadCertFromFile(const std::string &filename)
 {
     return openSSLObjectFromFile<mococrw::X509Certificate,
@@ -73,5 +80,11 @@ mococrw::AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
 {
     return openSSLObjectFromFile<mococrw::AsymmetricPublicKey,
         mococrw::AsymmetricPublicKey::readPublicKeyFromPEM>(filename);
+}
+
+mococrw::AsymmetricPrivateKey loadPrivkeyFromFile(const std::string &filename, const std::string &password)
+{
+    return openSSLObjectFromFile<mococrw::AsymmetricPrivateKey,
+        mococrw::AsymmetricPrivateKey::readPrivateKeyFromPEM>(filename, password);
 }
 
