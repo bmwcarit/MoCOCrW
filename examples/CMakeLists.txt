@@ -8,12 +8,46 @@ if(BUILD_EXAMPLES)
     include_directories("${UTILS_DIR}")
 
     set(COMMON_EXAMPLE_HEADERS
-		"${UTILS_DIR}/IOUtils.h"
-		"${UTILS_DIR}/parsingUtils.h"
-		"${EXAMPLE_SRC_DIR}/common.h"
+	"${UTILS_DIR}/IOUtils.h"
+	"${UTILS_DIR}/parsingUtils.h"
+	"${EXAMPLE_SRC_DIR}/common.h"
     )
     set(COMMON_EXAMPLE_SRC
-		"${UTILS_DIR}/parsingUtils.cpp"
+	"${UTILS_DIR}/parsingUtils.cpp"
     )
 
+    add_executable(mococrw-ecies
+	"${EXAMPLE_SRC_DIR}/ecies_example.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+	"${COMMON_EXAMPLE_SRC}"
+    )
+    target_link_libraries(mococrw-ecies
+	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
+    )
+
+    add_executable(mococrw-rsa
+	"${EXAMPLE_SRC_DIR}/rsa_example.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+	"${COMMON_EXAMPLE_SRC}"
+    )
+    target_link_libraries(mococrw-rsa
+	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
+    )
+
+    add_executable(mococrw-dsa
+	"${EXAMPLE_SRC_DIR}/dsa_example.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+	"${COMMON_EXAMPLE_SRC}"
+    )
+    target_link_libraries(mococrw-dsa
+	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
+    )
+    add_executable(mococrw-hash
+	"${EXAMPLE_SRC_DIR}/hash_example.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+	"${COMMON_EXAMPLE_SRC}"
+    )
+    target_link_libraries(mococrw-hash
+	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
+    )
 endif()
