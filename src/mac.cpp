@@ -26,6 +26,8 @@
 namespace mococrw
 {
 
+using namespace openssl;
+
 MessageAuthenticationCode::~MessageAuthenticationCode() = default;
 
 class HMAC::Impl

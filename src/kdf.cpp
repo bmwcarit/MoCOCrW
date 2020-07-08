@@ -21,10 +21,9 @@
 
 namespace mococrw {
 
+using namespace openssl;
+
 KeyDerivationFunction::~KeyDerivationFunction() = default;
-
-
-
 
 class PBKDF2::Impl
 {
