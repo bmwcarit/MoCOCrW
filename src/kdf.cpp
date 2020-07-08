@@ -23,9 +23,6 @@ namespace mococrw {
 
 KeyDerivationFunction::~KeyDerivationFunction() = default;
 
-
-
-
 class PBKDF2::Impl
 {
 public:
@@ -39,7 +36,7 @@ public:
                                    const std::vector<uint8_t> &salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
-        const EVP_MD* digestFn = _getMDPtrFromDigestType(_hashFunction);
+        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
         openssl::_PKCS5_PBKDF2_HMAC(password, salt, _iterations, digestFn, derivedKey);
 
         return derivedKey;
@@ -94,7 +91,7 @@ public:
                                    const std::vector<uint8_t> &salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
-        const EVP_MD* digestFn = _getMDPtrFromDigestType(_hashFunction);
+        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
         openssl::_ECDH_KDF_X9_63(derivedKey, password, salt, digestFn);
         return derivedKey;
     }

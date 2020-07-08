@@ -33,7 +33,7 @@ class HMAC::Impl
 public:
     Impl(openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
     {
-        const EVP_MD* digestFn = _getMDPtrFromDigestType(hashFunction);
+        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(hashFunction);
 
         if (key.empty()) {
             throw MoCOCrWException("Key for HMAC is empty.");
