@@ -29,7 +29,7 @@ std::vector<T> bytesFromFile(const std::string &filename)
 
     std::ifstream file{filename};
     if (!file.good()) {
-        std::string errorMsg{"Cannot load certificate from file "};
+        std::string errorMsg{"Cannot load key/certificate from file "};
         errorMsg = errorMsg + filename;
         throw std::runtime_error(errorMsg);
     }
@@ -44,17 +44,17 @@ std::vector<T> bytesFromFile(const std::string &filename)
     return buffer;
 }
 
-template<class Res, Res(Func)(const std::string&)>
-auto openSSLObjectFromFile(const std::string &filename)
+template<class F, typename... Args>
+std::result_of_t<F&&(const std::string&, Args...)> openSSLObjectFromFile(
+        F&& f, const std::string& filename, Args&&... args)
 {
     auto buffer = bytesFromFile<char>(filename);
-    return Func({buffer.data(), buffer.size()});
+    return f({buffer.data(), buffer.size()}, std::forward<Args>(args)...);
 }
 
 mococrw::X509Certificate loadCertFromFile(const std::string &filename)
 {
-    return openSSLObjectFromFile<mococrw::X509Certificate,
-            mococrw::X509Certificate::fromPEM>(filename);
+    return openSSLObjectFromFile(mococrw::X509Certificate::fromPEM, filename);
 }
 
 mococrw::X509Certificate loadCertFromDERFile(const std::string &filename)
@@ -65,13 +65,28 @@ mococrw::X509Certificate loadCertFromDERFile(const std::string &filename)
 
 mococrw::CertificateRevocationList loadCrlFromFile(const std::string &filename)
 {
-    return openSSLObjectFromFile<mococrw::CertificateRevocationList,
-        mococrw::CertificateRevocationList::fromPEM>(filename);
+    return openSSLObjectFromFile(mococrw::CertificateRevocationList::fromPEM, filename);
 }
 
 mococrw::AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
 {
-    return openSSLObjectFromFile<mococrw::AsymmetricPublicKey,
-        mococrw::AsymmetricPublicKey::readPublicKeyFromPEM>(filename);
+    return openSSLObjectFromFile(mococrw::AsymmetricPublicKey::readPublicKeyFromPEM, filename);
 }
 
+mococrw::AsymmetricPrivateKey loadPrivkeyFromFile(const std::string &filename, const std::string &password)
+{
+    return openSSLObjectFromFile(&mococrw::AsymmetricPrivateKey::readPrivateKeyFromPEM, filename, password);
+}
+
+void writePemToFile(const std::string &pem, const std::string &filename)
+{
+    std::ofstream file{filename, std::ofstream::out};
+    if (!file.good()) {
+	std::string errorMsg{"Cannot open file for writing PEM."};
+        errorMsg = errorMsg + filename;
+        exit(EXIT_FAILURE);
+    }
+
+    file << pem;
+    file.close();
+}
