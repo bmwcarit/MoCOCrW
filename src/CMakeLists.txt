@@ -29,6 +29,7 @@ set(LIBRARY_SOURCES
     mac.cpp
     openssl_lib.cpp
     openssl_wrap.cpp
+    parsingUtils.cpp
     subject_key_identifier.cpp
     symmetric_crypto.cpp
     symmetric_memory.cpp
