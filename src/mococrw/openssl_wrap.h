@@ -29,8 +29,27 @@
 
 namespace mococrw
 {
+
+/**
+ * Enum for the digest types that can be used in signatures
+ * or hash computations.
+ */
+enum class DigestTypes {
+    SHA1,
+    SHA256,
+    SHA384,
+    SHA512,
+    SHA3_256,
+    SHA3_384,
+    SHA3_512,
+    NONE = std::numeric_limits<int>::max()
+};
+
 namespace openssl
 {
+
+using DigestTypes = mococrw::DigestTypes;
+
 /**
  * Template to wrap OpenSSLs "_free" functions
  * into a functor so that a std::unique_ptr
@@ -570,21 +589,6 @@ void _i2d_X509_REQ_bio(BIO* bp, X509_REQ* x);
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
 void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx);
-
-/**
- * Enum for the digest types that can be used in signatures
- * or hash computations.
- */
-enum class DigestTypes {
-    SHA1,
-    SHA256,
-    SHA384,
-    SHA512,
-    SHA3_256,
-    SHA3_384,
-    SHA3_512,
-    NONE = std::numeric_limits<int>::max()
-};
 
 /**
  * Get reference to digest function for a given digest type.
