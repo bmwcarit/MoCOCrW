@@ -50,4 +50,12 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-hash
 	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
     )
+    add_executable(mococrw-aes
+	"${EXAMPLE_SRC_DIR}/aes_example.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+	"${COMMON_EXAMPLE_SRC}"
+    )
+    target_link_libraries(mococrw-aes
+	PUBLIC MoCOCrW::mococrw ${Boost_LIBRARIES}
+    )
 endif()
