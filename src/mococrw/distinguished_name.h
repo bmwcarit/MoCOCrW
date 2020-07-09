@@ -30,7 +30,7 @@ namespace mococrw
 /**
  * Represents a distinguished name.
  *
- * Holds all the data needed to for a ditinsguished name.
+ * Holds all the data needed to for a distinguished name.
  * Instances must be created using an instance of the nested
  * Builder class:
  *
