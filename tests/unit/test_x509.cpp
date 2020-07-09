@@ -895,7 +895,7 @@ TEST_F(X509Test,  testGivenUserId)
 // OpenSSL can't parse PEM certificates that have the base64 encoded string in
 // one line and the length of the line is a multiple of 254.
 // https://github.com/openssl/openssl/issues/9187
-// This test ensures that our workaorund is working.
+// This test ensures that our workaround is working.
 // Previously, parsing such certificates threw an OpenSSLException with the message:
 //   error:00000000:lib(0):func(0):reason(0): 0
 TEST_F(X509Test, testOpenSSLPemParsingWorkaround)
