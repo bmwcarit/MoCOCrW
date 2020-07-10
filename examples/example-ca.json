@@ -1,0 +1,97 @@
+{
+	"root-cert": {
+		"certDetails": {
+			"commonName": "root CA",
+			"countryName": "DE",
+			"localityName": "hometown",
+			"stateOrProvinceName": "BW",
+			"organizationName": "I am cup",
+			"organizationalUnitName": "Test",
+			"pkcs9EmailAddress": "myEMail@mail.de",
+			"givenName": "The amazing root CA",
+			"userId": 5,
+			"title": "This is my test"
+		},
+		"keyUsage": {
+			"decipherOnly": false,
+			"encipherOnly": false,
+			"cRLSign": true,
+			"keyCertSign": true,
+			"keyAgreement": false,
+			"dataEncipherment": false,
+			"nonRepudiation": false,
+			"digitalSignature": false
+		},
+		"basicConstraints": {
+			"isCA": true,
+			"pathlength": 1
+		},
+		"certificateValiditySeconds": 31536000,
+		"notBeforeAsn1": "200714085617Z",
+		"digestType": "SHA512"
+	},
+	"ca-cert": {
+		"certDetails": {
+			"commonName": "signing CA",
+			"countryName": "DE",
+			"localityName": "hometown",
+			"stateOrProvinceName": "BW",
+			"organizationName": "I am cup",
+			"organizationalUnitName": "Test",
+			"pkcs9EmailAddress": "myEMail@mail.de",
+			"givenName": "The amazing signing CA"
+		}
+	},
+	"leaf-cert-1": {
+		"certDetails": {
+			"commonName": "leaf cert",
+			"countryName": "DE",
+			"localityName": "hometown",
+			"stateOrProvinceName": "BW",
+			"organizationName": "I am leaf",
+			"organizationalUnitName": "Test",
+			"pkcs9EmailAddress": "myEMail@mail.de",
+			"givenName": "The amazing leaf cert"
+		}
+	},
+
+	"rootca-sign": {
+		"keyUsage": {
+			"decipherOnly": false,
+			"encipherOnly": false,
+			"cRLSign": true,
+			"keyCertSign": true,
+			"keyAgreement": false,
+			"dataEncipherment": false,
+			"nonRepudiation": false,
+			"digitalSignature": false
+		},
+		"basicConstraints": {
+			"isCA": true,
+			"pathlength": 0
+		},
+		"certificateValiditySeconds": 31536000,
+		"notBeforeAsn1": "200714085617Z",
+		"digestType": "SHA512"
+	},
+	"ca-sign": {
+		"keyUsage": {
+			"decipherOnly": false,
+			"encipherOnly": false,
+			"cRLSign": false,
+			"keyCertSign": false,
+			"keyAgreement": false,
+			"dataEncipherment": false,
+			"keyEncipherment": false,
+			"nonRepudiation": false,
+			"digitalSignature": true
+		},
+		"basicConstraints": {
+			"isCA": true,
+			"pathlength": 0
+		},
+		"certificateValiditySeconds": 315360000,
+		"notBeforeAsn1": "200714085617Z",
+		"digestType": "SHA512"
+	}
+}
