@@ -21,6 +21,7 @@
 #include <fstream>
 
 #include "mococrw/x509.h"
+#include "mococrw/crl.h"
 
 template<class T>
 std::vector<T> bytesFromFile(const std::string &filename)
@@ -71,6 +72,12 @@ mococrw::CertificateRevocationList loadCrlFromFile(const std::string &filename)
 mococrw::AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
 {
     return openSSLObjectFromFile(mococrw::AsymmetricPublicKey::readPublicKeyFromPEM, filename);
+}
+
+mococrw::CertificateRevocationList loadCrlFromDERFile(const std::string &filename)
+{
+    auto buffer = bytesFromFile<uint8_t>(filename);
+    return mococrw::CertificateRevocationList::fromDER(buffer);
 }
 
 mococrw::AsymmetricPrivateKey loadPrivkeyFromFile(const std::string &filename, const std::string &password)

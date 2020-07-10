@@ -26,6 +26,7 @@
 #include "mococrw/ca.h"
 #include "mococrw/basic_constraints.h"
 #include "mococrw/key_usage.h"
+#include "mococrw/private/IOUtils.h"
 
 using namespace std::string_literals;
 
@@ -40,52 +41,6 @@ std::string corruptPEM(const std::string &pem)
     }
     tokenBytes.at(63) ^= 0xff;
     return std::string{tokenBytes.cbegin(), tokenBytes.cend()};
-}
-
-template<class T>
-std::vector<T> bytesFromFile(const std::string &filename)
-{
-    static_assert(sizeof(T) == sizeof(char), "bytesFromFile only works with 1 byte data types");
-
-    std::ifstream file{filename};
-    if (!file.good()) {
-        std::string errorMsg{"Cannot load certificate from file "};
-        errorMsg = errorMsg + filename;
-        throw std::runtime_error(errorMsg);
-    }
-
-    file.seekg(0, std::ios::end);
-    auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<T> buffer;
-    buffer.resize(size);
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
-    return buffer;
-}
-
-template<class Res, Res(Func)(const std::string&)>
-auto openSSLObjectFromFile(const std::string &filename)
-{
-    auto buffer = bytesFromFile<char>(filename);
-    return Func({buffer.data(), buffer.size()});
-}
-
-X509Certificate loadCertFromFile(const std::string &filename)
-{
-    return openSSLObjectFromFile<X509Certificate, X509Certificate::fromPEM>(filename);
-}
-
-CertificateRevocationList loadCrlFromFile(const std::string &filename)
-{
-    return openSSLObjectFromFile<CertificateRevocationList,
-        CertificateRevocationList::fromPEM>(filename);
-}
-
-CertificateRevocationList loadCrlFromDERFile(const std::string &filename)
-{
-    auto buffer = bytesFromFile<uint8_t>(filename);
-    return CertificateRevocationList::fromDER(buffer);
 }
 
 class CRLTest : public ::testing::Test
