@@ -1,0 +1,62 @@
+{
+	"rootca": {
+		"certDetails": {
+			"commonName": "root CA",
+			"countryName": "DE",
+			"localityName": "hometown",
+			"stateOrProvinceName": "BW",
+			"organizationalUnitName": "Test",
+			"pkcs9EmailAddress": "myEMail@mail.de",
+			"givenName": "The amazing root CA",
+			"userId": 5,
+			"title": "This is my test"
+		},
+		"keyUsage": {
+			"decipherOnly": false,
+			"encipherOnly": false,
+			"cRLSign": true,
+			"keyCertSign": false,
+			"keyAgreement": false,
+			"dataEncipherment": false,
+			"nonRepudiation": false,
+			"digitalSignature": true
+		},
+		"basicConstraints": {
+			"isCA": true,
+			"pathlength": 1
+		},
+		"certificateValiditySeconds": 31536000,
+		"notBeforeAsn1": "200714085617Z",
+		"digestType": "SHA512"
+	},
+	"ca": {
+		"certDetails": {
+			"commonName": "signing CA",
+			"countryName": "DE",
+			"localityName": "hometown",
+			"stateOrProvinceName": "BW",
+			"organizationalUnitName": "Test",
+			"pkcs9EmailAddress": "myEMail@mail.de",
+			"givenName": "The amazing signing CA",
+			"userId": 5,
+			"title": "This is my test"
+		},
+		"keyUsage": {
+			"decipherOnly": false,
+			"encipherOnly": false,
+			"cRLSign": true,
+			"keyCertSign": false,
+			"keyAgreement": false,
+			"dataEncipherment": false,
+			"nonRepudiation": false,
+			"digitalSignature": true
+		},
+		"basicConstraints": {
+			"isCA": true,
+			"pathlength": 0
+		},
+		"certificateValiditySeconds": 31536000,
+		"notBeforeAsn1": "200714085617Z",
+		"digestType": "SHA512"
+	}
+}
