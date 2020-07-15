@@ -52,4 +52,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-aes
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-key
+	"key_example.cpp"
+	"key_example.h"
+	"key_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-key
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
