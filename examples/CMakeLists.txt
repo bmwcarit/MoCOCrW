@@ -70,4 +70,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-ca
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-csr
+	"csr_example.cpp"
+	"csr_example.h"
+	"csr_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-csr
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
