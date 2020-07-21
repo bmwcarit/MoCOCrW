@@ -53,3 +53,30 @@ TEST_F(UtilTest, toHexWithConsequentZeroes)
     input.push_back(0xab);
     EXPECT_THAT(mococrw::utility::toHex(input), Eq("604569f70011ab"));
 }
+
+TEST_F(UtilTest, testFromHex)
+{
+    std::vector<uint8_t> result;
+    ASSERT_NO_THROW(result = mococrw::utility::fromHex("0x"));
+    ASSERT_TRUE(result.empty());
+
+    ASSERT_NO_THROW(result = mococrw::utility::fromHex("0x1"));
+    ASSERT_THAT(result, Eq(std::vector<uint8_t>{1}));
+
+    ASSERT_NO_THROW(result = mococrw::utility::fromHex("1"));
+    ASSERT_THAT(result, Eq(std::vector<uint8_t>{1}));
+
+    ASSERT_THROW(result = mococrw::utility::fromHex("0xabdefg"), mococrw::MoCOCrWException);
+    ASSERT_THROW(result = mococrw::utility::fromHex("xyz"), mococrw::MoCOCrWException);
+
+    std::vector<uint8_t> expectedResult = {222, 173, 190, 239};
+    ASSERT_NO_THROW(result = mococrw::utility::fromHex("deadbeef"));
+    ASSERT_THAT(result, Eq(expectedResult));
+
+    ASSERT_NO_THROW(result = mococrw::utility::fromHex("0xdeadbeef"));
+    ASSERT_THAT(result, Eq(expectedResult));
+
+    ASSERT_THROW(result = mococrw::utility::fromHex("  0xdeadbeef"), mococrw::MoCOCrWException);
+
+    ASSERT_THROW(result = mococrw::utility::fromHex("  deadbeef"), mococrw::MoCOCrWException);
+}

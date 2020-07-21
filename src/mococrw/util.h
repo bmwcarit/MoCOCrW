@@ -35,6 +35,12 @@ using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
 
 std::string toHex(const std::vector<uint8_t> &data);
 
+/**
+ * @brief Returns a uint8_t vector representation for a hex string
+ * @param hexData The hex string which shall be parsed (prepended 0x is optional). No preceding whitespaces!
+ * @return A vector containing the data in uint8_t representation
+ * @throws MoCOCrWException if there is an error parsing the hex string (invalid characters)
+ */
 std::vector<uint8_t> fromHex(const std::string &hexData);
 
 std::vector<uint8_t> cryptoRandomBytes(size_t length);

@@ -40,12 +40,32 @@ std::string toHex(const std::vector<uint8_t> &data) {
 
 std::vector<uint8_t> fromHex(const std::string &hexData) {
     std::vector <uint8_t> binary;
-    binary.reserve(hexData.size()/2);
-    for (size_t i=0; i<hexData.length(); i+=2) {
-        auto encodedByte = hexData.substr(i,2);
-        uint8_t b = (uint8_t) strtoul(encodedByte.c_str(), NULL, 16);
+    binary.reserve(hexData.size() / 2);
+    size_t startPos = 0;
+    if (hexData.rfind("0x") == 0) {
+        startPos = 2;
+    }
+    for (size_t i = startPos; i < hexData.length(); i += 2) {
+        auto encodedByte = hexData.substr(i, 2);
+        char *endptr;
+        errno = 0;
+        uint8_t b = (uint8_t) strtoul(encodedByte.c_str(), &endptr, 16);
+
+        if (errno != 0 && b == 0) {
+            std::string error_string = "Invalid hex string: ";
+            error_string += hexData;
+            throw MoCOCrWException(error_string);
+        }
+        /* From strtoul documentation:
+         * "In particular, if *nptr is not '\0' but **endptr is '\0' on return, the entire string is valid." */
+        if (!(*encodedByte.c_str() != '\0' && *endptr == '\0')) {
+            std::string error_string = "Invalid hex string: ";
+            error_string += hexData;
+            throw MoCOCrWException(error_string);
+        }
         binary.push_back(b);
     }
+
     return binary;
 }
 
