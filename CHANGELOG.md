@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
 * Replaced manual calculation of hash digest length by library function in ECIES
 * Improved error message when attempting to create an AES-GCM cipher with empty IV. (see #83)
 * Move DigestTypes from openssl namespace to mococrw namespace. This is an ABI change!
+* Add error detection to utility::fromHex (This changes the behaviour of fromHex as it will throw
+errors on invalid string from now on.)
 
 ## Fixed
 
