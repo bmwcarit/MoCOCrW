@@ -34,4 +34,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-sig
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-hash
+	"hash_example.cpp"
+	"hash_example.h"
+	"hash_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-hash
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
