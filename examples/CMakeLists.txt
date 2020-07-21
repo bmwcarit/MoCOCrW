@@ -16,4 +16,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-ecies
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-rsa
+	"rsa_example.cpp"
+	"rsa_main.cpp"
+	"rsa_example.h"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-rsa
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
