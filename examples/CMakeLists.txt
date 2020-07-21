@@ -7,4 +7,13 @@ if(BUILD_EXAMPLES)
     set(COMMON_EXAMPLE_HEADERS
 	"common.h"
     )
+    add_executable(mococrw-ecies
+	"ecies_example.cpp"
+	"ecies_main.cpp"
+	"ecies_example.h"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-ecies
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
