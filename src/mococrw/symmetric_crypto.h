@@ -338,10 +338,10 @@ public:
     static size_t getDefaultIVLength(SymmetricCipherMode mode);
 
     /**
-     * Set length of authentication tag for authenticated encryption.
+     * Set length of authentication tag for authenticated encryption in bytes.
      *
      * Use this method to change default length of authentication tag which the encryptor will
-     * return in getAuthTag(). Default value is 128 bits.
+     * return in getAuthTag(). Default value is 128 bits (16 bytes).
      *
      * @note Do not use when creating a cipher for decryption. It does not make sense and will throw.
      *
