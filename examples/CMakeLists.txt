@@ -25,4 +25,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-rsa
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-sig
+	"sig_example.cpp"
+	"sig_example.h"
+	"sig_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-sig
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
