@@ -79,4 +79,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-csr
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-kdf
+	"kdf_example.cpp"
+	"kdf_example.h"
+	"kdf_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-kdf
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
