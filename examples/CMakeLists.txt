@@ -88,4 +88,13 @@ if(BUILD_EXAMPLES)
     target_link_libraries(mococrw-kdf
 	PUBLIC MoCOCrW::mococrw Boost::program_options
     )
+    add_executable(mococrw-mac
+	"mac_example.cpp"
+	"mac_example.h"
+	"mac_main.cpp"
+	"${COMMON_EXAMPLE_HEADERS}"
+    )
+    target_link_libraries(mococrw-mac
+	PUBLIC MoCOCrW::mococrw Boost::program_options
+    )
 endif()
