@@ -22,7 +22,19 @@ errors on invalid string from now on.)
 
 * Examples for KDF, MAC, ECIES and EdDSA, and updated existing examples and documentation
 * Expose `mococrw/bio.h` as public header to simplify interoperability with OpenSSL functions
-
+* Compilable examples for:
+  * KDF
+  * MAC
+  * ECIES
+  * RSA en-/decryption
+  * ECC en-/decryption
+  * RSA signatures, ECDSA, EdDSA
+  * RSA, ECC, Ed25519 and Ed448 key creation
+  * CSR creation
+  * CA creation
+  * CSR signing
+  * hash calculation
+  * Symmetric en-/decryption (incl. authenticated encryption)
 
 # Release 3.0.0
 * Initial Release (starting at 3.0.0 to keep soversion in sync)

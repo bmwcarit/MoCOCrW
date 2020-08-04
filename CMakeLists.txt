@@ -82,6 +82,7 @@ find_package(Boost REQUIRED)
 set(MOCOCRW ${CMAKE_INSTALL_LIBDIR}/cmake)
 set(MOCOCRW_INSTALL_LIBDIR ${CMAKE_INSTALL_LIBDIR})
 set(MOCOCRW_INSTALL_BINDIR ${CMAKE_INSTALL_FULL_BINDIR})
+set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 
 set(MOCOCRW_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -93,3 +94,4 @@ include_directories(${SRC_DIR})
 
 add_subdirectory(${SRC_DIR})
 add_subdirectory(${TEST_DIR})
+add_subdirectory(${EXAMPLE_DIR})
