@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file.
 ## Added
 
 * Examples for KDF, MAC, ECIES and EdDSA, and updated existing examples and documentation
+* Expose `mococrw/bio.h` as public header to simplify interoperability with OpenSSL functions
 
 
 # Release 3.0.0

@@ -41,6 +41,7 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/asn1time.h
     mococrw/asymmetric_crypto_ctx.h
     mococrw/basic_constraints.h
+    mococrw/bio.h
     mococrw/ca.h
     mococrw/crl.h
     mococrw/csr.h
@@ -57,9 +58,8 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/openssl_wrap.h
     mococrw/padding_mode.h
     mococrw/sign_params.h
-    mococrw/symmetric_crypto.h
     mococrw/subject_key_identifier.h
-    mococrw/util.h
+    mococrw/symmetric_crypto.h
     mococrw/util.h
     mococrw/x509.h
 )
