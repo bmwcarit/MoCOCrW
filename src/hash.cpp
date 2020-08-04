@@ -117,6 +117,11 @@ size_t Hash::getDigestSize(openssl::DigestTypes digestType) {
     return Hash::lengthInBytes.at(digestType);
 }
 
+Hash Hash::fromDigestType(const openssl::DigestTypes digestType)
+{
+    return Hash(digestType);
+}
+
 const std::map<DigestTypes, size_t> Hash::lengthInBytes = {
     { DigestTypes::SHA1, 160 / 8 },
     { DigestTypes::SHA256, 256 / 8 },
