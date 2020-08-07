@@ -22,7 +22,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "IOUtils.h"
+#include "mococrw/private/IOUtils.h"
 
 #include "mococrw/error.h"
 #include "mococrw/x509.h"

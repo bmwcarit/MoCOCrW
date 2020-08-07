@@ -22,7 +22,7 @@
 #include <gtest/gtest.h>
 #include <openssl/evp.h>
 
-#include "IOUtils.h"
+#include "mococrw/private/IOUtils.h"
 #include "mococrw/hash.h"
 #include "asymmetric_crypto_ctx.cpp"
 
