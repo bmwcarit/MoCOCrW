@@ -22,7 +22,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "IOUtils.h"
+#include "mococrw/private/IOUtils.h"
 
 #include "asymmetric_crypto_ctx.cpp"
 
