@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file.
 
 * Replace `explicit_bzero(3)` with `OPENSSL_cleanse(3)` to fix compilation on non-glibc systems. (see #75)
 * Replaced manual calculation of hash digest length by library function in ECIES
+* Improved error message when attempting to create an AES-GCM cipher with empty IV. (see #83)
 
 ## Fixed
 
