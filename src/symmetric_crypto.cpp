@@ -95,6 +95,9 @@ public:
         // Check IV length and adjust if cipher supports it
         switch (mode) {
             case SymmetricCipherMode::GCM: {
+                if (_iv.size() == 0) {
+                    throw MoCOCrWException("IV is empty, but AES-GCM does not support empty IVs.");
+                }
                 _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_SET_IVLEN, _iv.size(),
                                      nullptr);
             } break;
