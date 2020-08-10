@@ -166,8 +166,18 @@ TEST_P(SymmetricCipherTest, DoubleCreationUsesDifferentIVs)
     auto ciphertext1 = encryptor1->finish();
 
     if (ciphertext0.size() > 0 || ciphertext1.size() > 0) {
-        ASSERT_NE(ciphertext0, ciphertext1)
-            << "Two encryption operations with different IVs should return different ciphertexts.";
+        if ((operationMode != SymmetricCipherMode::GCM && operationMode != SymmetricCipherMode::CTR) || ciphertext0.size() > 1) {
+            /* Don't compare AES-GCM and AES-CTR encryptions with different IVs
+             * if the ciphertext is only 1 byte. Because GCM and CTR are stream
+             * ciphers, it does occasionally happen that two different IVs with
+             * two different keys yield the same byte in the ciphertext. With
+             * block ciphers, this is not a problem, because they always
+             * produce outputs in multiples of the block size, where
+             * a collision is statistically unlikely enough so that we can
+             * ignore it. */
+            ASSERT_NE(ciphertext0, ciphertext1)
+                << "Two encryption operations with different IVs should return different ciphertexts.";
+        }
     }
 }
 

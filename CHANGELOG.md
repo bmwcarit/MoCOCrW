@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file.
 
 * Exception message in AESCipher (thrown if key has unexpected length)
 * Install target of documentation
+* Fix toggling stream cipher test when encrypting short messages
 
 ## Added
 
