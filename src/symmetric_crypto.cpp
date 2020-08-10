@@ -79,10 +79,10 @@ public:
 
         _EVP_CipherInit_ex(_ctx.get(),
                            evpCipherConstructor(),
-                                    nullptr,
-                                    nullptr,
-                                    nullptr,
-                                    this->_operation == Operation::Encryption);
+                           nullptr,
+                           nullptr,
+                           nullptr,
+                           this->_operation == Operation::Encryption);
 
         // Check id key size matches cipher block size
         size_t expectedKeySize = _EVP_CIPHER_CTX_key_length(_ctx.get());
@@ -96,7 +96,7 @@ public:
         switch (mode) {
             case SymmetricCipherMode::GCM: {
                 _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_SET_IVLEN, _iv.size(),
-                                              nullptr);
+                                     nullptr);
             } break;
             case SymmetricCipherMode::CTR:
                 //[[fallthrough]];
