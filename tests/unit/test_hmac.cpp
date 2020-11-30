@@ -42,7 +42,7 @@ struct inputData
 
 void testHmacSha(openssl::DigestTypes hashFunction, inputData testData, std::string expectedResult)
 {
-    /* Calculate the MAC */
+    /* Calculate the HMAC */
     auto hmac = mococrw::HMAC(hashFunction, utility::fromHex(testData.key));
     hmac.update(utility::fromHex(testData.data));
     auto result = hmac.finish();

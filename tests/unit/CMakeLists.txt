@@ -112,10 +112,15 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	"${SRC_DIR}/kdf.cpp"
 	${REAL_SOURCES})
 
-    add_executable(mactests test_mac.cpp
-	"${SRC_DIR}/mac.cpp"
-	"${SRC_DIR}/hash.cpp"
-	${REAL_SOURCES})
+    add_executable(hmactests test_hmac.cpp
+    	"${SRC_DIR}/mac.cpp"
+    	"${SRC_DIR}/hash.cpp"
+    	${REAL_SOURCES})
+
+    add_executable(cmactests test_cmac.cpp
+    	"${SRC_DIR}/mac.cpp"
+    	"${SRC_DIR}/hash.cpp"
+    	${REAL_SOURCES})
 
     add_executable(eciestests test_ecies.cpp
 	"${SRC_DIR}/ecies.cpp"
@@ -167,7 +172,9 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}  Boost::boost)
     target_link_libraries(kdftests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(mactests
+    target_link_libraries(hmactests
+	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(cmactests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(eciestests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
@@ -254,8 +261,12 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	COMMAND kdftests
     )
     add_test(
-	NAME MacSchemesTest
-	COMMAND mactests
+        NAME HMacSchemesTest
+	COMMAND hmactests
+    )
+    add_test(
+        NAME CMacSchemesTest
+	COMMAND cmactests
     )
     add_test(
 	NAME EciesSchemesTest

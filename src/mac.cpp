@@ -16,17 +16,22 @@
  * limitations under the License.
  * #L%
  */
+
 #include "mococrw/mac.h"
 #include "mococrw/error.h"
 #include "mococrw/openssl_wrap.h"
 
-#include <openssl/hmac.h>
+#include <boost/format.hpp>
 #include <openssl/crypto.h>
+#include <openssl/hmac.h>
 
 namespace mococrw
 {
 
 MessageAuthenticationCode::~MessageAuthenticationCode() = default;
+
+
+/* HMAC */
 
 class HMAC::Impl
 {
@@ -90,6 +95,7 @@ private:
     std::vector<uint8_t> _result;
 };
 
+
 HMAC::HMAC(mococrw::openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
 {
     _impl = std::make_unique<HMAC::Impl>(hashFunction, key);
@@ -117,6 +123,101 @@ std::vector<uint8_t> HMAC::finish()
 void HMAC::verify(const std::vector<uint8_t> &hmacValue)
 {
     _impl->verify(hmacValue);
+}
+
+
+/* CMAC */
+
+class CMAC::Impl
+{
+public:
+    Impl(openssl::CmacCipherTypes cipherType, const std::vector<uint8_t> &key)
+    {
+        const EVP_CIPHER* cipher = openssl::_getCipherPtrFromCmacCipherType(cipherType);
+
+        size_t expectedKeySize = openssl::_EVP_CIPHER_key_length(cipher);
+        if (key.size() != expectedKeySize) {
+            auto cipherName = openssl::_EVP_CIPHER_name(cipher);
+            auto formatter = boost::format("Invalid key size for %s: Expected %d bytes but got key with %d bytes.");
+            formatter % cipherName % expectedKeySize % key.size(); 
+            throw MoCOCrWException(formatter.str());
+        }
+
+        _ctx = openssl::_CMAC_CTX_new();
+        openssl::_CMAC_Init(_ctx.get(), key, cipher, nullptr);
+    }
+
+    ~Impl() = default;
+
+    Impl(Impl&&) = default;
+
+    void update(const std::vector<uint8_t> &message)
+    {
+        if (_isFinished) {
+            throw MoCOCrWException("update() can't be called after finish()");
+        }
+        openssl::_CMAC_Update(_ctx.get(), message);
+    }
+
+    std::vector<uint8_t> finish()
+    {
+        if (_isFinished) {
+            throw MoCOCrWException("finish() can't be called twice.");
+        }
+
+        _result = openssl::_CMAC_Final(_ctx.get());
+
+        _isFinished = true;
+
+        return _result;
+    }
+
+    void verify(const std::vector<uint8_t> &cmacValue)
+    {
+        if (!_isFinished) {
+            finish();
+        }
+
+        if (cmacValue.size() != _result.size()) {
+            throw MoCOCrWException("CMAC verification failed. Length differs.");
+        }
+
+        if (CRYPTO_memcmp(cmacValue.data(), _result.data(), cmacValue.size())) {
+            throw MoCOCrWException("CMAC verification failed. Calculated value: " + utility::toHex(_result)
+                                   + ". Received value: " + utility::toHex(cmacValue));
+        }
+    }
+
+private:
+    openssl::SSL_CMAC_CTX_Ptr _ctx = nullptr;
+    bool _isFinished = false;
+    std::vector<uint8_t> _result;
+};
+
+
+CMAC::CMAC(mococrw::openssl::CmacCipherTypes cipherType, const std::vector<uint8_t> &key)
+    : _impl(std::make_unique<CMAC::Impl>(cipherType, key))
+{}
+
+CMAC::~CMAC() = default;
+
+CMAC::CMAC(CMAC&& other) = default;
+
+CMAC& CMAC::operator=(CMAC&& other) = default;
+
+void CMAC::update(const std::vector<uint8_t> &message)
+{
+    _impl->update(message);
+}
+
+std::vector<uint8_t> CMAC::finish()
+{
+    return _impl->finish();
+}
+
+void CMAC::verify(const std::vector<uint8_t> &cmacValue)
+{
+    _impl->verify(cmacValue);
 }
 
 }

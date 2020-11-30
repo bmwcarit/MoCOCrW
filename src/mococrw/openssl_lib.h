@@ -35,6 +35,7 @@ extern "C" {
 #include <openssl/x509v3.h>
 #include <openssl/ec.h>
 #include <openssl/rand.h>
+#include <openssl/cmac.h>
 }
 
 namespace mococrw
@@ -68,6 +69,8 @@ public:
     static int SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) noexcept;
     static int SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept;
     static X509_REQ* SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept;
+    static const char* SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) noexcept;
+    static int SSL_EVP_CIPHER_key_length(const EVP_CIPHER* cipher) noexcept;
     static int SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noexcept;
     static int SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX * c) noexcept;
     static int SSL_RAND_bytes(unsigned char * buf, int num) noexcept;
@@ -125,7 +128,10 @@ public:
     static void SSL_X509_EXTENSION_free(X509_EXTENSION* a) noexcept;
     static int SSL_X509_add_ext(X509* x, X509_EXTENSION* ex, int loc) noexcept;
     static X509_EXTENSION* SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf, X509V3_CTX* ctx, int ext_nid, char* value) noexcept;
+
+    static const EVP_CIPHER* SSL_EVP_aes_128_cbc() noexcept;
     static const EVP_CIPHER* SSL_EVP_aes_256_cbc() noexcept;
+
     static int SSL_BIO_write(BIO* b, const void* buf, int len) noexcept;
     static int SSL_BIO_read(BIO* b, void* buf, int len) noexcept;
     static BIO* SSL_BIO_new_file(const char* filename, const char* mode) noexcept;
@@ -352,6 +358,17 @@ public:
     static int SSL_HMAC_Final(HMAC_CTX* ctx, unsigned char* md, unsigned int* len) noexcept;
     static int SSL_HMAC_Update(HMAC_CTX* ctx, const unsigned char* data, int len) noexcept;
     static int SSL_HMAC_Init_ex(HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept;
+
+    /* CMAC */
+    static CMAC_CTX* SSL_CMAC_CTX_new() noexcept;
+    static void SSL_CMAC_CTX_cleanup(CMAC_CTX* ctx) noexcept;
+    static void SSL_CMAC_CTX_free(CMAC_CTX* ctx) noexcept;
+    static EVP_CIPHER_CTX* SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX* ctx) noexcept;
+    static int SSL_CMAC_CTX_copy(CMAC_CTX* out, const CMAC_CTX* in) noexcept;
+    static int SSL_CMAC_Init(CMAC_CTX* ctx, const void* key, size_t keylen, const EVP_CIPHER* cipher, ENGINE* impl) noexcept;
+    static int SSL_CMAC_Update(CMAC_CTX* ctx, const void* data, size_t dlen) noexcept;
+    static int SSL_CMAC_Final(CMAC_CTX* ctx, unsigned char* out, size_t* poutlen) noexcept;
+    static int SSL_CMAC_resume(CMAC_CTX* ctx) noexcept;
 
     /* EC Point import and export */
     static size_t SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) noexcept;

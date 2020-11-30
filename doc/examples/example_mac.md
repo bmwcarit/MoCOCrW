@@ -59,3 +59,50 @@ catch (const MoCOCrWException &e)  {
     ...
 }
 ```
+
+# CMAC
+
+## CMAC Creation
+
+The following example shows how to create a CMAC. The key size needs to match the selected cipher, i.e. you need a key of
+128 bits for AES-128.
+
+```cpp
+std::vector<uint8_t> key = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+};
+std::vector<uint8_t> msg = {'m', 'e', 's', 's', 'a', 'g', 'e'};
+
+mococrw::CMAC cmac = mococrw::CMAC(openssl::CmacCipherTypes::AES_CBC_128, key);
+cmac.update(msg);
+std::vector<uint8_t> mac = cmac.finish();
+```
+
+## CMAC Verification
+
+The following example shows how a CMAC can be verified. Please note that `mococrw::CMAC::verify()` performs a constant time
+comparison on the given mac. Do NOT re-calculate the mac and compare it to the given mac yourself.
+
+```cpp
+std::vector<uint8_t> key = {
+    0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07,
+    0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f
+};
+std::vector<uint8_t> msg = {'m', 'e', 's', 's', 'a', 'g', 'e'};
+std::vector<uint8_t> mac = {
+    0x93, 0xff, 0x8a, 0x52, 0x5b, 0xa9, 0xb8, 0x7f,
+    0xe4, 0x65, 0xd4, 0x18, 0x08, 0x8f, 0x00, 0x0c
+};
+
+mococrw::CMAC cmac = mococrw::CMAC(openssl::CmacCipherTypes::AES_CBC_128, key);
+cmac.update(msg);
+
+try {
+    cmac.verify(mac); // throws if verification fails
+}
+catch (const MoCOCrWException &e)  {
+    std::cerr << "Verification failed" << std:endl;
+    ...
+}
+```

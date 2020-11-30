@@ -50,6 +50,34 @@ void verify(DigestTypes digestType, const std::vector<uint8_t> &key, const std::
     std::cout << "Verification successful." << std::endl;
 }
 
+void verify(CmacCipherTypes cipherType, const std::vector<uint8_t> &key, const std::vector<uint8_t> &message,
+            const std::vector<uint8_t> &authenticationTag)
+{
+    try {
+        auto cmac = std::make_unique<CMAC>(cipherType, key);
+        cmac->update(message);
+        cmac->verify(authenticationTag);
+    } catch (const openssl::OpenSSLException &e) {
+        /* low level OpenSSL failure */
+        std::cerr << "Verification failed." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - key for CMAC is empty or has wrong size
+         * - finish is invoked twice
+         * - CMAC values (calculated/provided) differ in length
+         * - CMAC values (calculated/provided) differ in content
+         * - update is invoked after finish or verify
+         */
+        std::cerr << "Verification failed." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    }
+
+    std::cout << "Verification successful." << std::endl;
+}
+
 std::vector<uint8_t> calculate(DigestTypes digestType, const std::vector<uint8_t> &key,
                                const std::vector<uint8_t> &message)
 {
@@ -74,10 +102,50 @@ std::vector<uint8_t> calculate(DigestTypes digestType, const std::vector<uint8_t
     }
 }
 
+std::vector<uint8_t> calculate(CmacCipherTypes cipherType, const std::vector<uint8_t> &key,
+                               const std::vector<uint8_t> &message)
+{
+    try {
+        auto cmac = std::make_unique<CMAC>(cipherType, key);
+        cmac->update(message);
+        return cmac->finish();
+    } catch (const openssl::OpenSSLException &e) {
+        /* low level OpenSSL failure */
+        std::cerr << "Verification failed." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - key for CMAC is empty or has wrong size
+         * - finish is invoked twice
+         * - update is invoked after finish
+         */
+        std::cerr << "CMAC initialisation or calculation failed." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    }
+}
+
 int main(void)
 {
-    auto tag = calculate(DigestTypes::SHA512, utility::fromHex("beefdead"), utility::fromHex("deadbeef"));
-    verify(DigestTypes::SHA512, utility::fromHex("beefdead"), utility::fromHex("deadbeef"), tag);
+    auto hmacTag = calculate(
+            DigestTypes::SHA512,
+            utility::fromHex("beefdead"),
+            utility::fromHex("deadbeef"));
+    verify(DigestTypes::SHA512,
+            utility::fromHex("beefdead"),
+            utility::fromHex("deadbeef"),
+            hmacTag);
+
+    auto cmacTag = calculate(
+            CmacCipherTypes::AES_CBC_128,
+            utility::fromHex("beefdead12345678" "12345678deadbeef"),
+            utility::fromHex("deadbeef"));
+    verify(
+            CmacCipherTypes::AES_CBC_128,
+            utility::fromHex("beefdead12345678" "12345678deadbeef"),
+            utility::fromHex("deadbeef"),
+            cmacTag);
 
     return 0;
 }

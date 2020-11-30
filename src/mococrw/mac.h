@@ -145,4 +145,81 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
+class CMAC : public MessageAuthenticationCode {
+public:
+    /**
+     * @brief Constructor
+     * @param cipherType the type of encryption function which shall be used
+     * @param key the key used for CMAC
+     * @throws MoCOCrWException if key size does not match cipherType
+     */
+    CMAC(mococrw::openssl::CmacCipherTypes cipherType, const std::vector<uint8_t> &key);
+
+    /**
+     * @brief destructor
+     */
+    ~CMAC();
+
+    /**
+     * @brief Add (another) chunk of data which should be included in calculation of CMAC
+     *
+     * This function may be invoked multiple times.
+     * Invoke finish() to get the final CMAC.
+     *
+     * @param message chunk of data to used for CMAC
+     * @throws MoCOCrWException if this function is invoked after finish was called
+     */
+    void update(const std::vector<uint8_t>& message) override;
+
+
+    /**
+     * @brief Finalize the CMAC
+     *
+     * This function returns the message authentication code.
+     *
+     * @throws MoCOCrWException if this function is invoked twice
+     * @return the calculated message authentication code
+     */
+    std::vector<uint8_t> finish() override;
+
+    /**
+     * @see MessageAuthenticationCode::verify
+     */
+    void verify(const std::vector<uint8_t> &cmacValue) override;
+
+    /**
+     * @brief The move constructor
+     * @param other The other CMAC to be moved
+     */
+    CMAC(CMAC &&other);
+
+    /**
+     * @brief The assignment move operator
+     * @param other the other CMAC to be assigned
+     * @return the result of the assignment
+     */
+    CMAC &operator=(CMAC &&other);
+
+    /**
+     * @brief Delete the copy constructor
+     */
+    CMAC(const CMAC &other) = delete;
+
+    /**
+     * @brief Delete the copy assignment
+     */
+    CMAC & operator=(const CMAC&) = delete;
+
+private:
+    /**
+     * @brief Internal class for applying the PIMPL design pattern
+     */
+    class Impl;
+
+    /**
+     * @brief Pointer for PIMPL design pattern
+     */
+    std::unique_ptr<Impl> _impl;
+};
+
 }

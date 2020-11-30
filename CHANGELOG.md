@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
 
 ## Added
 
+* Support for AES-CMAC with key lengths of 128 and 256 bit.
+
 # Release 4.0.0
 
 Multiple (self-contained) example programs have been added to illustrate the features of this

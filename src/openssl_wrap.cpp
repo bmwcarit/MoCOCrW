@@ -28,6 +28,7 @@
 #include <cstddef> /* this has to come before cppc (bug in boost) */
 #include <exception>
 #include <limits>
+#include <cassert>
 
 #include <cppc/checkcall.hpp>
 
@@ -644,6 +645,12 @@ HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
 }
 
 template<>
+CMAC_CTX *createOpenSSLObject<CMAC_CTX>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_CMAC_CTX_new);
+}
+
+template<>
 ECDSA_SIG *createOpenSSLObject<ECDSA_SIG>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ECDSA_SIG_new);
@@ -920,6 +927,16 @@ std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry)
     BioObject bio{BioObject::Types::MEM};
     _ASN1_STRING_print_ex(bio.internal(), data);
     return bio.flushToString();
+}
+
+const std::string _EVP_CIPHER_name(const EVP_CIPHER *cipher)
+{
+    return std::string{lib::OpenSSLLib::SSL_EVP_CIPHER_name(cipher)};
+}
+
+int _EVP_CIPHER_key_length(const EVP_CIPHER *cipher)
+{
+    return lib::OpenSSLLib::SSL_EVP_CIPHER_key_length(cipher);
 }
 
 SSL_EVP_CIPHER_CTX_Ptr _EVP_CIPHER_CTX_new() {
@@ -1379,6 +1396,49 @@ void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data)
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new()
 {
     return createManagedOpenSSLObject<SSL_HMAC_CTX_Ptr>();
+}
+
+SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void)
+{
+    return createManagedOpenSSLObject<SSL_CMAC_CTX_Ptr>();
+}
+
+void _CMAC_Init(CMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_CIPHER *cipher, ENGINE *impl)
+{
+    OpensslCallIsOne::callChecked(
+            lib::OpenSSLLib::SSL_CMAC_Init, ctx,
+            key.data(), key.size(),
+            cipher,
+            impl);
+}
+
+void _CMAC_Update(CMAC_CTX *ctx, const std::vector<uint8_t> &data)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_CMAC_Update, ctx, data.data(), data.size());
+}
+
+std::vector<uint8_t> _CMAC_Final(CMAC_CTX *ctx)
+{
+    std::vector<uint8_t> cmac(EVP_MAX_BLOCK_LENGTH);
+    size_t length = 0;
+    OpensslCallIsOne::callChecked(
+            lib::OpenSSLLib::SSL_CMAC_Final, ctx,
+            cmac.data(), &length);
+    assert(length <= cmac.size());
+    cmac.resize(length);
+    return cmac;
+}
+
+const EVP_CIPHER* _getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType)
+{
+    switch (cipherType) {
+        case CmacCipherTypes::AES_CBC_128:
+            return lib::OpenSSLLib::SSL_EVP_aes_128_cbc();
+        case CmacCipherTypes::AES_CBC_256:
+            return lib::OpenSSLLib::SSL_EVP_aes_256_cbc();
+        default:
+            throw std::runtime_error("Unknown cipher type");
+    }
 }
 
 SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf)
