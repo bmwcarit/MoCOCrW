@@ -36,6 +36,7 @@ The library provides end-user interfaces for:
  * ECIES Encryption (according to IEEE 1363a-2004)
  * PBKDF2 and X963KDF Key derivation
  * HMAC
+ * AES-CMAC (according to RFC 4493 for 128 and 256 bit keys)
  * AES Encryption (including GCM to support authenticated encryption with additional data)
  * SHA 1/2/3 Hashing
 

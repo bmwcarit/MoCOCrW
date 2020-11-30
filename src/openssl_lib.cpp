@@ -272,6 +272,11 @@ const EVP_MD* OpenSSLLib::SSL_EVP_sha3_384() noexcept { return EVP_sha3_384(); }
 
 const EVP_MD* OpenSSLLib::SSL_EVP_sha3_512() noexcept { return EVP_sha3_512(); }
 
+const EVP_CIPHER* OpenSSLLib::SSL_EVP_aes_128_cbc() noexcept { return EVP_aes_128_cbc(); }
+
+const EVP_CIPHER* OpenSSLLib::SSL_EVP_aes_256_cbc() noexcept { return EVP_aes_256_cbc(); }
+
+
 int OpenSSLLib::SSL_PEM_write_bio_PKCS8PrivateKey(BIO* bp,
                                                   EVP_PKEY* x,
                                                   const EVP_CIPHER* enc,
@@ -511,11 +516,6 @@ int OpenSSLLib::SSL_BIO_read(BIO* b, void* buf, int len) noexcept
 int OpenSSLLib::SSL_BIO_write(BIO* b, const void* buf, int len) noexcept
 {
     return BIO_write(b, buf, len);
-}
-
-const EVP_CIPHER* OpenSSLLib::SSL_EVP_aes_256_cbc() noexcept
-{
-    return EVP_aes_256_cbc();
 }
 
 X509_EXTENSION* OpenSSLLib::SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf,
@@ -865,6 +865,15 @@ int OpenSSLLib::SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept
     return i2d_X509_REQ_bio(bp, req);
 }
 
+int OpenSSLLib::SSL_EVP_CIPHER_key_length(const EVP_CIPHER* cipher) noexcept
+{
+    return EVP_CIPHER_key_length(cipher);
+}
+const char* OpenSSLLib::SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) noexcept
+{
+    return EVP_CIPHER_name(cipher);
+}
+
 int OpenSSLLib::SSL_EVP_CipherUpdate(EVP_CIPHER_CTX* ctx,
                                      unsigned char* out,
                                      int* outl,
@@ -1029,6 +1038,45 @@ int OpenSSLLib::SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) 
 {
     return BN_bn2binpad(a, to, tolen);
 }
+
+/* CMAC */
+CMAC_CTX* OpenSSLLib::SSL_CMAC_CTX_new() noexcept
+{
+    return CMAC_CTX_new();
+}
+void OpenSSLLib::SSL_CMAC_CTX_cleanup(CMAC_CTX* ctx) noexcept
+{
+    CMAC_CTX_cleanup(ctx);
+}
+void OpenSSLLib::SSL_CMAC_CTX_free(CMAC_CTX* ctx) noexcept
+{
+    CMAC_CTX_free(ctx);
+}
+EVP_CIPHER_CTX* OpenSSLLib::SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX* ctx) noexcept
+{
+    return CMAC_CTX_get0_cipher_ctx(ctx);
+}
+int OpenSSLLib::SSL_CMAC_CTX_copy(CMAC_CTX* out, const CMAC_CTX* in) noexcept
+{
+    return CMAC_CTX_copy(out, in);
+}
+int OpenSSLLib::SSL_CMAC_Init(CMAC_CTX* ctx, const void* key, size_t keylen, const EVP_CIPHER* cipher, ENGINE* impl) noexcept
+{
+    return CMAC_Init(ctx, key, keylen, cipher, impl);
+}
+int OpenSSLLib::SSL_CMAC_Update(CMAC_CTX* ctx, const void* data, size_t dlen) noexcept
+{
+    return CMAC_Update(ctx, data, dlen);
+}
+int OpenSSLLib::SSL_CMAC_Final(CMAC_CTX* ctx, unsigned char* out, size_t* poutlen) noexcept
+{
+    return CMAC_Final(ctx, out, poutlen);
+}
+int OpenSSLLib::SSL_CMAC_resume(CMAC_CTX* ctx) noexcept
+{
+    return CMAC_resume(ctx);
+}
+
 }  //::lib
 }  //::openssl
 }  //::mococrw

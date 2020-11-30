@@ -18,8 +18,9 @@
  */
 #pragma once
 
-#include <ctime>
 #include <chrono>
+#include <ctime>
+#include <limits>
 #include <memory>
 #include <vector>
 #include "boost/format.hpp"
@@ -45,10 +46,19 @@ enum class DigestTypes {
     NONE = std::numeric_limits<int>::max()
 };
 
+/**
+ * @brief Enum for the cipher types that can be used for CMAC computations
+ */
+enum class CmacCipherTypes {
+    AES_CBC_128,
+    AES_CBC_256,
+};
+
 namespace openssl
 {
 
 using DigestTypes = mococrw::DigestTypes;
+using CmacCipherTypes = mococrw::CmacCipherTypes;
 
 /**
  * Template to wrap OpenSSLs "_free" functions
@@ -126,6 +136,9 @@ using SSL_EVP_PKEY_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_P
 
 using SSL_HMAC_CTX_Ptr = std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
 using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
+
+using SSL_CMAC_CTX_Ptr = std::unique_ptr<CMAC_CTX, SSLDeleter<CMAC_CTX, lib::OpenSSLLib::SSL_CMAC_CTX_free>>;
+using SSL_CMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_CMAC_CTX_Ptr>;
 
 using SSL_X509_REQ_Ptr =
         std::unique_ptr<X509_REQ, SSLDeleter<X509_REQ, lib::OpenSSLLib::SSL_X509_REQ_free>>;
@@ -910,6 +923,22 @@ X509_NAME_ENTRY* _X509_NAME_get_entry(X509_NAME *name, int loc);
 
 std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry);
 
+/**
+ * Return name of given cipher
+ *
+ * @param cipher to get the name for
+ * @returns name of cipher
+ */
+const std::string _EVP_CIPHER_name(const EVP_CIPHER*cipher);
+
+/**
+ * Return size of key used for given cipher
+ *
+ * @param cipher to get the key size for
+ * @returns size of key in bytes
+ */
+int _EVP_CIPHER_key_length(const EVP_CIPHER *cipher);
+
 using SSL_EVP_CIPHER_CTX_Ptr =
 std::unique_ptr<EVP_CIPHER_CTX, SSLDeleter<EVP_CIPHER_CTX, lib::OpenSSLLib::SSL_EVP_CIPHER_CTX_free>>;
 using SSL_EVP_CIPHER_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_CIPHER_CTX_Ptr>;
@@ -1378,10 +1407,18 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
                      const std::vector<uint8_t> &sinfo,
                      const EVP_MD *md);
 
+/* HMAC */
 void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl);
 std::vector<uint8_t> _HMAC_Final(HMAC_CTX* ctx);
 void _HMAC_Update(HMAC_CTX* ctx, const std::vector<uint8_t> &data);
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
+
+/* CMAC */
+SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void);
+void _CMAC_Init(CMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_CIPHER *cipher, ENGINE *impl);
+void _CMAC_Update(CMAC_CTX *ctx, const std::vector<uint8_t> &data);
+std::vector<uint8_t> _CMAC_Final(CMAC_CTX *ctx);
+const EVP_CIPHER* _getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType);
 
 SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf);
 void _EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key);

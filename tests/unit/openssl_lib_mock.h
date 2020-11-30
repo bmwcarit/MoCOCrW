@@ -35,6 +35,8 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual const char* SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) = 0;
+    virtual int SSL_EVP_CIPHER_key_length(const EVP_CIPHER* cipher) = 0;
     virtual int SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) = 0;
     virtual const BIGNUM* SSL_ECDSA_SIG_get0_s(const ECDSA_SIG* sig) = 0;
     virtual const BIGNUM* SSL_ECDSA_SIG_get0_r(const ECDSA_SIG* sig) = 0;
@@ -116,6 +118,7 @@ public:
                                                     X509V3_CTX* ctx,
                                                     int ext_nid,
                                                     char* value) = 0;
+    virtual const EVP_CIPHER* SSL_EVP_aes_128_cbc() = 0;
     virtual const EVP_CIPHER* SSL_EVP_aes_256_cbc() = 0;
     virtual int SSL_BIO_write(BIO* b, const void* buf, int len) = 0;
     virtual int SSL_BIO_read(BIO* b, void* buf, int len) = 0;
@@ -325,6 +328,17 @@ public:
     virtual int SSL_PKCS5_PBKDF2_HMAC(const char *pass, int passlen, const unsigned char *salt, int saltlen, int iter,
                                      const EVP_MD *digest, int keylen, unsigned char *out) = 0;
 
+    /* CMAC */
+    virtual CMAC_CTX* SSL_CMAC_CTX_new() = 0;
+    virtual void SSL_CMAC_CTX_cleanup(CMAC_CTX* ctx) = 0;
+    virtual void SSL_CMAC_CTX_free(CMAC_CTX* ctx) = 0;
+    virtual EVP_CIPHER_CTX* SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX* ctx) = 0;
+    virtual int SSL_CMAC_CTX_copy(CMAC_CTX* out, const CMAC_CTX* in) = 0;
+    virtual int SSL_CMAC_Init(CMAC_CTX* ctx, const void* key, size_t keylen, const EVP_CIPHER* cipher, ENGINE* impl) = 0;
+    virtual int SSL_CMAC_Update(CMAC_CTX* ctx, const void* data, size_t dlen) = 0;
+    virtual int SSL_CMAC_Final(CMAC_CTX* ctx, unsigned char* out, size_t* poutlen) = 0;
+    virtual int SSL_CMAC_resume(CMAC_CTX* ctx) = 0;
+
 };
 
 /**
@@ -334,6 +348,8 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD1(SSL_EVP_CIPHER_name, const char*(const EVP_CIPHER*));
+    MOCK_METHOD1(SSL_EVP_CIPHER_key_length, int(const EVP_CIPHER*));
     MOCK_METHOD3(SSL_BN_bn2binpad, int(const BIGNUM*, unsigned char*, int));
     MOCK_METHOD1(SSL_ECDSA_SIG_get0_s, const BIGNUM*(const ECDSA_SIG*));
     MOCK_METHOD1(SSL_ECDSA_SIG_get0_r, const BIGNUM*(const ECDSA_SIG*));
@@ -419,6 +435,7 @@ public:
                                                           X509V3_CTX*,
                                                           int,
                                                           char*));
+    MOCK_METHOD0(SSL_EVP_aes_128_cbc, const EVP_CIPHER*());
     MOCK_METHOD0(SSL_EVP_aes_256_cbc, const EVP_CIPHER*());
     MOCK_METHOD3(SSL_BIO_write, int(BIO*, const void*, int));
     MOCK_METHOD3(SSL_BIO_read, int(BIO*, void*, int));
@@ -588,6 +605,18 @@ public:
                                             int iter,const EVP_MD *digest, int keylen, unsigned char *out));
     MOCK_METHOD7(SSL_ECDH_KDF_X9_63, int(unsigned char *out, size_t outlen, const unsigned char *Z, size_t Zlen,
                                      const unsigned char *sinfo, size_t sinfolen, const EVP_MD *md));
+
+    /* CMAC */
+    MOCK_METHOD0(SSL_CMAC_CTX_new, CMAC_CTX*());
+    MOCK_METHOD1(SSL_CMAC_CTX_cleanup, void(CMAC_CTX*));
+    MOCK_METHOD1(SSL_CMAC_CTX_free, void(CMAC_CTX*));
+    MOCK_METHOD1(SSL_CMAC_CTX_get0_cipher_ctx, EVP_CIPHER_CTX*(CMAC_CTX*));
+    MOCK_METHOD2(SSL_CMAC_CTX_copy, int(CMAC_CTX*, const CMAC_CTX*));
+    MOCK_METHOD5(SSL_CMAC_Init, int(CMAC_CTX*, const void*, size_t, const EVP_CIPHER*, ENGINE*));
+    MOCK_METHOD3(SSL_CMAC_Update, int(CMAC_CTX*, const void*, size_t));
+    MOCK_METHOD3(SSL_CMAC_Final, int(CMAC_CTX*, unsigned char*, size_t*));
+    MOCK_METHOD1(SSL_CMAC_resume, int(CMAC_CTX*));
+
 };
 
 /**
