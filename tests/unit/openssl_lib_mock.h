@@ -317,7 +317,6 @@ public:
     virtual int SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) = 0;
     virtual int SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l,
                                                     int llen) = 0;
-    virtual int SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) = 0;
     virtual int SSL_RSA_size(const RSA *r) = 0;
     virtual int SSL_EVP_MD_size(const EVP_MD *md) = 0;
 
@@ -580,7 +579,6 @@ public:
     MOCK_METHOD2(SSL_EVP_PKEY_CTX_set_rsa_oaep_md, int(EVP_PKEY_CTX *ctx, const EVP_MD *md));
     MOCK_METHOD3(SSL_EVP_PKEY_CTX_set_rsa_oaep_label, int(EVP_PKEY_CTX *ctx, unsigned char *l,
                                                           int llen));
-    MOCK_METHOD2(SSL_EVP_PKEY_CTX_get_rsa_oaep_label, int(EVP_PKEY_CTX *ctx, unsigned char *l));
     MOCK_METHOD1(SSL_RSA_size, int(const RSA *r));
     MOCK_METHOD1(SSL_EVP_MD_size, int(const EVP_MD *md));
     MOCK_METHOD1(SSL_EVP_PKEY_get0_EC_KEY, EC_KEY*(EVP_PKEY *pkey));

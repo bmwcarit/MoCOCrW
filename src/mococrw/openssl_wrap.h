@@ -1306,11 +1306,6 @@ void _EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
 void _EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen);
 
 /**
- * Gets the OAEP label
- */
-int _EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l);
-
-/**
  * Returns the size of an RSA Key
  */
 int _RSA_size(const RSA *r);
