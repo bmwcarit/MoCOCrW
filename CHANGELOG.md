@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 ## Changed
 
+* Remove wrapper `openssl::_EVP_PKEY_CTX_get_rsa_oaep_label`. This is
+  technically an ABI break, but since the wrappers are not considered part of
+  the public API, we do not bump the SOVERSION for this.
+
 ## Fixed
 
 ## Added

@@ -774,11 +774,6 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned 
     return EVP_PKEY_CTX_set0_rsa_oaep_label(ctx, l, llen);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept
-{
-    return EVP_PKEY_CTX_get0_rsa_oaep_label(ctx, l);
-}
-
 int OpenSSLLib::SSL_RSA_size(const RSA *r) noexcept
 {
     return RSA_size(r);

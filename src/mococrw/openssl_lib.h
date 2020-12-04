@@ -334,7 +334,6 @@ public:
                                     const unsigned char *in, size_t inlen) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen) noexcept;
-    static int SSL_EVP_PKEY_CTX_get_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l) noexcept;
     static int SSL_RSA_size(const RSA *r) noexcept;
     static int SSL_EVP_MD_size(const EVP_MD *md) noexcept;
     static int SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept;
