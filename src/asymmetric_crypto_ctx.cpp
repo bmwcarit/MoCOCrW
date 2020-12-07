@@ -372,7 +372,9 @@ namespace mococrw {
                                  messageDigest.size());
             }
             catch (const OpenSSLException &e) {
-                throw MoCOCrWException(e.what());
+                throw MoCOCrWException((boost::format{"Signature validation failed. "
+                                                      "OpenSSL info: %1%"}
+                                                    % e.what()).str());
             }
         }
 
@@ -597,7 +599,9 @@ namespace {
                                  messageDigest.size());
             }
             catch (const OpenSSLException &e) {
-                throw MoCOCrWException(e.what());
+                throw MoCOCrWException((boost::format{"Signature validation failed. "
+                                                      "OpenSSL info: %1%"}
+                                                    % e.what()).str());
             }
         }
     };
@@ -734,7 +738,9 @@ namespace {
                 _EVP_DigestVerify(mctx.get(), signature.data(), signature.size(), message.data(), message.size());
             }
             catch (const OpenSSLException &e) {
-                throw MoCOCrWException(e.what());
+                throw MoCOCrWException((boost::format{"Signature validation failed. "
+                                                      "OpenSSL info: %1%"}
+                                                    % e.what()).str());
             }
         }
     };
