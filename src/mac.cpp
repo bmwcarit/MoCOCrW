@@ -90,7 +90,7 @@ public:
     }
 
 private:
-    openssl::SSL_HMAC_CTX_SharedPtr _ctx = nullptr;
+    openssl::SSL_HMAC_CTX_Ptr _ctx = nullptr;
     bool _isFinished = false;
     std::vector<uint8_t> _result;
 };
@@ -105,10 +105,7 @@ HMAC::~HMAC() = default;
 
 HMAC::HMAC(HMAC&& other) = default;
 
-HMAC& HMAC::operator=(HMAC&& other) {
-    this->_impl = std::move(other._impl);
-    return *this;
-}
+HMAC& HMAC::operator=(HMAC&& other) = default;
 
 void HMAC::update(const std::vector<uint8_t> &message)
 {
