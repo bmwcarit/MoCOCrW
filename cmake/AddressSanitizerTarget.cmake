@@ -95,7 +95,7 @@ mark_as_advanced(
 unset(_ASAN_FLAGS)
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-    find_library(ASAN_LIBRARY asan)
+    find_library(ASAN_LIBRARY NAMES asan libasan.so.6 libasan.so.5)
 
     set(ASAN_FIND_REQUIRED TRUE)
     include(FindPackageHandleStandardArgs)
