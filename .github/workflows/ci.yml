@@ -1,0 +1,42 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - openssl1.1
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: ["g++", "clang++"]
+        build_type: ["", "ASAN"]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Load Docker cache"
+        uses: satackey/action-docker-layer-caching@v0.0.11
+
+      - name: "Build Docker image"
+        run: |
+          docker build -t buildenv - < docker-build-env/Dockerfile
+
+      - name: "Build MoCOCrW"
+        run: |
+          mkdir build
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build buildenv bash -c \
+            'cmake \
+              -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
+              -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+              -DBUILD_TESTING=True \
+              -GNinja \
+              /src \
+            && ninja'
+
+      - name: "Run tests"
+        run: |
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build buildenv bash -c 'ctest -j $(nproc)'
