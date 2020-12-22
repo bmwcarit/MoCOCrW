@@ -265,7 +265,7 @@ TEST_P(CSRTest, testCsrSignatureDigest)
         of << csr.toPEM();
         of.close();
 
-        std::string openSSLCmdline = "openssl req -in "s + _pemFile + " -noout -text";
+        std::string openSSLCmdline = "openssl req -config /dev/null -in "s + _pemFile + " -noout -text";
         auto output = exec(openSSLCmdline.c_str());
 
         auto sigAlgoPos = output.find("Signature Algorithm:");
