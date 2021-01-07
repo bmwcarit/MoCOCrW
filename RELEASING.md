@@ -14,16 +14,16 @@ to versioning scheme described below.
 ### PR Checklist
 
 What should be done with every PR (if no new release is created):
-* [CHANGELOG](./CHANGELOG) is updated with the summary of the change (Unreleased section)
-* If your change is going to break ABI (at the next release) please also put that into the [CHANGELOG](./CHANGELOG)
+* [CHANGELOG](./CHANGELOG.md) is updated with the summary of the change (Unreleased section)
+* If your change is going to break ABI (at the next release) please also put that into the [CHANGELOG](./CHANGELOG.md)
 * CI testing against project specific CI systems
 
 ### Releasing Checklist
 
 Check if the following steps have been performed **before** creating a new release. This includes
 all kinds of releases (Major, Minor and Patch releases)
-* [REAMDE](./README) is updated if necessary
-* [CHANGELOG](./CHANGELOG) is updated (add the new release)
+* [README](./README.md) is updated if necessary
+* [CHANGELOG](./CHANGELOG.md) is updated (add the new release)
 * Library soversion is increased in [src/CMakeLists.txt](src/CMakeLists.txt#L5) (major release only)
 
 If all the steps above have been done you are good to go and create a new release:
