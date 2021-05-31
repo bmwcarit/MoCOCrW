@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+* CertificateAuthority now copies the subject of the CA directly into the
+  issuer field of the issued certificate. This resolves problems around
+  different orders of items in the underlying distinguished name. This fixes
+  issue #95. The DistinguishedName object is still not order-aware when loading
+  a DN from OpenSSL. This is to be fixed in a later step.
+
 ## Added
 
 # Release 4.1.0

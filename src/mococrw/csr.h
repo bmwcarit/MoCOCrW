@@ -102,6 +102,16 @@ public:
      * @throw MoCOCrWException if the verification fails.
      */
     void verify() const;
+    
+    /**
+     * Get the internal openssl x509_req instance.
+     *
+     * This method can be used when interaction with
+     * OpenSSL's native methods is necessary for some
+     * reason.
+     */
+    const X509_REQ *internal() const { return _req.get(); }
+    X509_REQ *internal() { return _req.get(); }
 
 private:
     CertificateSigningRequest(openssl::SSL_X509_REQ_Ptr req);

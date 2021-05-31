@@ -74,17 +74,20 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
 X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &csr,
                             const CertificateSigningParameters &signParams)
 {
-    auto subjectName = _X509_NAME_new();
-    csr.getSubjectName().populateX509Name(subjectName);
+    /* OpenSSL internally dups X509_NAMEs when assigning them to a new
+     * cert. No special memory management needed.
+     * We copy X509_NAMEs directly to avoid a detour via our DistinguishedName
+     * object that currently isn't order-aware for distinguished names.
+     */
+    auto subjectName = _X509_REQ_get_subject_name(csr.internal());
     auto publicKey = csr.getPublicKey();
 
     auto newCertificate = createManagedOpenSSLObject<SSL_X509_Ptr>();
-    _X509_set_subject_name(newCertificate.get(), subjectName.get());
+    _X509_set_subject_name(newCertificate.get(), subjectName);
     _X509_set_pubkey(newCertificate.get(), publicKey.internal());
 
-    auto rootCertName = _X509_NAME_new();
-    _rootCert.getSubjectDistinguishedName().populateX509Name(rootCertName);
-    _X509_set_issuer_name(newCertificate.get(), rootCertName.get());
+    auto rootCertName = _X509_get_subject_name(_rootCert.internal());
+    _X509_set_issuer_name(newCertificate.get(), rootCertName);
 
     _X509_set_serialNumber(newCertificate.get(), _nextSerialNumber);
 
