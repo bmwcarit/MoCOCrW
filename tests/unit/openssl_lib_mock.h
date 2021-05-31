@@ -185,7 +185,7 @@ public:
     virtual int SSL_X509_REQ_set_pubkey(X509_REQ* x, EVP_PKEY* pkey) = 0;
     virtual int SSL_X509_REQ_set_version(X509_REQ* req, unsigned long version) = 0;
     virtual int SSL_X509_REQ_sign_ctx(X509_REQ*, EVP_MD_CTX*) = 0;
-    virtual X509_NAME* SSL_X509_REQ_get_subject_name(X509_REQ* req) = 0;
+    virtual X509_NAME* SSL_X509_REQ_get_subject_name(const X509_REQ* req) = 0;
     virtual EVP_PKEY* SSL_X509_REQ_get_pubkey(X509_REQ *req) = 0;
     virtual int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) = 0;
 
@@ -446,7 +446,7 @@ public:
 
     MOCK_METHOD1(SSL_X509_REQ_free, void(X509_REQ*));
     MOCK_METHOD0(SSL_X509_REQ_new, X509_REQ*());
-    MOCK_METHOD1(SSL_X509_REQ_get_subject_name, X509_NAME*(X509_REQ* req));
+    MOCK_METHOD1(SSL_X509_REQ_get_subject_name, X509_NAME*(const X509_REQ* req));
     MOCK_METHOD1(SSL_X509_REQ_get_pubkey, EVP_PKEY*(X509_REQ* req));
     MOCK_METHOD2(SSL_X509_REQ_verify, int(X509_REQ *a, EVP_PKEY *r));
 

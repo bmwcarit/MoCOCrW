@@ -444,7 +444,7 @@ void _X509_REQ_set_version(X509_REQ* req, unsigned long version);
  *
  * NOTE this result *MUST NOT BE FREED*.
  */
-X509_NAME* _X509_REQ_get_subject_name(X509_REQ* req);
+X509_NAME* _X509_REQ_get_subject_name(const X509_REQ* req);
 
 /**
  * Get the public key for the given X509_REQ object.

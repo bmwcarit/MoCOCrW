@@ -445,6 +445,33 @@ TEST_F(CATest, testGetNextSerialNumber)
     EXPECT_EQ(newCaCert.getSerialNumber(), nextSerial);
 }
 
+/* Signing should succeed even if the CA has a subject order that
+ * does not match MoCOCrW's default DN order.
+ * This is a regression test for issue #95
+ */
+TEST_F(CATest, testSigningWithCustomOrderCA)
+{
+    auto orderedSubject = DistinguishedName::CustomOrderBuilder{}
+            .localityName("TestTown")
+            .countryName("DE")
+            .organizationName("MyOrg")
+            .commonName("TestingCA")
+            .build();
+
+    auto speciallyOrderedRoot = CertificateAuthority::createRootCertificate(
+                                    *_rootRSAKey,
+                                    orderedSubject,
+                                    0,
+                                    _caSignParams);
+    auto ca = CertificateAuthority{_signParams, 1, speciallyOrderedRoot, *_rootRSAKey};
+
+    auto keypair = AsymmetricKeypair::generateRSA();
+    CertificateSigningRequest csr{*_certDetails, keypair};
+    ASSERT_NO_THROW({
+        auto newCaCert = ca.signCSR(csr);
+    });
+}
+
 // This test requires the ability to set the time for which a certificate is verified.
 TEST_F(CATest, DISABLED_testIssueCertificateInFarFuture)
 {

@@ -230,7 +230,7 @@ public:
     static int SSL_X509_REQ_set_subject_name(X509_REQ* req, X509_NAME* name) noexcept;
     static void SSL_X509_REQ_free(X509_REQ* ptr) noexcept;
     static X509_REQ* SSL_X509_REQ_new() noexcept;
-    static X509_NAME* SSL_X509_REQ_get_subject_name(X509_REQ* req) noexcept;
+    static X509_NAME* SSL_X509_REQ_get_subject_name(const X509_REQ* req) noexcept;
     static EVP_PKEY* SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept;
     static int SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept;
     static const EVP_MD* SSL_EVP_sha1() noexcept;

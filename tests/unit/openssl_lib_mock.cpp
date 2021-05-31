@@ -91,7 +91,7 @@ X509_REQ* OpenSSLLib::SSL_X509_REQ_new() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_new();
 }
 
-X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(X509_REQ* req) noexcept
+X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(const X509_REQ* req) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_get_subject_name(req);
 }

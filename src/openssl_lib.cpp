@@ -192,7 +192,7 @@ int OpenSSLLib::SSL_X509_REQ_set_version(X509_REQ* req, unsigned long version) n
     return X509_REQ_set_version(req, version);
 }
 
-X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(X509_REQ *req) noexcept
+X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(const X509_REQ *req) noexcept
 {
     return X509_REQ_get_subject_name(req);
 }
