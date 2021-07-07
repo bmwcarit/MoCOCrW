@@ -13,6 +13,11 @@ All notable changes to this project will be documented in this file.
   different orders of items in the underlying distinguished name. This fixes
   issue #95. The DistinguishedName object is still not order-aware when loading
   a DN from OpenSSL. This is to be fixed in a later step.
+* X509Certificate::signCSR doesn't validate the certificate at the current
+  system time anymore but at certificate's notBefore and notAfter dates.
+  This fixes issue #96 by allowing to sign past and future certificates but
+  also ensures that the certificate's validity period does not exceed the
+  validity bounds of the issuing certificate.
 
 ## Added
 
