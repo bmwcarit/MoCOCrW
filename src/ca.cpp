@@ -98,7 +98,15 @@ X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &
     //Sanity check: certificate must be verifiable now
     try {
         auto cert = X509Certificate{std::move(newCertificate)};
-        cert.verify({_rootCert}, {});
+        X509Certificate::VerificationContext ctx;
+        ctx.addTrustedCertificates({_rootCert})
+            .addIntermediateCertificates({})
+            .setVerificationCheckTime(cert.getNotBeforeAsn1());
+        cert.verify(ctx);
+        // OpenSSL wants context verification time strictly earlier than notAfter. See check in
+        // x509_check_cert_time that fails if X509_cmp_time returns -1 (notAfter <= ctx verification time)
+        ctx.setVerificationCheckTime(cert.getNotAfterAsn1() - Asn1Time::Seconds(1));
+        cert.verify(ctx);
         _nextSerialNumber++;
         return cert;
     } catch (const MoCOCrWException &e) {
