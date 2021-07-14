@@ -98,7 +98,13 @@ X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &
     //Sanity check: certificate must be verifiable now
     try {
         auto cert = X509Certificate{std::move(newCertificate)};
-        cert.verify({_rootCert}, {});
+        X509Certificate::VerificationContext ctx;
+        ctx.addTrustedCertificates({_rootCert})
+            .addIntermediateCertificates({})
+            .setVerificationCheckTime(cert.getNotBeforeAsn1());
+        cert.verify(ctx);
+        ctx.setVerificationCheckTime(cert.getNotAfterAsn1() - Asn1Time::Seconds(1));
+        cert.verify(ctx);
         _nextSerialNumber++;
         return cert;
     } catch (const MoCOCrWException &e) {

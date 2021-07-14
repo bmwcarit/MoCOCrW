@@ -77,15 +77,21 @@ protected:
 
     std::unique_ptr<X509Certificate> _rootRsaCert;
 
+    std::unique_ptr<X509Certificate> _rootRsaCertOneYearOldOneYearToGo;
+
     std::unique_ptr<X509Certificate> _rootEccCert;
 
     std::unique_ptr<KeyUsageExtension> _exampleUsage;
 
     std::unique_ptr<BasicConstraintsExtension> _exampleConstraints;
 
+    CertificateSigningParameters::Builder _signParamsBuilder;
+
     CertificateSigningParameters _signParams;
 
     CertificateSigningParameters _caSignParams;
+
+    CertificateSigningParameters _caSignParamsOneYearOldOneYearToGo;
 
     std::unique_ptr<CertificateAuthority> _rsaCa;
 
@@ -143,16 +149,25 @@ void CATest::SetUp()
 
     BasicConstraintsExtension caConstraint{true, 1};
 
-    _signParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(*_exampleConstraints)
-            .addExtension(*_exampleUsage)
-            .build();
+    _signParamsBuilder = CertificateSigningParameters::Builder{}
+        .digestType(openssl::DigestTypes::SHA256)
+        .addExtension(*_exampleConstraints)
+        .addExtension(*_exampleUsage)
+        .certificateValidity(Asn1Time::Seconds(120))
+        .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1});
+
+    _signParams = _signParamsBuilder.build();
 
     _caSignParams = CertificateSigningParameters::Builder{}
             .certificateValidity(Asn1Time::Seconds(120))
+            .digestType(openssl::DigestTypes::SHA256)
+            .addExtension(caConstraint)
+            .addExtension(*_exampleUsage)
+            .build();
+
+    _caSignParamsOneYearOldOneYearToGo = CertificateSigningParameters::Builder{}
+            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 365 * 2))
+            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 365))
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(caConstraint)
             .addExtension(*_exampleUsage)
@@ -163,6 +178,12 @@ void CATest::SetUp()
                                                       *_rootCertDetails,
                                                       0,
                                                       _caSignParams));
+
+    _rootRsaCertOneYearOldOneYearToGo = std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
+                                                      *_rootRSAKey,
+                                                      *_rootCertDetails,
+                                                      0,
+                                                      _caSignParamsOneYearOldOneYearToGo));
 
     _rootEccCert = std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
             *_rootEccKey,
@@ -412,27 +433,6 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutputECC)
     remove("cert.pem");
 }
 
-TEST_F(CATest, testIssueLongLivedCertificate)
-{
-    // Certificate shall be valid for 1000 years
-    Asn1Time::Seconds validityTime(60l * 60 * 24 * 365 * 1000);
-    _signParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(validityTime)
-            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(*_exampleConstraints)
-            .addExtension(*_exampleUsage)
-            .build();
-
-    auto rsaCa = std::make_unique<CertificateAuthority>(_signParams, 0, *_rootRsaCert, *_rootRSAKey);
-
-    X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
-                                                       AsymmetricKeypair::generateRSA()});
-
-    testValiditySpan(cert, validityTime, _signParams.notBeforeAsn1());
-
-}
-
 TEST_F(CATest, testGetNextSerialNumber)
 {
     auto eccCa = std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootRsaCert, *_rootRSAKey);
@@ -472,26 +472,62 @@ TEST_F(CATest, testSigningWithCustomOrderCA)
     });
 }
 
-// This test requires the ability to set the time for which a certificate is verified.
-TEST_F(CATest, DISABLED_testIssueCertificateInFarFuture)
+TEST_F(CATest, testIssueCertificateInFuture)
 {
-    // Certificate shall be valid in 1000 years
-    Asn1Time validFrom = Asn1Time::now() + Asn1Time::Seconds(60l * 60 * 24 * 365 * 1000);
-    Asn1Time::Seconds validityTime(120);
-
-    auto signParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(validityTime)
-            .notBeforeAsn1(validFrom)
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(*_exampleConstraints)
-            .addExtension(*_exampleUsage)
+    auto signParams = _signParamsBuilder
+            .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
+            .certificateValidity(Asn1Time::Seconds(120))
             .build();
 
-    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCert, *_rootRSAKey);
+    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
 
     X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
-                                                       AsymmetricKeypair::generateRSA()});
+                                                    AsymmetricKeypair::generateRSA()});
 
-    testValiditySpan(cert, validityTime, validFrom);
+    testValiditySpan(cert, signParams.certificateValidity(), signParams.notBeforeAsn1());
+}
 
+TEST_F(CATest, testIssueCertificateInPast)
+{
+    auto signParams = _signParamsBuilder
+            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 364))
+            .certificateValidity(Asn1Time::Seconds(120))
+            .build();
+
+    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+
+    X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
+                                                    AsymmetricKeypair::generateRSA()});
+
+    testValiditySpan(cert, signParams.certificateValidity(), signParams.notBeforeAsn1());
+}
+
+TEST_F(CATest, testCantIssueCertificateInFutureThatExpiresAfterRoot)
+{
+    auto signParams = _signParamsBuilder
+            .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
+            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
+            .build();
+
+    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+
+    EXPECT_THROW(
+        rsaCa->signCSR(CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()}),
+        MoCOCrWException
+    );
+}
+
+TEST_F(CATest, testCantIssueCertificateInPastThatIsValidBeforeRoot)
+{
+    auto signParams = _signParamsBuilder
+            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 366))
+            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
+            .build();
+
+    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+
+    EXPECT_THROW(
+        rsaCa->signCSR(CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()}),
+        MoCOCrWException
+    );
 }
