@@ -60,3 +60,11 @@ add_test(
     NAME sigExample
     COMMAND sig-example
 )
+
+add_executable(cert-validation cert-validation.cpp)
+target_link_libraries(cert-validation PUBLIC MoCOCrW::mococrw)
+add_test(
+    NAME certValidation
+    COMMAND cert-validation
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/test-certs"
+)

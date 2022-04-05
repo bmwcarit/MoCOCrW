@@ -79,7 +79,7 @@ public:
     static DistinguishedName fromX509Name(X509_NAME *ptr);
     bool operator==(const DistinguishedName& other) const;
     bool operator!=(const DistinguishedName& other) const { return !(*this == other); }
-private:    
+private:
     struct Attribute {
         openssl::ASN1_NID id;
         std::string       name;
