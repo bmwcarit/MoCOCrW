@@ -35,8 +35,8 @@ public:
     /**
      * Creates a new CA.
      * @param defaultParams the default parameters for signing certificates.
-     * @param nextSerialNumber the serial number which this CA should its first generated
-     *                         certificate.
+     * @param nextSerialNumber the serial number which this CA should use for
+     *                         its first generated certificate.
      * @param rootCertificate the certificate of the CA.
      * @param privateKey the certificate's private key.
      * @throw MoCOCrWException if the key doesn't match the certificate.

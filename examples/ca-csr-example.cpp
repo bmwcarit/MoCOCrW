@@ -41,7 +41,7 @@ CertificateAuthority getRootCa(const X509Certificate &rootCaCert,
                                const AsymmetricKeypair &rootCaKey)
 {
     /* This basic constraints extension will be part of the signed certificate
-     * Set CA to true and path length to 0 (only one intermediate CA)
+     * Set CA to true and path length to 0 (no more intermediate CA's)
      * Remark: This will be the X509 content of intermediate CAs not of the root CA itself
      */
     BasicConstraintsExtension rootCertSignConstraints{true, 0};
