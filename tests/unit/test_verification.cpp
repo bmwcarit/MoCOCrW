@@ -71,6 +71,7 @@ protected:
     std::unique_ptr<X509Certificate> _eccIntermediate;
     std::unique_ptr<X509Certificate> _eccUser;
     std::unique_ptr<X509Certificate> _eccExpiredCert;
+    std::unique_ptr<X509Certificate> _year9999cert;
 };
 
 void VerificationTest::SetUp()
@@ -113,6 +114,7 @@ void VerificationTest::SetUp()
     _eccUser = std::make_unique<X509Certificate>(loadCertFromFile("eccUserCertificate.pem"));
 
     _eccExpiredCert = std::make_unique<X509Certificate>(loadCertFromFile("eccExpiredcertificate.pem"));
+    _year9999cert = std::make_unique<X509Certificate>(loadCertFromFile("year9999.pem"));
 }
 
 using VerificationContext = mococrw::X509Certificate::VerificationContext;
@@ -674,4 +676,9 @@ TEST_F(VerificationTest, testVerificationContextWithCrlCheckAllWithoutSelfSigned
        .enforceCrlsForAllCAs();
 
     EXPECT_THROW(ctx.validityCheck(), MoCOCrWException);
+}
+
+TEST_F(VerificationTest, testVerificationWithYear9999)
+{
+    EXPECT_NO_THROW(_year9999cert->verify({*_year9999cert.get()}, {}));
 }
