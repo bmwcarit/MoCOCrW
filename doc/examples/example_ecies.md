@@ -3,15 +3,15 @@
 # Basic ECIES
 
 ECIES utilizes well-known symmetric encryption, key derivation functions and message authentication codes
-to achieve encryption based on elliptic curves. However, ECIES is not limited to specific algorithms. That is,
+to achieve encryption based on elliptic curves. However, ECIES is not limited to specific algorithms. In particular,
 the algorithms used for symmetric encryption, key derivation and message authentication can be configured
 in our implementation. For the sake of easy usage, we have decided to use the following defaults:
  - Symmetric Encryption: AES-CBC with PKCS7 padding, IV=0x0, keysize 256 bit
  - Key Derivation Function: X9.63 without salt
  - Message Authentication Code: HMAC-SHA512 without salt
 
-The following examples show how to en- and decrypt using ECIES with these default settings. Afterwards, the
-different options to change the default values will be shown.
+The following examples show how to encrypt/decrypt using ECIES with these default settings. The
+different options to change the default values are presented in the next section.
 
 ## Encryption
 
@@ -80,20 +80,19 @@ catch (const mococrw::MoCOCrWException &e)  {
 ## Serialization of Artifacts
 
 The encryption of the plaintext creates several artifacts (ciphertext, mac and ephemeral key) that need to be transferred to the client in order to
-decrypt the ciphertext. MoCOCrW offers no serialization functionality because we don't want to make any assumptions of the format. That is,
+decrypt the ciphertext. MoCOCrW offers no serialization functionality because we don't want to make any assumptions on format. Essentially,
 the user of the library is responsible for the serialization.
 
 ### Ephemeral Key Encodig Format
 
-The methods `mococrw::AsymmetricPublicKey::toECPoint()` and `mococrw::AsymmetricPublicKey::toECPoint()` expect that the serialization format
-is specified by the programmer. The library currently offers three different formats:
-
+The methods `mococrw::AsymmetricPublicKey::toECPoint()` and `mococrw::AsymmetricPublicKey::toECPoint()` expect the serialization format
+to be specified by the programmer. The library currently offers three different formats:
 * `mococrw::openssl::EllipticCurvePointConversionForm::compressed`:
-   Format *z||x*, where *z* specifies which of the possible two solutions to *x* has been used
+   Format *z||x*, where *z* specifies which of the possible two solutions to *x* has been used.
 * `mococrw::openssl::EllipticCurvePointConversionForm::uncompressed`:
-   Format *0x04||x||y*, where *y* is the solution to *x* that has been used
+   Format *0x04||x||y*, where *y* is the solution to *x* that has been used.
 * `mococrw::openssl::EllipticCurvePointConversionForm::hybrid`
-   Format *z||x||y*, where *z* specifies which of the possible two solutions to *x* has been used and *y* contains this solution
+   Format *z||x||y*, where *z* specifies which of the possible two solutions to *x* has been used and *y* contains this solution.
 
 It is also possible to encode the ephemeral key as PEM, but this seems rather unsusal.
 
@@ -101,8 +100,9 @@ It is also possible to encode the ephemeral key as PEM, but this seems rather un
 # Change Default Parameters
 
 ## Symmetric Cipher
-The `mococrw::ECIESCtxBuilder` offers methods to modify the symmetric cipher that will be used for encryption.
-The following code shows how to use these methods to change the symmetric cipher to AES-CBC with a key size of 128 bit:
+
+`mococrw::ECIESCtxBuilder` offers methods to modify the symmetric cipher used for encryption.
+The following code shows how to use these methods to change the symmetric cipher to AES-CBC with a key size of 128-bit:
 
 ### Encryption
 
@@ -200,7 +200,7 @@ catch (const MoCOCrWException &e)  {
 
 ## Key Derivation Function (KDF)
 
-MoCOCrW offers different key derivation functions. The following example shows how to change the KDF used by ECIES. In addition, the example shows
+MoCOCrW offers various key derivation functions. The following example shows how to change the KDF used by ECIES. In addition, the example also shows
 how to set the optional salt for the key derivation.
 
 ### Encryption
@@ -284,7 +284,7 @@ catch (const MoCOCrWException &e)  {
 
 ## Message Authentication Code (MAC)
 
-The following example shows how to configure (and specify if there ever shall be more than one supported MAC) the MAC to be used by the ECIES scheme
+The following example shows how to configure (and specify if there will ever be more than one supported MAC) the MAC used by the ECIES scheme.
 
 ### Encryption
 

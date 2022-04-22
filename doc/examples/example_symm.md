@@ -1,8 +1,8 @@
 # Symmetric Crypto API
 
-## Encrypting messages in one-shot mode
+## Encrypting Messages in One-Shot Mode
 
-The code below demonstrates encryption and then further decryption of a simple message. The example also shows how to generate random encryption key and IV.
+The code below demonstrates encryption, followed by decryption, of a simple message. This example also shows how to generate random encryption key and IV.
 
 ```cpp
 
@@ -53,13 +53,13 @@ assert(std::equal(plaintext.begin(), plaintext.end(), decryptedtext.begin()));
 
 ```
 
-## Using authenticated encryption
+## Using Authenticated Encryption
 
-Authenticated ciphers not only encrypt data but also compute authentication tag over it. It allows to detect if data was modified after it was encrypted.
+Authenticated ciphers not only encrypt data but also compute an authentication tag over it. It enables the detection of data that was modified after the data was encrypted.
 
-It is also possible to associate additional unencrypted data with the message. The authentication tag will ensure the integrity of both encrypted and unencrypted data in that case. This is, e.g., used to protect the integrity of header fields that contain metadata that need to be visible on transport.
+It is also possible to associate additional unencrypted data with the message. In this case, the authentication tag will ensure the integrity of both encrypted and unencrypted data. For instance, this is useful to protect the integrity of header fields that contain meta-data which need to be visible on transport.
 
-Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption we take computed authentication tag and carry it along with the message for further authentication.
+Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption, we take the computed authentication tag and carry it along with the message for further authentication.
 
 ```cpp
 using namespace mococrw;
@@ -124,11 +124,11 @@ assert(std::equal(plaintext.begin(), plaintext.end(), decryptedtext.begin()));
 
 ```
 
-## Streaming-mode
+## Streaming-Mode
 
-Symmetric encryption interface also supports streaming use-case. It allows encryption of big chunks of data without loading them into memory. The implementation is optimized to avoid unnecessary copies of the input and output buffers when used with fixed block sizes in streaming en-/decryption.
+The symmetric encryption interface also supports the streaming use-case. It allows encryption of big chunks of data without the need of loading them into memory. The implementation is optimized to avoid unnecessary copies of the input and output buffers when used with fixed block sizes in streaming encrypting/decryption.
 
-The following example demonstrates how to use stream mode with authenticated cipher.
+The following example demonstrates how to use stream-mode with an authenticated cipher.
 
 ```cpp
 using namespace mococrw;

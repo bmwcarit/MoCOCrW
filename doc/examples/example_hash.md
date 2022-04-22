@@ -25,9 +25,9 @@ The following algorithms are supported:
 - `mococrw::sha3_384()`
 - `mococrw::sha3_512()`
 
-# Other Hash interfaces
+# Other Hash Interfaces
 
-MoCOCrW also implements a hash interface that allows giving the content to be hashed
+MoCOCrW also implements a hash interface that enables the hashing of content to be done
 in multiple steps. The following example shows how to use this interface:
 
 ```cpp
@@ -43,7 +43,7 @@ h.update(message3);
 std::vector<uint8_t> hash = h.digest();
 ```
 
-This interface supports also supports all the algorithms listed above:
+This interface also supports all the algorithms listed above:
 - `mococrw::Hash::sha1()`
 - `mococrw::Hash::sha256()`
 - `mococrw::Hash::sha384()`
@@ -51,4 +51,3 @@ This interface supports also supports all the algorithms listed above:
 - `mococrw::Hash::sha3_256()`
 - `mococrw::Hash::sha3_384()`
 - `mococrw::Hash::sha3_512()`
-

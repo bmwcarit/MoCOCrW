@@ -3,7 +3,7 @@
 # KDF Interface
 
 All the KDF classes implement the method `mococrw::KeyDerivationFunction::deriveKey()` to derive a key
-of a fixed length from a given password and salt. Algorithm specific parameters are specified via the constructor.
+of fixed length from a provided password and salt. Algorithm specific parameters are specified via the constructor.
 
 ```cpp
 class KeyDerivationFunction
@@ -17,6 +17,7 @@ public:
 ```
 
 # PBKDF2
+
 The following code shows how to derive a key using PBKFD2:
 
 ```cpp
@@ -29,6 +30,7 @@ std::vector<uint8_t> derivedKey = pbkdf2.deriveKey(pw, derivedKeyLen, salt);
 ```
 
 # X963KDF
+
 The following code shows how to derive a key using X963KDF:
 
 ```cpp

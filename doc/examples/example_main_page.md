@@ -1,6 +1,6 @@
 # Usage Examples
 
-Table of contents:
+Table of Contents:
 
 - [Asymmetric Key Example](example_asymm_key.md)
 - [Asymmetric Crypto API](example_asymm_crypto.md)
