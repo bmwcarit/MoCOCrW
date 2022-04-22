@@ -1,4 +1,23 @@
+# #%L
+# %%
+# Copyright (C) 2022 BMW Car IT GmbH
+# %%
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# #L%
+
 cmake_minimum_required(VERSION 3.5)
+
+project("MoCOCrW" LANGUAGES CXX)
 
 include(CTest)                      # Enable test target in Makefile
 include(GNUInstallDirs)             # For standard Linux include directories
@@ -89,8 +108,11 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #TODO set(DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-# Enable all subprojects to find each other's include files
-include_directories(${SRC_DIR})
+include_directories(
+    ${SRC_DIR} # Enable all subprojects to find each other's include files
+    ${OPENSSL_INCLUDE_DIR}
+    ${Boost_INCLUDE_DIRS}
+)
 
 add_subdirectory(${SRC_DIR})
 add_subdirectory(${TEST_DIR})
