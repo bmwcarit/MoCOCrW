@@ -108,11 +108,8 @@ set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #TODO set(DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
-include_directories(
-    ${SRC_DIR} # Enable all subprojects to find each other's include files
-    ${OPENSSL_INCLUDE_DIR}
-    ${Boost_INCLUDE_DIRS}
-)
+# Enable all subprojects to find each other's include files
+include_directories(${SRC_DIR})
 
 add_subdirectory(${SRC_DIR})
 add_subdirectory(${TEST_DIR})
