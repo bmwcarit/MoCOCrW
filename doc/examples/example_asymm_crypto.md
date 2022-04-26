@@ -334,7 +334,7 @@ std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>(null
 
 # ECDSA
 
-ECDSA only allows the choice of hash function used to create the signed hash. The default value is `SHA256`.
+ECDSA limits one to choose only the hash function that is used to create the signed hash. The default value is `SHA256`.
 
 ## Verification (Default Hash Function)
 

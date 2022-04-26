@@ -100,8 +100,8 @@ std::string certToPem = cert.toPEM();
 
 It's possible to add more parameters to the certificate verification by providing the verify method
 with a VerificationCtx object where we can set, amongst others, a CRL (certificate revocation list) and
-a time-check verification.
-In the example below, we create a context that enables a time-check verification.
+a time verification check.
+In the example below, we create a context that enables a time verification check.
 
 ```cpp
 mococrw::X509Certificate cert = mococrw::X509Certificate::fromPEM(intPemString);

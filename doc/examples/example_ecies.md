@@ -86,7 +86,7 @@ the user of the library is responsible for the serialization.
 ### Ephemeral Key Encodig Format
 
 The methods `mococrw::AsymmetricPublicKey::toECPoint()` and `mococrw::AsymmetricPublicKey::toECPoint()` expect the serialization format
-to be specified by the programmer. The library currently offers three different formats:
+to be specified by the user. The library currently offers three different formats:
 * `mococrw::openssl::EllipticCurvePointConversionForm::compressed`:
    Format *z||x*, where *z* specifies which of the possible two solutions to *x* has been used.
 * `mococrw::openssl::EllipticCurvePointConversionForm::uncompressed`:

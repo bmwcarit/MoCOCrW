@@ -2,7 +2,7 @@
 
 ## Encrypting Messages in One-Shot Mode
 
-The code below demonstrates encryption, followed by decryption, of a simple message. This example also shows how to generate random encryption key and IV.
+The code below demonstrates encryption, followed by decryption, of a simple message. This example also shows how to generate a random encryption key and and IV.
 
 ```cpp
 
@@ -59,7 +59,7 @@ Authenticated ciphers not only encrypt data but also compute an authentication t
 
 It is also possible to associate additional unencrypted data with the message. In this case, the authentication tag will ensure the integrity of both encrypted and unencrypted data. For instance, this is useful to protect the integrity of header fields that contain meta-data which need to be visible on transport.
 
-Example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption, we take the computed authentication tag and carry it along with the message for further authentication.
+The example below is similar to the previous one but uses authenticated cipher mode GCM. After encryption, we take the computed authentication tag and carry it along with the message for further authentication.
 
 ```cpp
 using namespace mococrw;
