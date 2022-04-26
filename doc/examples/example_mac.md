@@ -3,7 +3,7 @@
 # Message Authentication Code Interface
 
 All the MAC classes (currently only one) implement the methods listed below.
-Algorithm specific parameters are specified via the constructor.
+Algorithm-specific parameters are specified via the constructor.
 
 ```cpp
 class MessageAuthenticationCode {
@@ -35,7 +35,7 @@ std::vector<uint8_t> mac = hmac.finish();
 
 ## HMAC Verification
 
-The following example shows how an HMAC can be verified. Please note that `mococrw::HMAC::verify()` performs a constant time
+The following example shows how an HMAC is verified. Note, `mococrw::HMAC::verify()` performs a constant time
 comparison on the given mac. Do NOT re-calculate the mac and compare it to the given mac on your own.
 
 ```cpp
@@ -65,7 +65,7 @@ catch (const MoCOCrWException &e)  {
 ## CMAC Creation
 
 The following example shows how to create a CMAC. The key size needs to match the selected cipher, i.e. you need a key of
-128 bits for AES-128.
+128-bits for AES-128.
 
 ```cpp
 std::vector<uint8_t> key = {
@@ -81,7 +81,7 @@ std::vector<uint8_t> mac = cmac.finish();
 
 ## CMAC Verification
 
-The following example shows how a CMAC can be verified. Please note that `mococrw::CMAC::verify()` performs a constant time
+The following example shows how a CMAC is verified. Note, `mococrw::CMAC::verify()` performs a constant time
 comparison on the given mac. Do NOT re-calculate the mac and compare it to the given mac yourself.
 
 ```cpp
