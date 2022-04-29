@@ -8,7 +8,27 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+* CA Tests' SetUp was changed so that all the objects involved do not depend on time when
+  construction of object is made. This led to problems where object of CA class had notBefore
+  attribute set to greater value than CA's certificate's notBefore which should never happen.
+  This subtle bug in test SetUp has greater chance of appearing when running in slower
+  environments, e.g., qemu.
+
 ## Added
+
+* Exceptions with better error messages were added in sanity check section of
+  CertificateAuthority::_signCSR function. This provides better understanding of
+  scenarios which we dont allow:
+    - Issued certificate has greater notAfter attribute than CA's certificate (issued
+      certificate's validity period should not exceed issuing certificate's validity
+      period)
+    - Case with the CA's notBefore being larger than the issued certificate's notBefore. This
+      results in issued certificate that are valid *before* issuing certificate which
+      should never happen.
+  This is not a behavior change in the library in the sense that a certificate that was issued
+  before won't be issued anymore. Certificates with these properties were already rejected
+  by CertificateAuthority::signCSR but with a rather misleading and generic error message.
+  This change just improves the error reporting.
 
 # Release 4.1.1
 

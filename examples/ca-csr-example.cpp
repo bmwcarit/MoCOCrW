@@ -32,6 +32,7 @@ using namespace mococrw;
 
 // Digest type to used by all examples
 static const DigestTypes digestType = DigestTypes::SHA512;
+static auto notBeforeTime = Asn1Time::now();
 
 /******************* Root CA *******************/
 /***********************************************/
@@ -50,7 +51,8 @@ CertificateAuthority getRootCa(const X509Certificate &rootCaCert,
     const auto rootCaKeyUsage = KeyUsageExtension::Builder{}.keyCertSign().cRLSign().build();
 
     auto rootCaSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
+            .certificateValidity(Asn1Time::Seconds(300))
+            .notBeforeAsn1(notBeforeTime + std::chrono::seconds{5})
             .digestType(digestType)
             .addExtension(rootCertSignConstraints)
             .addExtension(rootCaKeyUsage)
@@ -73,7 +75,7 @@ CertificateAuthority getIntermediateCa(const X509Certificate &intermediateCaCert
 
     auto intermediateCaSignParams = CertificateSigningParameters::Builder{}
             .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
+            .notBeforeAsn1(notBeforeTime + std::chrono::seconds{10})
             .digestType(digestType)
             .addExtension(intermediateCaSigningConstraints)
             .addExtension(intermediateCaKeyUsage)
@@ -97,7 +99,8 @@ X509Certificate createRootCertificate(const AsymmetricKeypair &rootEccKey)
     const auto rootCaKeyUsage = KeyUsageExtension::Builder{}.keyCertSign().cRLSign().build();
 
     auto rootCaSelfSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
+            .certificateValidity(Asn1Time::Seconds(600))
+            .notBeforeAsn1(notBeforeTime)
             .digestType(digestType)
             .addExtension(rootCertConstraint)
             .addExtension(rootCaKeyUsage)
