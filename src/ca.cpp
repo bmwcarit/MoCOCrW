@@ -95,9 +95,20 @@ X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &
 
     _signCertificate(newCertificate.get(), _privateKey, signParams);
 
-    //Sanity check: certificate must be verifiable now
+    // Sanity check: certificate must be verifiable now
     try {
         auto cert = X509Certificate{std::move(newCertificate)};
+        // CA's notBefore can't be smaller than issued cert's notBefore i.e. CA can't
+        // issue a certificate older than CA itself
+        if (_rootCert.getNotBeforeAsn1() > cert.getNotBeforeAsn1()) {
+            throw MoCOCrWException("CSR: Issued certificate can not be valid before issuing "
+                                   "certificate (CA's cert)");
+        }
+        // CA's notAfter has to be bigger than Cert's notAfter.
+        if (_rootCert.getNotAfterAsn1() < cert.getNotAfterAsn1()) {
+            throw MoCOCrWException("CSR: Certificate's validity period should not exceed the "
+                                   "validity bounds of the issuing certificate (CA's cert).");
+        }
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificates({_rootCert})
             .addIntermediateCertificates({})

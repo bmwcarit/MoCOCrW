@@ -148,13 +148,14 @@ void CATest::SetUp()
                                                .keyCertSign().cRLSign().build());
 
     BasicConstraintsExtension caConstraint{true, 1};
+    auto notBeforeTime = Asn1Time::now() - std::chrono::seconds{1};
 
     _signParamsBuilder = CertificateSigningParameters::Builder{}
         .digestType(openssl::DigestTypes::SHA256)
         .addExtension(*_exampleConstraints)
         .addExtension(*_exampleUsage)
         .certificateValidity(Asn1Time::Seconds(120))
-        .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1});
+        .notBeforeAsn1(notBeforeTime);
 
     _signParams = _signParamsBuilder.build();
 
@@ -163,6 +164,7 @@ void CATest::SetUp()
             .digestType(openssl::DigestTypes::SHA256)
             .addExtension(caConstraint)
             .addExtension(*_exampleUsage)
+            .notBeforeAsn1(notBeforeTime)
             .build();
 
     _caSignParamsOneYearOldOneYearToGo = CertificateSigningParameters::Builder{}
@@ -435,7 +437,7 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutputECC)
 
 TEST_F(CATest, testGetNextSerialNumber)
 {
-    auto eccCa = std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootRsaCert, *_rootRSAKey);
+    auto eccCa = std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootEccCert, *_rootEccKey);
     auto keypair = AsymmetricKeypair::generateECC();
     auto nextSerial = eccCa->getNextSerialNumber();
 
