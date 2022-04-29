@@ -136,8 +136,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	"${SRC_DIR}/kdf.cpp"
 	${REAL_SOURCES})
 
-    target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
+    target_link_libraries(openssltest
+        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(asn1timetests
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(keytests
