@@ -137,6 +137,8 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	${REAL_SOURCES})
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+    # Cannot link to imported OpenSSL and leverage implicit include-dir-propagation, as openssltest uses mocks.
+    target_include_directories(openssltest PUBLIC ${OPENSSL_INCLUDE_DIR})
 
     target_link_libraries(asn1timetests
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
