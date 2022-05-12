@@ -23,10 +23,9 @@ using namespace mococrw;
 
 int main(void)
 {
-
     auto password = utility::fromHex("deadbeef");
     /* Set the desired output length */
-    auto outputLength= 256;
+    auto outputLength = 256;
     auto salt = utility::fromHex("beefdead");
     auto digestType = DigestTypes::SHA512;
     int iterations = 1024;

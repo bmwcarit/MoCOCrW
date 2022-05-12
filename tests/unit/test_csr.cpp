@@ -31,15 +31,14 @@ using namespace mococrw;
 using namespace mococrw::openssl;
 using namespace std::literals::string_literals;
 
-
 /// \brief Structure to hold a private/public key pair
-struct keyWithSize {
+struct keyWithSize
+{
     AsymmetricKeypair keypair;
     unsigned int keySize;
 };
 
-class CSRTest : public ::testing::Test,
-                public ::testing::WithParamInterface<keyWithSize>
+class CSRTest : public ::testing::Test, public ::testing::WithParamInterface<keyWithSize>
 {
 public:
     static void SetUpTestCase();
@@ -54,27 +53,25 @@ protected:
     constexpr static auto _derFile = "csr.der";
 };
 
-std::vector<keyWithSize> CSRTest::_asymmetricKeys
-{
-    {AsymmetricKeypair::generateRSA(), 1024},
-    {AsymmetricKeypair::generateECC(), 256},
-    {AsymmetricKeypair::generateEd448(), 456},
-    {AsymmetricKeypair::generateEd25519(), 253}
-};
+std::vector<keyWithSize> CSRTest::_asymmetricKeys{{AsymmetricKeypair::generateRSA(), 1024},
+                                                  {AsymmetricKeypair::generateECC(), 256},
+                                                  {AsymmetricKeypair::generateEd448(), 456},
+                                                  {AsymmetricKeypair::generateEd25519(), 253}};
 std::unique_ptr<DistinguishedName> CSRTest::_distinguishedName;
 
 void CSRTest::SetUpTestCase()
 {
-    _distinguishedName = std::make_unique<DistinguishedName>(DistinguishedName::Builder()
-                                        .commonName("ImATeapot")
-                                        .countryName("DE")
-                                        .organizationName("Linux AG")
-                                        .organizationalUnitName("Linux Support")
-                                        .pkcs9EmailAddress("support@example.com")
-                                        .localityName("oben")
-                                        .stateOrProvinceName("nebenan")
-                                        .serialNumber("08E36DD501941432358AFE8256BC6EFD")
-                                        .build());
+    _distinguishedName = std::make_unique<DistinguishedName>(
+            DistinguishedName::Builder()
+                    .commonName("ImATeapot")
+                    .countryName("DE")
+                    .organizationName("Linux AG")
+                    .organizationalUnitName("Linux Support")
+                    .pkcs9EmailAddress("support@example.com")
+                    .localityName("oben")
+                    .stateOrProvinceName("nebenan")
+                    .serialNumber("08E36DD501941432358AFE8256BC6EFD")
+                    .build());
 }
 
 void CSRTest::TearDown()
@@ -247,9 +244,9 @@ TEST_P(CSRTest, testVerifyCsrFail)
 TEST_P(CSRTest, testCsrSignatureDigest)
 {
     static const auto hashAlgorithms = std::vector<std::tuple<DigestTypes, std::string>>{
-        {DigestTypes::SHA256, "sha256"},
-        {DigestTypes::SHA384, "sha384"},
-        {DigestTypes::SHA512, "sha512"},
+            {DigestTypes::SHA256, "sha256"},
+            {DigestTypes::SHA384, "sha384"},
+            {DigestTypes::SHA512, "sha512"},
     };
     auto data = GetParam();
     if (data.keypair.getType() == AsymmetricKey::KeyTypes::ECC_ED) {
@@ -265,7 +262,8 @@ TEST_P(CSRTest, testCsrSignatureDigest)
         of << csr.toPEM();
         of.close();
 
-        std::string openSSLCmdline = "openssl req -config /dev/null -in "s + _pemFile + " -noout -text";
+        std::string openSSLCmdline =
+                "openssl req -config /dev/null -in "s + _pemFile + " -noout -text";
         auto output = exec(openSSLCmdline.c_str());
 
         auto sigAlgoPos = output.find("Signature Algorithm:");
@@ -273,13 +271,12 @@ TEST_P(CSRTest, testCsrSignatureDigest)
         auto sigAlgoEndlinePos = output.find("\n", sigAlgoPos);
         ASSERT_NE(sigAlgoEndlinePos, std::string::npos);
         auto algoLine = output.substr(sigAlgoPos, sigAlgoEndlinePos - sigAlgoPos);
-        std::transform(algoLine.begin(), algoLine.end(), algoLine.begin(),
-                       [] (auto c) { return std::tolower(c); });
+        std::transform(algoLine.begin(), algoLine.end(), algoLine.begin(), [](auto c) {
+            return std::tolower(c);
+        });
         auto digestPos = algoLine.find(std::get<1>(hashAlgo));
         EXPECT_NE(digestPos, std::string::npos);
-
     }
 }
 
-INSTANTIATE_TEST_CASE_P(CSRTest, CSRTest,
-                        testing::ValuesIn(CSRTest::_asymmetricKeys));
+INSTANTIATE_TEST_CASE_P(CSRTest, CSRTest, testing::ValuesIn(CSRTest::_asymmetricKeys));

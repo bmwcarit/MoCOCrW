@@ -30,7 +30,6 @@
 
 namespace mococrw
 {
-
 /**
  * This class contains additional information that is used when a certificate is signed.
  * An example would be the duration until the certificate expires.
@@ -44,10 +43,7 @@ public:
     /**
      * @return the duration how long a signed certificate should be valid, from the starting point.
      */
-    Asn1Time::Seconds certificateValidity() const
-    {
-        return _certificateValidity;
-    }
+    Asn1Time::Seconds certificateValidity() const { return _certificateValidity; }
 
     /**
      * @return an Asn1Time from when a signed certificate should be valid.
@@ -66,13 +62,10 @@ public:
     /**
      * @return the digest type used for signing certificates.
      */
-    openssl::DigestTypes digestType() const
-    {
-        return _digestType;
-    }
+    openssl::DigestTypes digestType() const { return _digestType; }
 
-    const std::map<openssl::X509Extension_NID, std::shared_ptr<ExtensionBase> >&
-    extensionMap() const
+    const std::map<openssl::X509Extension_NID, std::shared_ptr<ExtensionBase> >& extensionMap()
+            const
     {
         return _extensions;
     }
@@ -97,7 +90,7 @@ public:
      * @return the extension with the requested extension type, if present.
      * @throw MoCOCrWException if no such extension is present.
      */
-    template<class T>
+    template <class T>
     inline std::shared_ptr<T> extension() const
     {
         static_assert(std::is_base_of<ExtensionBase, T>::value,
@@ -106,57 +99,53 @@ public:
     }
 
 private:
-    auto  _makeTuple() const
+    auto _makeTuple() const
     {
         return std::tie(_certificateValidity, _notBefore, _digestType, _extensions);
     }
 
 public:
-    bool operator==(const CertificateSigningParameters &other) const
+    bool operator==(const CertificateSigningParameters& other) const
     {
         return _makeTuple() == other._makeTuple();
     }
 
-    bool operator !=(const CertificateSigningParameters &other) const
-    {
-        return !operator ==(other);
-    }
+    bool operator!=(const CertificateSigningParameters& other) const { return !operator==(other); }
 
 private:
     boost::optional<Asn1Time> _notBefore;
     Asn1Time::Seconds _certificateValidity;
     openssl::DigestTypes _digestType;
-    //There is no more than one extension of the same type, so every extension type
-    //is unique in the extension map.
+    // There is no more than one extension of the same type, so every extension type
+    // is unique in the extension map.
     std::map<openssl::X509Extension_NID, std::shared_ptr<ExtensionBase> > _extensions;
-
 };
 
 class CertificateSigningParameters::Builder
 {
 public:
-    template<class T>
+    template <class T>
     Builder& certificateValidity(T&& validity)
     {
         _sp._certificateValidity = std::forward<T>(validity);
         return *this;
     }
 
-    template<class T>
+    template <class T>
     Builder& notBeforeAsn1(T&& notBefore)
     {
         _sp._notBefore = std::forward<T>(notBefore);
         return *this;
     }
 
-    template<class T>
+    template <class T>
     Builder& digestType(T&& type)
     {
         _sp._digestType = std::forward<T>(type);
         return *this;
     }
 
-    template<class T>
+    template <class T>
     Builder& addExtension(T extension)
     {
         static_assert(std::is_base_of<ExtensionBase, T>::value,
@@ -174,13 +163,10 @@ public:
         return *this;
     }
 
-    inline CertificateSigningParameters build()
-    {
-        return _sp;
-    }
+    inline CertificateSigningParameters build() { return _sp; }
 
 private:
     CertificateSigningParameters _sp;
 };
 
-} //::mococrw
+}  // namespace mococrw

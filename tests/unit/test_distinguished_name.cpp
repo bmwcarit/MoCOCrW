@@ -16,8 +16,8 @@
  * limitations under the License.
  * #L%
  */
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "mococrw/distinguished_name.h"
 #include "mococrw/openssl_wrap.h"
@@ -30,6 +30,7 @@ class DistinguishedNameTest : public ::testing::Test
 public:
     void SetUp() override;
     void TearDown() override;
+
 protected:
     DistinguishedName _dn;
     SSL_X509_NAME_Ptr _x509Name = nullptr;
@@ -51,8 +52,7 @@ void DistinguishedNameTest::SetUp()
 }
 
 void DistinguishedNameTest::TearDown()
-{
-    /* intentionally empty */
+{ /* intentionally empty */
 }
 
 TEST_F(DistinguishedNameTest, createDistinguishedName)
@@ -102,7 +102,8 @@ TEST_F(DistinguishedNameTest, testThatDistinguishedNameIsPopulatedCorrectly)
     ASSERT_THAT(dn, Eq(_dn));
 }
 
-TEST_F(DistinguishedNameTest, testThatOldBuilderKeepsOldOrder) {
+TEST_F(DistinguishedNameTest, testThatOldBuilderKeepsOldOrder)
+{
     auto builder = DistinguishedName::Builder();
     builder.commonName("ImATeapot")
             .countryName("DE")
@@ -120,17 +121,24 @@ TEST_F(DistinguishedNameTest, testThatOldBuilderKeepsOldOrder) {
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CommonName)[0], 0);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CountryName)[0], 1);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::LocalityName)[0], 2);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0], 3);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationalUnitName)[0], 4);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0], 5);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0], 6);
+    ASSERT_EQ(
+            _X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0],
+            3);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(),
+                                          openssl::ASN1_NID::OrganizationalUnitName)[0],
+              4);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0],
+              5);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0],
+              6);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::SerialNumber)[0], 7);
     auto entry = _X509_NAME_get_entry(x509Name.get(), 1);
     auto name = _X509_NAME_ENTRY_get_data(entry);
     ASSERT_EQ(name, "CH");
 }
 
-TEST_F(DistinguishedNameTest, testThatCustomAttributeOrderWorks) {
+TEST_F(DistinguishedNameTest, testThatCustomAttributeOrderWorks)
+{
     auto builder = DistinguishedName::CustomOrderBuilder();
     builder.commonName("ImATeapot")
             .countryName("DE")
@@ -145,15 +153,22 @@ TEST_F(DistinguishedNameTest, testThatCustomAttributeOrderWorks) {
     dn.populateX509Name(x509Name);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CommonName)[0], 0);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CountryName)[0], 1);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0], 2);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationalUnitName)[0], 3);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0],
+              2);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(),
+                                          openssl::ASN1_NID::OrganizationalUnitName)[0],
+              3);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::LocalityName)[0], 4);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::SerialNumber)[0], 5);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0], 6);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0], 7);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0],
+              6);
+    ASSERT_EQ(
+            _X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0],
+            7);
 }
 
-TEST_F(DistinguishedNameTest, testThatCustomAttributeWithDuplicatesWorks) {
+TEST_F(DistinguishedNameTest, testThatCustomAttributeWithDuplicatesWorks)
+{
     auto builder = DistinguishedName::CustomOrderBuilder();
     builder.commonName("ImATeapot")
             .countryName("DE")
@@ -171,8 +186,11 @@ TEST_F(DistinguishedNameTest, testThatCustomAttributeWithDuplicatesWorks) {
     dn.populateX509Name(x509Name);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CommonName)[0], 0);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::CountryName)[0], 1);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0], 2);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationalUnitName)[0], 3);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Pkcs9EmailAddress)[0],
+              2);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(),
+                                          openssl::ASN1_NID::OrganizationalUnitName)[0],
+              3);
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::LocalityName)[0], 4);
     ASSERT_EQ(_X509_NAME_ENTRY_get_data(_X509_NAME_get_entry(x509Name.get(), 4)), "oben");
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::LocalityName)[1], 5);
@@ -182,11 +200,15 @@ TEST_F(DistinguishedNameTest, testThatCustomAttributeWithDuplicatesWorks) {
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::LocalityName)[3], 7);
     ASSERT_EQ(_X509_NAME_ENTRY_get_data(_X509_NAME_get_entry(x509Name.get(), 7)), "unten");
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::SerialNumber)[0], 8);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0], 9);
-    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0], 10);
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::OrganizationName)[0],
+              9);
+    ASSERT_EQ(
+            _X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::StateOrProvinceName)[0],
+            10);
 }
 
-TEST_F(DistinguishedNameTest, testThatComparsionWorksWithOldBuilder) {
+TEST_F(DistinguishedNameTest, testThatComparsionWorksWithOldBuilder)
+{
     auto builder1 = DistinguishedName::Builder();
     builder1.commonName("ImATeapot")
             .countryName("DE")
@@ -223,7 +245,8 @@ TEST_F(DistinguishedNameTest, testThatComparsionWorksWithOldBuilder) {
     ASSERT_EQ(dn2, dn3);
 }
 
-TEST_F(DistinguishedNameTest, testThatComparsionWorksWithCustomOrderBuilder) {
+TEST_F(DistinguishedNameTest, testThatComparsionWorksWithCustomOrderBuilder)
+{
     auto builder1 = DistinguishedName::CustomOrderBuilder();
     builder1.commonName("ImATeapot")
             .countryName("DE")
@@ -260,24 +283,21 @@ TEST_F(DistinguishedNameTest, testThatComparsionWorksWithCustomOrderBuilder) {
     ASSERT_NE(dn2, dn3);
 }
 
-
-TEST_F(DistinguishedNameTest, testThatComparsionWorksWithMixedBuilders) {
+TEST_F(DistinguishedNameTest, testThatComparsionWorksWithMixedBuilders)
+{
     auto builder1 = DistinguishedName::CustomOrderBuilder();
-    builder1.countryName("DE")
-            .commonName("ImATeapot");
+    builder1.countryName("DE").commonName("ImATeapot");
     auto dn1 = builder1.build();
     auto builder2 = DistinguishedName::Builder();
-    builder2.commonName("ImATeapot")
-            .countryName("DE");
+    builder2.commonName("ImATeapot").countryName("DE");
     auto dn2 = builder2.build();
     ASSERT_EQ(dn1 != dn2, dn2 != dn1);
 }
 
-TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForStandardBuilder) {
+TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForStandardBuilder)
+{
     auto builder = DistinguishedName::Builder();
-    builder.countryName("DE")
-            .commonName("ImATeapot")
-            .title("TestTitle");
+    builder.countryName("DE").commonName("ImATeapot").title("TestTitle");
     auto dn = builder.build();
     auto x509Name = _X509_NAME_new();
     dn.populateX509Name(x509Name);
@@ -287,11 +307,10 @@ TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForStandardBuilder) {
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Title)[0], 2);
 }
 
-TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForCustomerOrderBuilder) {
+TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForCustomerOrderBuilder)
+{
     auto builder = DistinguishedName::CustomOrderBuilder();
-    builder.countryName("DE")
-            .title("TestTitle")
-            .commonName("ImATeapot");
+    builder.countryName("DE").title("TestTitle").commonName("ImATeapot");
     auto dn = builder.build();
     auto x509Name = _X509_NAME_new();
     dn.populateX509Name(x509Name);

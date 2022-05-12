@@ -31,7 +31,6 @@
 
 namespace mococrw
 {
-
 using namespace openssl;
 
 size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize)
@@ -45,13 +44,13 @@ size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize)
     throw MoCOCrWException("Key size is not supported.");
 }
 
-
 /**
  * Get the default length of the IV in bytes given the cipher mode.
  *
  * @return The IV length in bytes.
  */
-size_t AESCipherBuilder::getDefaultIVLength(SymmetricCipherMode mode) {
+size_t AESCipherBuilder::getDefaultIVLength(SymmetricCipherMode mode)
+{
     switch (mode) {
         case SymmetricCipherMode::GCM:
             return 12;
@@ -59,23 +58,31 @@ size_t AESCipherBuilder::getDefaultIVLength(SymmetricCipherMode mode) {
         case SymmetricCipherMode::CTR:
             return 16;
     }
-    throw MoCOCrWException("Could not determine default IV length for cipher mode "
-        + std::to_string(static_cast<std::underlying_type_t<decltype(mode)>>(mode)));
+    throw MoCOCrWException(
+            "Could not determine default IV length for cipher mode " +
+            std::to_string(static_cast<std::underlying_type_t<decltype(mode)>>(mode)));
 }
-
 
 class AESCipher::Impl
 {
 public:
-    Impl(SymmetricCipherMode mode, SymmetricCipherKeySize keySize, SymmetricCipherPadding padding,
-         const std::vector<uint8_t> &secretKey, const std::vector<uint8_t> &iv, Operation operation,
-         std::unique_ptr<CipherMemoryStrategyI> memoryStrategy = std::make_unique<QueueOfVectorsMemoryStrategy>())
-            : _mode{mode}, _iv{iv}, _operation{operation}, _bufferStrategy(std::move(memoryStrategy))
+    Impl(SymmetricCipherMode mode,
+         SymmetricCipherKeySize keySize,
+         SymmetricCipherPadding padding,
+         const std::vector<uint8_t> &secretKey,
+         const std::vector<uint8_t> &iv,
+         Operation operation,
+         std::unique_ptr<CipherMemoryStrategyI> memoryStrategy =
+                 std::make_unique<QueueOfVectorsMemoryStrategy>())
+            : _mode{mode}
+            , _iv{iv}
+            , _operation{operation}
+            , _bufferStrategy(std::move(memoryStrategy))
     {
         _ctx = _EVP_CIPHER_CTX_new();
 
-        const EVPCipherConstructor evpCipherConstructor = getEVPCipherConstructorForModeAndSize(mode, keySize);
-
+        const EVPCipherConstructor evpCipherConstructor =
+                getEVPCipherConstructorForModeAndSize(mode, keySize);
 
         _EVP_CipherInit_ex(_ctx.get(),
                            evpCipherConstructor(),
@@ -98,16 +105,15 @@ public:
                 if (_iv.size() == 0) {
                     throw MoCOCrWException("IV is empty, but AES-GCM does not support empty IVs.");
                 }
-                _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_SET_IVLEN, _iv.size(),
-                                     nullptr);
+                _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_SET_IVLEN, _iv.size(), nullptr);
             } break;
             case SymmetricCipherMode::CTR:
                 //[[fallthrough]];
             case SymmetricCipherMode::CBC: {
                 size_t expectedIVSize = _EVP_CIPHER_CTX_iv_length(_ctx.get());
                 if (_iv.size() != expectedIVSize) {
-                    auto formatter = boost::format(
-                            "Invalid size of IV %d bytes. Must be %d bytes.");
+                    auto formatter =
+                            boost::format("Invalid size of IV %d bytes. Must be %d bytes.");
                     formatter % _iv.size() % expectedIVSize;
                     throw MoCOCrWException(formatter.str());
                 }
@@ -118,10 +124,10 @@ public:
 
         _EVP_CipherInit_ex(_ctx.get(),
                            evpCipherConstructor(),
-                                    nullptr,
-                                    secretKey.data(),
-                                    _iv.data(),
-                                    this->_operation == Operation::Encryption);
+                           nullptr,
+                           secretKey.data(),
+                           _iv.data(),
+                           this->_operation == Operation::Encryption);
 
         switch (padding) {
             case SymmetricCipherPadding::PKCS:
@@ -141,7 +147,7 @@ public:
         }
 
         if (message.size() > static_cast<std::decay_t<decltype(message)>::size_type>(
-                    std::numeric_limits<int>::max() - EVP_MAX_BLOCK_LENGTH)) {
+                                     std::numeric_limits<int>::max() - EVP_MAX_BLOCK_LENGTH)) {
             throw MoCOCrWException("Message is too big.");
         }
 
@@ -152,10 +158,10 @@ public:
         std::vector<uint8_t> processedChunk(processingChunkSize + EVP_MAX_BLOCK_LENGTH);
 
         _EVP_CipherUpdate(_ctx.get(),
-                           processedChunk.data(),
-                           &processingChunkSize,
-                           message.data(),
-                           message.size());
+                          processedChunk.data(),
+                          &processingChunkSize,
+                          message.data(),
+                          message.size());
 
         if (processingChunkSize > 0) {
             processedChunk.resize(processingChunkSize);
@@ -169,30 +175,22 @@ public:
     {
         if (_isUpdated) {
             throw MoCOCrWException(
-                    "Further calls to addAssociatedData() are not allowed once update() was called.");
+                    "Further calls to addAssociatedData() are not allowed once update() was "
+                    "called.");
         }
         if (_isFinished) {
             throw MoCOCrWException(
-                    "Further calls to addAssociatedData() are not allowed once finish() was called.");
+                    "Further calls to addAssociatedData() are not allowed once finish() was "
+                    "called.");
         }
 
         int len = 0;
-        _EVP_CipherUpdate(_ctx.get(),
-                           NULL,
-                           &len,
-                           associatedData.data(),
-                           associatedData.size());
+        _EVP_CipherUpdate(_ctx.get(), NULL, &len, associatedData.data(), associatedData.size());
     }
 
-    std::vector<uint8_t> read(size_t length)
-    {
-        return _bufferStrategy->read(length);
-    }
+    std::vector<uint8_t> read(size_t length) { return _bufferStrategy->read(length); }
 
-    std::vector<uint8_t> readAll()
-    {
-        return _bufferStrategy->readAll();
-    }
+    std::vector<uint8_t> readAll() { return _bufferStrategy->readAll(); }
 
     std::vector<uint8_t> finish()
     {
@@ -205,16 +203,17 @@ public:
 
         if (isAuthenticatedCipherMode(_mode) && _operation == Operation::Decryption) {
             if (_authTag.size() == 0) {
-                throw MoCOCrWException("Authentication Tag must be set before calling finish() "
-                                       "for cipher which implements authenticated encryption.");
+                throw MoCOCrWException(
+                        "Authentication Tag must be set before calling finish() "
+                        "for cipher which implements authenticated encryption.");
             }
-            _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_SET_TAG, _authTag.size(), _authTag.data());
+            _EVP_CIPHER_CTX_ctrl(
+                    _ctx.get(), EVP_CTRL_GCM_SET_TAG, _authTag.size(), _authTag.data());
         }
 
         try {
             _EVP_CipherFinal_ex(_ctx.get(), processedChunk.data(), &processingChunkSize);
-        }
-        catch (const OpenSSLException &e) {
+        } catch (const OpenSSLException &e) {
             // OpenSSL does not set any specific error codes which we can use to distinguish
             // authentication failure from other type of errors. Therefore, if there is an error
             // on decrypting authenticated ciphertext we assume that there is a problem with
@@ -223,17 +222,15 @@ public:
                 throw MoCOCrWException(
                         "Unable to decrypt authenticated ciphertext. Either ciphertext was"
                         " modified or wrong combination of key, iv and authTag was used.");
-            }
-            else {
+            } else {
                 throw e;
             }
         }
 
         if (_mode == SymmetricCipherMode::GCM && _operation == Operation::Encryption) {
             _authTag.resize(_requestedAuthTagLength);
-            _EVP_CIPHER_CTX_ctrl(_ctx.get(), EVP_CTRL_GCM_GET_TAG,
-                                 _requestedAuthTagLength,
-                                 _authTag.data());
+            _EVP_CIPHER_CTX_ctrl(
+                    _ctx.get(), EVP_CTRL_GCM_GET_TAG, _requestedAuthTagLength, _authTag.data());
         }
 
         processedChunk.resize(processingChunkSize);
@@ -265,7 +262,9 @@ private:
 
     using EVPCipherConstructor = const EVP_CIPHER *(*)();
 
-    EVPCipherConstructor getEVPCipherConstructorForModeAndSize(SymmetricCipherMode mode, SymmetricCipherKeySize keySize) {
+    EVPCipherConstructor getEVPCipherConstructorForModeAndSize(SymmetricCipherMode mode,
+                                                               SymmetricCipherKeySize keySize)
+    {
         EVPCipherConstructor constructor = nullptr;
 
         switch (mode) {
@@ -274,7 +273,7 @@ private:
                     case SymmetricCipherKeySize::S_256:
                         constructor = EVP_aes_256_gcm;
                         break;
-                    case  SymmetricCipherKeySize::S_128:
+                    case SymmetricCipherKeySize::S_128:
                         constructor = EVP_aes_128_gcm;
                         break;
                     default:
@@ -286,7 +285,7 @@ private:
                     case SymmetricCipherKeySize::S_256:
                         constructor = EVP_aes_256_cbc;
                         break;
-                    case  SymmetricCipherKeySize::S_128:
+                    case SymmetricCipherKeySize::S_128:
                         constructor = EVP_aes_128_cbc;
                         break;
                     default:
@@ -298,7 +297,7 @@ private:
                     case SymmetricCipherKeySize::S_256:
                         constructor = EVP_aes_256_ctr;
                         break;
-                    case  SymmetricCipherKeySize::S_128:
+                    case SymmetricCipherKeySize::S_128:
                         constructor = EVP_aes_128_ctr;
                         break;
                     default:
@@ -313,10 +312,12 @@ private:
     }
 };
 
-
-AESCipher::AESCipher(SymmetricCipherMode mode, SymmetricCipherKeySize keySize,
-                     SymmetricCipherPadding padding, const std::vector<uint8_t> &secretKey,
-                     const std::vector<uint8_t> &iv, Operation operation)
+AESCipher::AESCipher(SymmetricCipherMode mode,
+                     SymmetricCipherKeySize keySize,
+                     SymmetricCipherPadding padding,
+                     const std::vector<uint8_t> &secretKey,
+                     const std::vector<uint8_t> &iv,
+                     Operation operation)
 {
     _impl = std::make_unique<AESCipher::Impl>(mode, keySize, padding, secretKey, iv, operation);
 }
@@ -329,13 +330,9 @@ std::vector<uint8_t> AESCipher::read(size_t length) { return _impl->read(length)
 
 std::vector<uint8_t> AESCipher::readAll() { return _impl->readAll(); }
 
-std::vector<uint8_t> AESCipher::finish()
-{
-    return _impl->finish();
-}
+std::vector<uint8_t> AESCipher::finish() { return _impl->finish(); }
 
 std::vector<uint8_t> AESCipher::getIV() const { return _impl->getIV(); }
-
 
 AuthenticatedAESCipher::AuthenticatedAESCipher(SymmetricCipherMode mode,
                                                SymmetricCipherKeySize keySize,
@@ -349,15 +346,9 @@ AuthenticatedAESCipher::AuthenticatedAESCipher(SymmetricCipherMode mode,
     _impl->setAuthTagLength(authTagLength);
 }
 
-std::vector<uint8_t> AuthenticatedAESCipher::getAuthTag() const
-{
-    return _impl->getAuthTag();
-}
+std::vector<uint8_t> AuthenticatedAESCipher::getAuthTag() const { return _impl->getAuthTag(); }
 
-void AuthenticatedAESCipher::setAuthTag(const std::vector<uint8_t> &tag)
-{
-    _impl->setAuthTag(tag);
-}
+void AuthenticatedAESCipher::setAuthTag(const std::vector<uint8_t> &tag) { _impl->setAuthTag(tag); }
 
 void AuthenticatedAESCipher::addAssociatedData(const std::vector<uint8_t> &associatedData)
 {
@@ -366,16 +357,14 @@ void AuthenticatedAESCipher::addAssociatedData(const std::vector<uint8_t> &assoc
 
 const size_t AESCipherBuilder::DefaultAuthTagLength = 16;
 
-AESCipherBuilder::AESCipherBuilder(SymmetricCipherMode mode, SymmetricCipherKeySize keySize,
+AESCipherBuilder::AESCipherBuilder(SymmetricCipherMode mode,
+                                   SymmetricCipherKeySize keySize,
                                    const std::vector<uint8_t> &secretKey)
         : _mode{mode}, _keySize{keySize}, _secretKey{secretKey}
 {
 }
 
-AESCipherBuilder::~AESCipherBuilder()
-{
-    utility::vectorCleanse(_secretKey);
-}
+AESCipherBuilder::~AESCipherBuilder() { utility::vectorCleanse(_secretKey); }
 
 AESCipherBuilder &AESCipherBuilder::setIV(const std::vector<uint8_t> &iv)
 {
@@ -406,17 +395,18 @@ bool isAuthenticatedCipherMode(SymmetricCipherMode mode)
             return false;
     }
 
-    throw MoCOCrWException("Could not determine whether cipher mode "
-        + std::to_string(static_cast<std::underlying_type_t<decltype(mode)>>(mode))
-        + " offers authenticated encryption");
+    throw MoCOCrWException(
+            "Could not determine whether cipher mode " +
+            std::to_string(static_cast<std::underlying_type_t<decltype(mode)>>(mode)) +
+            " offers authenticated encryption");
 }
-
 
 std::unique_ptr<AESCipher> AESCipherBuilder::buildEncryptor()
 {
     if (isAuthenticatedCipherMode(_mode)) {
-        throw MoCOCrWException("Specified cipher supports authenticated encryption."
-                               " buildAuthenticatedEncryptor() should be used instead.");
+        throw MoCOCrWException(
+                "Specified cipher supports authenticated encryption."
+                " buildAuthenticatedEncryptor() should be used instead.");
     }
 
     std::vector<uint8_t> newIV;
@@ -425,29 +415,31 @@ std::unique_ptr<AESCipher> AESCipherBuilder::buildEncryptor()
         // calling buildEncryptor()
         newIV = utility::cryptoRandomBytes(getDefaultIVLength(_mode));
     }
-    const std::vector<uint8_t>& iv = (_iv.size() == 0) ? newIV : _iv;
+    const std::vector<uint8_t> &iv = (_iv.size() == 0) ? newIV : _iv;
 
-    auto cipher = new AESCipher{_mode, _keySize, _padding, _secretKey, iv,
-                                AESCipher::Operation::Encryption};
+    auto cipher = new AESCipher{
+            _mode, _keySize, _padding, _secretKey, iv, AESCipher::Operation::Encryption};
     return std::unique_ptr<AESCipher>(cipher);
 }
 
 std::unique_ptr<AESCipher> AESCipherBuilder::buildDecryptor()
 {
     if (isAuthenticatedCipherMode(_mode)) {
-        throw MoCOCrWException("Specified cipher supports authenticated encryption."
-                               " buildAuthenticatedDecryptor() should be used instead.");
+        throw MoCOCrWException(
+                "Specified cipher supports authenticated encryption."
+                " buildAuthenticatedDecryptor() should be used instead.");
     }
-    auto cipher = new AESCipher{_mode, _keySize, _padding, _secretKey, _iv,
-                                AESCipher::Operation::Decryption};
+    auto cipher = new AESCipher{
+            _mode, _keySize, _padding, _secretKey, _iv, AESCipher::Operation::Decryption};
     return std::unique_ptr<AESCipher>(cipher);
 }
 
 std::unique_ptr<AuthenticatedAESCipher> AESCipherBuilder::buildAuthenticatedEncryptor()
 {
     if (!isAuthenticatedCipherMode(_mode)) {
-        throw MoCOCrWException("Specified cipher does not support authenticated encryption."
-                               " buildEncryptor() should be used instead.");
+        throw MoCOCrWException(
+                "Specified cipher does not support authenticated encryption."
+                " buildEncryptor() should be used instead.");
     }
 
     std::vector<uint8_t> newIV;
@@ -456,9 +448,14 @@ std::unique_ptr<AuthenticatedAESCipher> AESCipherBuilder::buildAuthenticatedEncr
         // calling buildAuthenticatedEncryptor()
         newIV = utility::cryptoRandomBytes(getDefaultIVLength(_mode));
     }
-    const std::vector<uint8_t>& iv = (_iv.size() == 0) ? newIV : _iv;
+    const std::vector<uint8_t> &iv = (_iv.size() == 0) ? newIV : _iv;
 
-    auto cipher = new AuthenticatedAESCipher(_mode, _keySize, _padding, _secretKey, iv, _authTagLength,
+    auto cipher = new AuthenticatedAESCipher(_mode,
+                                             _keySize,
+                                             _padding,
+                                             _secretKey,
+                                             iv,
+                                             _authTagLength,
                                              AESCipher::Operation::Encryption);
     return std::unique_ptr<AuthenticatedAESCipher>(cipher);
 }
@@ -466,15 +463,22 @@ std::unique_ptr<AuthenticatedAESCipher> AESCipherBuilder::buildAuthenticatedEncr
 std::unique_ptr<AuthenticatedAESCipher> AESCipherBuilder::buildAuthenticatedDecryptor()
 {
     if (!isAuthenticatedCipherMode(_mode)) {
-        throw MoCOCrWException("Specified cipher does not support authenticated encryption."
-                               " buildDecryptor() should be used instead.");
+        throw MoCOCrWException(
+                "Specified cipher does not support authenticated encryption."
+                " buildDecryptor() should be used instead.");
     }
     if (_authTagLength != DefaultAuthTagLength) {
-        throw MoCOCrWException("It does not make sense to set length of the authentication tag"
-                               " for a decryptor. This setting will be ignored and will confuse"
-                               " reader of your code.");
+        throw MoCOCrWException(
+                "It does not make sense to set length of the authentication tag"
+                " for a decryptor. This setting will be ignored and will confuse"
+                " reader of your code.");
     }
-    auto cipher = new AuthenticatedAESCipher(_mode, _keySize, _padding, _secretKey, _iv, _authTagLength,
+    auto cipher = new AuthenticatedAESCipher(_mode,
+                                             _keySize,
+                                             _padding,
+                                             _secretKey,
+                                             _iv,
+                                             _authTagLength,
                                              AESCipher::Operation::Decryption);
     return std::unique_ptr<AuthenticatedAESCipher>(cipher);
 }

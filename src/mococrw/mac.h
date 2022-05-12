@@ -23,14 +23,13 @@
 
 namespace mococrw
 {
-
 /**
  * @brief The MessageAuthenticationCode class is the abstract base class for the different
  * implementation of message authentication codes
  */
-class MessageAuthenticationCode {
+class MessageAuthenticationCode
+{
 public:
-
     /**
      * @brief ~MessageAuthenticationCode
      */
@@ -45,7 +44,7 @@ public:
      * @param message chunk of data used for MAC
      * @throws MoCOCrWException if this function is invoked after finish was called
      */
-    virtual void update(const std::vector<uint8_t>& message) = 0;
+    virtual void update(const std::vector<uint8_t> &message) = 0;
 
     /**
      * @brief Finalize the MAC
@@ -72,7 +71,8 @@ public:
     virtual void verify(const std::vector<uint8_t> &macValue) = 0;
 };
 
-class HMAC : public MessageAuthenticationCode {
+class HMAC : public MessageAuthenticationCode
+{
 public:
     /**
      * @brief Constructor
@@ -95,8 +95,7 @@ public:
      * @param message chunk of data to used for HMAC
      * @throws MoCOCrWException if this function is invoked after finish was called
      */
-    void update(const std::vector<uint8_t>& message) override;
-
+    void update(const std::vector<uint8_t> &message) override;
 
     /**
      * @brief Finalize the HMAC
@@ -135,7 +134,7 @@ public:
     /**
      * @brief Delete the copy assignment
      */
-    HMAC & operator=(const HMAC&) = delete;
+    HMAC &operator=(const HMAC &) = delete;
 
 private:
     /**
@@ -149,7 +148,8 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
-class CMAC : public MessageAuthenticationCode {
+class CMAC : public MessageAuthenticationCode
+{
 public:
     /**
      * @brief Constructor
@@ -173,8 +173,7 @@ public:
      * @param message chunk of data to used for CMAC
      * @throws MoCOCrWException if this function is invoked after finish was called
      */
-    void update(const std::vector<uint8_t>& message) override;
-
+    void update(const std::vector<uint8_t> &message) override;
 
     /**
      * @brief Finalize the CMAC
@@ -212,7 +211,7 @@ public:
     /**
      * @brief Delete the copy assignment
      */
-    CMAC & operator=(const CMAC&) = delete;
+    CMAC &operator=(const CMAC &) = delete;
 
 private:
     /**
@@ -226,4 +225,4 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
-}
+}  // namespace mococrw

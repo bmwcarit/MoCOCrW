@@ -22,7 +22,9 @@
 
 using namespace mococrw;
 
-void verify(DigestTypes digestType, const std::vector<uint8_t> &key, const std::vector<uint8_t> &message,
+void verify(DigestTypes digestType,
+            const std::vector<uint8_t> &key,
+            const std::vector<uint8_t> &message,
             const std::vector<uint8_t> &authenticationTag)
 {
     try {
@@ -50,7 +52,9 @@ void verify(DigestTypes digestType, const std::vector<uint8_t> &key, const std::
     std::cout << "Verification successful." << std::endl;
 }
 
-void verify(CmacCipherTypes cipherType, const std::vector<uint8_t> &key, const std::vector<uint8_t> &message,
+void verify(CmacCipherTypes cipherType,
+            const std::vector<uint8_t> &key,
+            const std::vector<uint8_t> &message,
             const std::vector<uint8_t> &authenticationTag)
 {
     try {
@@ -78,7 +82,8 @@ void verify(CmacCipherTypes cipherType, const std::vector<uint8_t> &key, const s
     std::cout << "Verification successful." << std::endl;
 }
 
-std::vector<uint8_t> calculate(DigestTypes digestType, const std::vector<uint8_t> &key,
+std::vector<uint8_t> calculate(DigestTypes digestType,
+                               const std::vector<uint8_t> &key,
                                const std::vector<uint8_t> &message)
 {
     try {
@@ -102,7 +107,8 @@ std::vector<uint8_t> calculate(DigestTypes digestType, const std::vector<uint8_t
     }
 }
 
-std::vector<uint8_t> calculate(CmacCipherTypes cipherType, const std::vector<uint8_t> &key,
+std::vector<uint8_t> calculate(CmacCipherTypes cipherType,
+                               const std::vector<uint8_t> &key,
                                const std::vector<uint8_t> &message)
 {
     try {
@@ -129,23 +135,21 @@ std::vector<uint8_t> calculate(CmacCipherTypes cipherType, const std::vector<uin
 int main(void)
 {
     auto hmacTag = calculate(
-            DigestTypes::SHA512,
-            utility::fromHex("beefdead"),
-            utility::fromHex("deadbeef"));
+            DigestTypes::SHA512, utility::fromHex("beefdead"), utility::fromHex("deadbeef"));
     verify(DigestTypes::SHA512,
-            utility::fromHex("beefdead"),
-            utility::fromHex("deadbeef"),
-            hmacTag);
+           utility::fromHex("beefdead"),
+           utility::fromHex("deadbeef"),
+           hmacTag);
 
-    auto cmacTag = calculate(
-            CmacCipherTypes::AES_CBC_128,
-            utility::fromHex("beefdead12345678" "12345678deadbeef"),
-            utility::fromHex("deadbeef"));
-    verify(
-            CmacCipherTypes::AES_CBC_128,
-            utility::fromHex("beefdead12345678" "12345678deadbeef"),
-            utility::fromHex("deadbeef"),
-            cmacTag);
+    auto cmacTag = calculate(CmacCipherTypes::AES_CBC_128,
+                             utility::fromHex("beefdead12345678"
+                                              "12345678deadbeef"),
+                             utility::fromHex("deadbeef"));
+    verify(CmacCipherTypes::AES_CBC_128,
+           utility::fromHex("beefdead12345678"
+                            "12345678deadbeef"),
+           utility::fromHex("deadbeef"),
+           cmacTag);
 
     return 0;
 }

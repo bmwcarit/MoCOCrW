@@ -23,7 +23,6 @@
 
 namespace mococrw
 {
-
 class MoCOCrWException : public std::exception
 {
 public:
@@ -32,10 +31,10 @@ public:
     {
     }
     const char *what() const noexcept override { return _msg.c_str(); }
+
 private:
     const std::string _msg;
 };
 
-#define ERROR_STRING(msg) \
-    (boost::format{"%s: %s"} % BOOST_CURRENT_FUNCTION % (msg)  ).str()
-}  //::mococrw
+#define ERROR_STRING(msg) (boost::format{"%s: %s"} % BOOST_CURRENT_FUNCTION % (msg)).str()
+}  // namespace mococrw

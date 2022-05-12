@@ -21,27 +21,29 @@
 #include <boost/format.hpp>
 
 #include "mococrw/bio.h"
-#include "mococrw/key.h"
 #include "mococrw/error.h"
+#include "mococrw/key.h"
 
 #include "mococrw/openssl_wrap.h"
 
-namespace {
+namespace
+{
 void ensureEccCurveSupported(mococrw::openssl::ellipticCurveNid nid)
 {
-    if (nid == mococrw::openssl::ellipticCurveNid::Ed448
-            || nid == mococrw::openssl::ellipticCurveNid::Ed25519)
-    {
-        throw mococrw::MoCOCrWException("The given curve is not supported. Ed448 and Ed25519 are not supported");
+    if (nid == mococrw::openssl::ellipticCurveNid::Ed448 ||
+        nid == mococrw::openssl::ellipticCurveNid::Ed25519) {
+        throw mococrw::MoCOCrWException(
+                "The given curve is not supported. Ed448 and Ed25519 are not supported");
     }
 }
-}
+}  // namespace
 
 namespace mococrw
 {
 using namespace openssl;
-AsymmetricKey::KeyTypes AsymmetricKey::getType() const {
-    switch(openssl::_EVP_PKEY_type(_key.get())) {
+AsymmetricKey::KeyTypes AsymmetricKey::getType() const
+{
+    switch (openssl::_EVP_PKEY_type(_key.get())) {
         case EVP_PKEY_RSA:
             return KeyTypes::RSA;
         case EVP_PKEY_EC:
@@ -72,12 +74,14 @@ AsymmetricKeypair AsymmetricKeypair::generateECC()
     return generate(defaultSpec);
 }
 
-AsymmetricKeypair AsymmetricKeypair::generateEd448() {
+AsymmetricKeypair AsymmetricKeypair::generateEd448()
+{
     ECCSpec spec{ellipticCurveNid::Ed448};
     return generate(spec);
 }
 
-AsymmetricKeypair AsymmetricKeypair::generateEd25519() {
+AsymmetricKeypair AsymmetricKeypair::generateEd25519()
+{
     ECCSpec spec{ellipticCurveNid::Ed25519};
     return generate(spec);
 }
@@ -94,7 +98,7 @@ std::string AsymmetricPublicKey::publicKeyToPem() const
     return bio.flushToString();
 }
 
-AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string& pem)
+AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string &pem)
 {
     BioObject bio{BioObject::Types::MEM};
     bio.write(pem);
@@ -109,7 +113,8 @@ AsymmetricPublicKey AsymmetricPublicKey::fromECPoint(const std::shared_ptr<ECCSp
 
     SSL_EC_KEY_Ptr ec_key = _EC_KEY_oct2key(static_cast<int>(keySpec.get()->curve()), point);
     SSL_EVP_PKEY_Ptr evp_key(_EVP_PKEY_new());
-    /* As set1 is incrementing the internal ref count, we can and need to invoke the destructor of ec_key here */
+    /* As set1 is incrementing the internal ref count, we can and need to invoke the destructor of
+     * ec_key here */
     _EVP_PKEY_set1_EC_KEY(evp_key.get(), ec_key.get());
 
     return AsymmetricPublicKey{std::move(evp_key)};
@@ -138,17 +143,19 @@ size_t AsymmetricPublicKey::getECOctetLength(openssl::EllipticCurvePointConversi
     }
 
     // See SEC1 section 2.3.3 Elliptic-Curve-Point-to-Octet-String Conversion.
-    // Length is ceil((log2(q))/8)+1 for compressed form and 2*ceil((log2(q))/8)+1 for uncompressed form
-    // where q is the field size which is NOT necessarily the same as key size as the latter can be smaller.
+    // Length is ceil((log2(q))/8)+1 for compressed form and 2*ceil((log2(q))/8)+1 for uncompressed
+    // form where q is the field size which is NOT necessarily the same as key size as the latter
+    // can be smaller.
     const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(internal()));
     unsigned int field_size = _EC_GROUP_get_degree(group);
     unsigned int field_size_bytes = (field_size + 7) / 8;
-    size_t enc_len_bytes =
-        form == openssl::EllipticCurvePointConversionForm::compressed ? 1 + field_size_bytes : 1 + 2 * field_size_bytes;
+    size_t enc_len_bytes = form == openssl::EllipticCurvePointConversionForm::compressed
+                                   ? 1 + field_size_bytes
+                                   : 1 + 2 * field_size_bytes;
     return enc_len_bytes;
 }
 
-std::string AsymmetricKeypair::privateKeyToPem(const std::string& pwd) const
+std::string AsymmetricKeypair::privateKeyToPem(const std::string &pwd) const
 {
     BioObject bio{BioObject::Types::MEM};
     const EVP_CIPHER *pkey_cipher = nullptr;
@@ -156,16 +163,13 @@ std::string AsymmetricKeypair::privateKeyToPem(const std::string& pwd) const
         // only set a cipher if we do want to set a password
         pkey_cipher = _EVP_aes_256_cbc();
     }
-    _PEM_write_bio_PKCS8PrivateKey(bio.internal(),
-                                   _key.internal().get(),
-                                   pkey_cipher,
-                                   pwd);
+    _PEM_write_bio_PKCS8PrivateKey(bio.internal(), _key.internal().get(), pkey_cipher, pwd);
     return bio.flushToString();
 }
 
 // In OpenSSL, private keys are the same as keypairs, in that they also contain the public key.
-AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string& pem,
-                                                    const std::string& password)
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pem,
+                                                           const std::string &password)
 {
     BioObject bio{BioObject::Types::MEM};
     bio.write(pem);
@@ -184,17 +188,18 @@ AsymmetricKey RSASpec::generate() const
     return AsymmetricKey{std::move(pkey)};
 }
 
-AsymmetricKey ECCSpec::generate() const {
-   SSL_EVP_PKEY_Ptr pkey{nullptr};
-   SSL_EVP_PKEY_CTX_Ptr keyCtx{nullptr};
-   try {
+AsymmetricKey ECCSpec::generate() const
+{
+    SSL_EVP_PKEY_Ptr pkey{nullptr};
+    SSL_EVP_PKEY_CTX_Ptr keyCtx{nullptr};
+    try {
         /*Setting the correct curve to generate the ECC key*/
         if (_curveNid != ellipticCurveNid::Ed448 && _curveNid != ellipticCurveNid::Ed25519) {
             auto paramCtx = _EVP_PKEY_CTX_new_id(EVP_PKEY_EC);
             _EVP_PKEY_paramgen_init(paramCtx.get());
-            _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(paramCtx.get(),
-                    static_cast<int>(_curveNid));
-            /*Set the curve ans1 flag so that we can save the key to a PEM format and reuse it later*/
+            _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(paramCtx.get(), static_cast<int>(_curveNid));
+            /*Set the curve ans1 flag so that we can save the key to a PEM format and reuse it
+             * later*/
             _EVP_PKEY_CTX_set_ec_param_enc(paramCtx.get(), OPENSSL_EC_NAMED_CURVE);
             auto params = _EVP_PKEY_paramgen(paramCtx.get());
 
@@ -207,25 +212,24 @@ AsymmetricKey ECCSpec::generate() const {
         _EVP_PKEY_keygen_init(keyCtx.get());
         pkey = _EVP_PKEY_keygen(keyCtx.get());
 
-   } catch (const OpenSSLException &e) {
+    } catch (const OpenSSLException &e) {
         throw MoCOCrWException(e.what());
-   }
-   return AsymmetricKey{std::move(pkey)};
+    }
+    return AsymmetricKey{std::move(pkey)};
 }
 
 std::unique_ptr<AsymmetricKey::Spec> AsymmetricKey::getKeySpec() const
 {
     try {
-        switch(getType()) {
-            case KeyTypes::ECC:
-            {
+        switch (getType()) {
+            case KeyTypes::ECC: {
                 const EC_GROUP *group = _EC_KEY_get0_group(_EVP_PKEY_get0_EC_KEY(_key.get()));
                 auto nid = static_cast<openssl::ellipticCurveNid>(_EC_GROUP_get_curve_name(group));
                 return std::make_unique<ECCSpec>(nid);
             }
-            case KeyTypes::ECC_ED:
-            {
-                auto nid = static_cast<openssl::ellipticCurveNid>(openssl::_EVP_PKEY_type(_key.get()));
+            case KeyTypes::ECC_ED: {
+                auto nid =
+                        static_cast<openssl::ellipticCurveNid>(openssl::_EVP_PKEY_type(_key.get()));
                 return std::make_unique<ECCSpec>(nid);
             }
             case KeyTypes::RSA:
@@ -233,9 +237,8 @@ std::unique_ptr<AsymmetricKey::Spec> AsymmetricKey::getKeySpec() const
             default:
                 throw MoCOCrWException("Key type not supported.");
         }
-    }
-    catch (const OpenSSLException &e) {
+    } catch (const OpenSSLException &e) {
         throw MoCOCrWException(e.what());
     }
 }
-}
+}  // namespace mococrw

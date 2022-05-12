@@ -87,7 +87,8 @@ std::vector<uint8_t> QueueOfVectorsMemoryStrategy::readAll()
     std::vector<uint8_t> bufferToReturn;
     bufferToReturn.reserve(_totalBytesStored);
     while (!_queue.empty()) {
-        std::copy(std::begin(_queue.front()), std::end(_queue.front()),
+        std::copy(std::begin(_queue.front()),
+                  std::end(_queue.front()),
                   std::back_inserter(bufferToReturn));
         _queue.pop_front();
     }
@@ -104,7 +105,8 @@ std::vector<uint8_t> QueueOfVectorsMemoryStrategy::_readCompleteBlock()
     return bufferToReturn;
 }
 
-void QueueOfVectorsMemoryStrategy::_readPartialBlock(size_t requestedSize, std::vector<uint8_t>& output)
+void QueueOfVectorsMemoryStrategy::_readPartialBlock(size_t requestedSize,
+                                                     std::vector<uint8_t>& output)
 {
     assert((_queue.front().size() > requestedSize) && "Callers must not overread the block.");
 
@@ -115,4 +117,4 @@ void QueueOfVectorsMemoryStrategy::_readPartialBlock(size_t requestedSize, std::
     _totalBytesStored -= std::distance(begin, end);
 }
 
-} // mococrw
+}  // namespace mococrw

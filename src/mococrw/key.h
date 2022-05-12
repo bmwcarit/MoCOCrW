@@ -21,7 +21,6 @@
 
 namespace mococrw
 {
-
 /* IMPORTANT NOTE:
  * The key classes and infrastracture is build with the idea of immutable
  * key objects in mind. If this ever changes, you need to implement a proper
@@ -36,27 +35,22 @@ public:
     /**
      * Constructs a wrapper object for OpenSSL EVP_PKEY objects
      */
-    AsymmetricKey(openssl::SSL_EVP_PKEY_SharedPtr keypair) : _key{std::move(keypair)}
-    {
-    }
+    AsymmetricKey(openssl::SSL_EVP_PKEY_SharedPtr keypair) : _key{std::move(keypair)} {}
 
     /**
      * Supported asymmetric key types.
      */
-    enum class KeyTypes : int {
-        RSA,
-        ECC,
-        ECC_ED
-    };
+    enum class KeyTypes : int { RSA, ECC, ECC_ED };
 
     KeyTypes getType() const;
 
-    int getKeySize() const { return EVP_PKEY_bits(_key.get());}
+    int getKeySize() const { return EVP_PKEY_bits(_key.get()); }
 
     std::unique_ptr<Spec> getKeySpec() const;
 
     inline const openssl::SSL_EVP_PKEY_SharedPtr& internal() const { return _key; }
     inline openssl::SSL_EVP_PKEY_SharedPtr& internal() { return _key; }
+
 private:
     openssl::SSL_EVP_PKEY_SharedPtr _key;
 };
@@ -72,9 +66,7 @@ public:
      *
      * @param key A smart pointer to the EVP_PKEY. Must not be nullptr.
      */
-    AsymmetricPublicKey(openssl::SSL_EVP_PKEY_SharedPtr key) : _key{std::move(key)}
-    {
-    }
+    AsymmetricPublicKey(openssl::SSL_EVP_PKEY_SharedPtr key) : _key{std::move(key)} {}
 
     /**
      * Converts the asymmetric public key to the PKCS8 format that can be written in a PEM file.
@@ -94,40 +86,42 @@ public:
     /**
      * @brief Returns a public key object based on the provided EC point
      *
-     * This function creates a key object based on the point(s) in octet form and the elliptic curve group given by
-     * keySpec.
-     * The leading byte with the point conversion form identifier (0x02 or 0x03 for compressed, 0x04 for uncompressed,
-     * 0x06 or 0x07 for hybrid points) has to be in place.
+     * This function creates a key object based on the point(s) in octet form and the elliptic curve
+     * group given by keySpec. The leading byte with the point conversion form identifier (0x02 or
+     * 0x03 for compressed, 0x04 for uncompressed, 0x06 or 0x07 for hybrid points) has to be in
+     * place.
      *
-     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
-     * MoCOCrWException is thrown.
+     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these
+     * curves a MoCOCrWException is thrown.
      * @throws MoCOCrWException if the given spec is not a elliptic curve spec or an Ed-spec
      * @param keySpec The key specification for creating the key
      * @param point The point(s) representing the public key
      * @return An asymmetric public key
      */
     static AsymmetricPublicKey fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
-                                           const std::vector<uint8_t> &point);
+                                           const std::vector<uint8_t>& point);
 
     /**
      * @brief This returns the point(s) of the current AsymmetricPublicKey in octet representation.
      *
-     * Depending on the conversion form the correct identifier will be prepended to the actual point (0x02 or 0x03 for
-     * compressed form, 0x04 for uncompressed form. 0x06 or 0x07 for hybrid form).
+     * Depending on the conversion form the correct identifier will be prepended to the actual point
+     * (0x02 or 0x03 for compressed form, 0x04 for uncompressed form. 0x06 or 0x07 for hybrid form).
      *
-     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these curves a
-     * MoCOCrWException is thrown.
+     * Remark: Ed-Curves (Ed448, Ed25519) are currently not supported. If you use one of these
+     * curves a MoCOCrWException is thrown.
      * @throws MoCOCrWException if the given key is not a elliptic curve key or an Ed-key
      * @param form The transformation form.
-     * @return The octet representation of the public key. The form of the point is defined by the argument form.
+     * @return The octet representation of the public key. The form of the point is defined by the
+     * argument form.
      */
     std::vector<uint8_t> toECPoint(openssl::EllipticCurvePointConversionForm form);
 
     /**
      * @brief Get length of the point of the current AsymmetricPublicKey in octet representation
      *
-     * Depending on the public key length and the elliptic curve point conversion form, the public key will take different
-     * amount of bytes when encoded. This function can be used to conveniently deduct the encoded length while deserializing.
+     * Depending on the public key length and the elliptic curve point conversion form, the public
+     * key will take different amount of bytes when encoded. This function can be used to
+     * conveniently deduct the encoded length while deserializing.
      * @param form Conversion form
      * @return Encoded public key size in bytes
      * @throws MoCOCrWException if the key is not of type AsymmetricKey::KeyTypes::ECC
@@ -146,7 +140,7 @@ public:
      * @return the type of the asymmetric key.
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
-    AsymmetricKey::KeyTypes getType() const  { return _key.getType(); }
+    AsymmetricKey::KeyTypes getType() const { return _key.getType(); }
 
     /**
      * Gets the specification of the asymmetric key in usage
@@ -154,25 +148,22 @@ public:
      * @return the specification of the key in use.
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
-    std::unique_ptr<AsymmetricKey::Spec> getKeySpec() const  { return _key.getKeySpec(); }
+    std::unique_ptr<AsymmetricKey::Spec> getKeySpec() const { return _key.getKeySpec(); }
 
     /**
      * Gets the size of the Asymmetric key in bits
      * @return the size of the key in bits
      */
-    int getKeySize() const { return _key.getKeySize();}
+    int getKeySize() const { return _key.getKeySize(); }
 
-    inline bool operator==(const AsymmetricPublicKey &rhs) const {
+    inline bool operator==(const AsymmetricPublicKey& rhs) const
+    {
         return openssl::_EVP_PKEY_cmp(internal(), rhs.internal());
     }
-    inline bool operator!=(const AsymmetricPublicKey &rhs) const {
-        return !(*this == rhs);
-    }
+    inline bool operator!=(const AsymmetricPublicKey& rhs) const { return !(*this == rhs); }
 
 protected:
-    AsymmetricPublicKey(AsymmetricKey &&key) : _key{std::move(key)}
-    {
-    }
+    AsymmetricPublicKey(AsymmetricKey&& key) : _key{std::move(key)} {}
 
     AsymmetricKey _key;
 };
@@ -194,7 +185,7 @@ public:
      * @param key A smart pointer to the EVP_PKEY. Must not be nullptr.
      */
     AsymmetricKeypair(openssl::SSL_EVP_PKEY_SharedPtr keypair)
-                                : AsymmetricPublicKey{std::move(keypair)}
+            : AsymmetricPublicKey{std::move(keypair)}
     {
     }
 
@@ -207,8 +198,8 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL
      *      indicates an error
      */
-    [[deprecated("Replaced by generateRSA for improved clarity")]]
-    static AsymmetricKeypair generate();
+    [[deprecated("Replaced by generateRSA for improved clarity")]] static AsymmetricKeypair
+    generate();
 
     /**
      * Generate an asymmetric keypair with given Spec.
@@ -260,12 +251,11 @@ public:
      */
     std::string privateKeyToPem(const std::string& pwd) const;
 
-    static AsymmetricKeypair readPrivateKeyFromPEM(const std::string& pem, const std::string& password);
+    static AsymmetricKeypair readPrivateKeyFromPEM(const std::string& pem,
+                                                   const std::string& password);
 
 private:
-    AsymmetricKeypair(AsymmetricKey &&key) : AsymmetricPublicKey{std::move(key)}
-    {
-    }
+    AsymmetricKeypair(AsymmetricKey&& key) : AsymmetricPublicKey{std::move(key)} {}
 };
 
 /**
@@ -303,6 +293,7 @@ public:
     RSASpec() : RSASpec{defaultSize} {}
     AsymmetricKey generate() const override;
     inline unsigned int numberOfBits() const { return _numBits; }
+
 private:
     unsigned int _numBits;
 };
@@ -316,13 +307,15 @@ public:
     /**
      * Default elliptic curve to be used in case none is specified by the user.
      */
-    static constexpr openssl::ellipticCurveNid defaultCurveNid = openssl::ellipticCurveNid::PRIME_256v1;
+    static constexpr openssl::ellipticCurveNid defaultCurveNid =
+            openssl::ellipticCurveNid::PRIME_256v1;
     explicit ECCSpec(openssl::ellipticCurveNid curveNid) : _curveNid{curveNid} {}
     ECCSpec() : ECCSpec{defaultCurveNid} {}
     inline openssl::ellipticCurveNid curve() const { return _curveNid; }
     AsymmetricKey generate() const override;
+
 private:
     openssl::ellipticCurveNid _curveNid;
 };
 
-}
+}  // namespace mococrw

@@ -19,14 +19,14 @@
 
 #pragma once
 
-#include <vector>
 #include <memory>
 #include <queue>
+#include <vector>
 
 namespace mococrw
 {
-
-class CipherMemoryStrategyI {
+class CipherMemoryStrategyI
+{
 public:
     virtual ~CipherMemoryStrategyI() = default;
 
@@ -35,8 +35,8 @@ public:
     virtual std::vector<uint8_t> readAll() = 0;
 };
 
-
-class QueueOfVectorsMemoryStrategy: public CipherMemoryStrategyI {
+class QueueOfVectorsMemoryStrategy : public CipherMemoryStrategyI
+{
 public:
     void write(std::vector<uint8_t> chunk) override;
     std::vector<uint8_t> read(size_t chunkSize) override;
@@ -49,4 +49,4 @@ private:
     size_t _totalBytesStored = 0;
 };
 
-} // mococrw
+}  // namespace mococrw

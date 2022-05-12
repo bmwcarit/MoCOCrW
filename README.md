@@ -93,3 +93,8 @@ but not installed.
 This library applies versioning similar to what is described at [semver.org](https://semver.org).
 In addition, we are keeping soversion and library version in sync and will create major releases
 even though it would not be necessary according to Semantic Versioning (e.g. due to break of ABI)
+
+## Code Format
+
+We use clang-format, version 10, to properly format MoCOCrW's code-base. Kindly use this version
+when formatting your PRs for contribution. 

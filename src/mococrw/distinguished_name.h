@@ -18,15 +18,14 @@
  */
 #pragma once
 
+#include <boost/optional.hpp>
 #include <string>
 #include <vector>
-#include <boost/optional.hpp>
 
 #include "openssl_wrap.h"
 
 namespace mococrw
 {
-
 /**
  * Represents a distinguished name.
  *
@@ -50,15 +49,42 @@ public:
      * If an attribute has not been set, the corresponding method will return an
      * empty string.
      */
-    std::string commonName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::CommonName); }
-    std::string countryName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::CountryName); }
-    std::string localityName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::LocalityName); }
-    std::string stateOrProvinceName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::StateOrProvinceName); }
-    std::string organizationalUnitName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationalUnitName); }
-    std::string organizationName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationName); }
-    std::string pkcs9EmailAddress() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Pkcs9EmailAddress); }
-    std::string serialNumber() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::SerialNumber); }
-    std::string givenName() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName); }
+    std::string commonName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::CommonName);
+    }
+    std::string countryName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::CountryName);
+    }
+    std::string localityName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::LocalityName);
+    }
+    std::string stateOrProvinceName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::StateOrProvinceName);
+    }
+    std::string organizationalUnitName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationalUnitName);
+    }
+    std::string organizationName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::OrganizationName);
+    }
+    std::string pkcs9EmailAddress() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::Pkcs9EmailAddress);
+    }
+    std::string serialNumber() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::SerialNumber);
+    }
+    std::string givenName() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName);
+    }
     std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
     std::string title() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Title); }
 
@@ -77,16 +103,19 @@ public:
     void populateX509Name(openssl::SSL_X509_NAME_Ptr &subject) const;
 
     static DistinguishedName fromX509Name(X509_NAME *ptr);
-    bool operator==(const DistinguishedName& other) const;
-    bool operator!=(const DistinguishedName& other) const { return !(*this == other); }
+    bool operator==(const DistinguishedName &other) const;
+    bool operator!=(const DistinguishedName &other) const { return !(*this == other); }
+
 private:
-    struct Attribute {
+    struct Attribute
+    {
         openssl::ASN1_NID id;
-        std::string       name;
+        std::string name;
     };
     std::string _getAttributeByNIDAsString(const openssl::ASN1_NID id) const;
     boost::optional<Attribute> _getAttributeByNID(const openssl::ASN1_NID id) const;
-    void _addString(openssl::SSL_X509_NAME_Ptr &x509Name, const boost::optional<DistinguishedName::Attribute>& attribute) const;
+    void _addString(openssl::SSL_X509_NAME_Ptr &x509Name,
+                    const boost::optional<DistinguishedName::Attribute> &attribute) const;
     std::vector<Attribute> _attributes;
     bool _customAttributeOrderFlag{false};
 };
@@ -120,14 +149,15 @@ public:
     Builder &title(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
+
 protected:
     DistinguishedName _dn;
 };
 
-class DistinguishedName::CustomOrderBuilder: public DistinguishedName::Builder
+class DistinguishedName::CustomOrderBuilder : public DistinguishedName::Builder
 {
 public:
-    CustomOrderBuilder(): Builder() { _dn._customAttributeOrderFlag = true; }
+    CustomOrderBuilder() : Builder() { _dn._customAttributeOrderFlag = true; }
 };
 
 template <class T>
@@ -158,28 +188,32 @@ DistinguishedName::Builder &DistinguishedName::Builder::localityName(T &&name)
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::stateOrProvinceName(T &&name)
 {
-    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::StateOrProvinceName, std::forward<T>(name)});
+    _dn._attributes.emplace_back(
+            Attribute{openssl::ASN1_NID::StateOrProvinceName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::organizationalUnitName(T &&name)
 {
-    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::OrganizationalUnitName, std::forward<T>(name)});
+    _dn._attributes.emplace_back(
+            Attribute{openssl::ASN1_NID::OrganizationalUnitName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::organizationName(T &&name)
 {
-    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::OrganizationName, std::forward<T>(name)});
+    _dn._attributes.emplace_back(
+            Attribute{openssl::ASN1_NID::OrganizationName, std::forward<T>(name)});
     return *this;
 }
 
 template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::pkcs9EmailAddress(T &&name)
 {
-    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Pkcs9EmailAddress, std::forward<T>(name)});
+    _dn._attributes.emplace_back(
+            Attribute{openssl::ASN1_NID::Pkcs9EmailAddress, std::forward<T>(name)});
     return *this;
 }
 
@@ -211,4 +245,4 @@ DistinguishedName::Builder &DistinguishedName::Builder::title(T &&name)
     return *this;
 }
 
-} //::mococrw
+}  // namespace mococrw

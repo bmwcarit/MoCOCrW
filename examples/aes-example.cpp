@@ -31,27 +31,32 @@ static const std::vector<uint8_t> associatedData = utility::fromHex("beefdead");
 static const std::vector<uint8_t> iv = utility::fromHex("00102030405060708090a0b0c0d0e0f0");
 static const size_t authTagLength = 16;
 
-struct AesAuthenticatedEncryptionResult {
+struct AesAuthenticatedEncryptionResult
+{
     std::vector<uint8_t> iv;
     std::vector<uint8_t> ciphertext;
     std::vector<uint8_t> authTag;
 };
 
-struct AesEncryptionResult {
+struct AesEncryptionResult
+{
     std::vector<uint8_t> iv;
     std::vector<uint8_t> ciphertext;
 };
 
 AesAuthenticatedEncryptionResult aesAuthenticatedEncryption()
 {
-    auto authenticatedEncryptor = AESCipherBuilder{aeOperationMode, SymmetricCipherKeySize::S_128, aesKey}
-            // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
-            .setPadding(padding)
-            // The IV is optional. Default is a random value (Recommendation: use a random value)
-            .setIV(iv)
-            // the authTagLength is an optional value. Default 16 bytes. Only needed by AES AEAD.
-            .setAuthTagLength(authTagLength)
-            .buildAuthenticatedEncryptor();
+    auto authenticatedEncryptor =
+            AESCipherBuilder{aeOperationMode, SymmetricCipherKeySize::S_128, aesKey}
+                    // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
+                    .setPadding(padding)
+                    // The IV is optional. Default is a random value (Recommendation: use a random
+                    // value)
+                    .setIV(iv)
+                    // the authTagLength is an optional value. Default 16 bytes. Only needed by AES
+                    // AEAD.
+                    .setAuthTagLength(authTagLength)
+                    .buildAuthenticatedEncryptor();
 
     std::vector<uint8_t> ciphertext;
     try {
@@ -76,22 +81,23 @@ AesAuthenticatedEncryptionResult aesAuthenticatedEncryption()
     }
 
     return AesAuthenticatedEncryptionResult{
-        authenticatedEncryptor->getIV(),
-        ciphertext,
-        authenticatedEncryptor->getAuthTag()
-    };
+            authenticatedEncryptor->getIV(), ciphertext, authenticatedEncryptor->getAuthTag()};
 }
 
-std::vector<uint8_t> aesAuthenticatedDecryption(const AesAuthenticatedEncryptionResult &aesEncryptResult)
+std::vector<uint8_t> aesAuthenticatedDecryption(
+        const AesAuthenticatedEncryptionResult &aesEncryptResult)
 {
-    auto authenticatedDecryptor = AESCipherBuilder{aeOperationMode, SymmetricCipherKeySize::S_128, aesKey}
-            // Optional. Defaults to SymmetricCipherPadding::PKCS
-            .setPadding(padding)
-            // mandatory value for decryption. Don't forget to set it. Set the same value as set during encryption
-            .setIV(aesEncryptResult.iv)
-            // the authTagLength is an optional value. Default 16 bytes. Only needed by AEAD modes of operation.
-            .setAuthTagLength(authTagLength)
-            .buildAuthenticatedEncryptor();
+    auto authenticatedDecryptor =
+            AESCipherBuilder{aeOperationMode, SymmetricCipherKeySize::S_128, aesKey}
+                    // Optional. Defaults to SymmetricCipherPadding::PKCS
+                    .setPadding(padding)
+                    // mandatory value for decryption. Don't forget to set it. Set the same value as
+                    // set during encryption
+                    .setIV(aesEncryptResult.iv)
+                    // the authTagLength is an optional value. Default 16 bytes. Only needed by AEAD
+                    // modes of operation.
+                    .setAuthTagLength(authTagLength)
+                    .buildAuthenticatedEncryptor();
 
     std::vector<uint8_t> plaintext;
     try {
@@ -104,7 +110,7 @@ std::vector<uint8_t> aesAuthenticatedDecryption(const AesAuthenticatedEncryption
         std::cerr << "Failure decrypting the data." << std::endl;
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
-    }  catch (const MoCOCrWException &e) {
+    } catch (const MoCOCrWException &e) {
         /* Possible reasons:
          * - update was invoked after finish()
          * - the message is too big
@@ -121,15 +127,15 @@ std::vector<uint8_t> aesAuthenticatedDecryption(const AesAuthenticatedEncryption
     return plaintext;
 }
 
-
 AesEncryptionResult aesEncryption()
 {
     auto encryptor = AESCipherBuilder{plainOperationMode, SymmetricCipherKeySize::S_128, aesKey}
-            // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
-            .setPadding(padding)
-            // The IV is optional. Default is a random value (Recommendation: use a random value)
-            .setIV(iv)
-            .buildEncryptor();
+                             // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
+                             .setPadding(padding)
+                             // The IV is optional. Default is a random value (Recommendation: use a
+                             // random value)
+                             .setIV(iv)
+                             .buildEncryptor();
 
     std::vector<uint8_t> ciphertext;
     try {
@@ -150,20 +156,18 @@ AesEncryptionResult aesEncryption()
         exit(EXIT_FAILURE);
     }
 
-    return AesEncryptionResult {
-        encryptor->getIV(),
-        ciphertext
-    };
+    return AesEncryptionResult{encryptor->getIV(), ciphertext};
 }
 
 std::vector<uint8_t> aesDecryption(const AesEncryptionResult &aesEncryptResult)
 {
     auto decryptor = AESCipherBuilder{plainOperationMode, SymmetricCipherKeySize::S_128, aesKey}
-            // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
-            .setPadding(padding)
-            // mandatory value for decryption. Don't forget to set it. Set the same value as set during encryption
-            .setIV(aesEncryptResult.iv)
-            .buildDecryptor();
+                             // Padding mode is optional. Default is SymmetricCipherPadding::PKCS
+                             .setPadding(padding)
+                             // mandatory value for decryption. Don't forget to set it. Set the same
+                             // value as set during encryption
+                             .setIV(aesEncryptResult.iv)
+                             .buildDecryptor();
 
     std::vector<uint8_t> plaintext;
     try {
@@ -174,7 +178,7 @@ std::vector<uint8_t> aesDecryption(const AesEncryptionResult &aesEncryptResult)
         std::cerr << "Failure encrypting the data." << std::endl;
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
-    }  catch (const MoCOCrWException &e) {
+    } catch (const MoCOCrWException &e) {
         /* Possible reasons:
          * - update was invoked after finish()
          * - the message is too big
@@ -187,7 +191,8 @@ std::vector<uint8_t> aesDecryption(const AesEncryptionResult &aesEncryptResult)
     return plaintext;
 }
 
-int main(void) {
+int main(void)
+{
     /* Authenticated encryption and decryption */
     auto aeResult = aesAuthenticatedEncryption();
     auto decryptionResult = aesAuthenticatedDecryption(aeResult);

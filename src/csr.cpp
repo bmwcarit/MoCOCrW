@@ -16,10 +16,10 @@
  * limitations under the License.
  * #L%
  */
-#include "mococrw/bio.h"
 #include "mococrw/csr.h"
-#include "mococrw/key.h"
+#include "mococrw/bio.h"
 #include "mococrw/error.h"
+#include "mococrw/key.h"
 
 namespace mococrw
 {
@@ -37,7 +37,7 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
     dn.populateX509Name(subject);
     _X509_REQ_set_subject_name(_req.get(), subject.get());
 
-    _X509_REQ_set_pubkey(_req.get(), const_cast<EVP_PKEY*>(keypair.internal()));
+    _X509_REQ_set_pubkey(_req.get(), const_cast<EVP_PKEY *>(keypair.internal()));
 
     auto mctx = _EVP_MD_CTX_create();
 
@@ -45,7 +45,7 @@ CertificateSigningRequest::CertificateSigningRequest(const DistinguishedName &dn
     if (keypair.getType() == AsymmetricKey::KeyTypes::ECC_ED) {
         digestType = DigestTypes::NONE;
     }
-    _EVP_DigestSignInit(mctx.get(), digestType, const_cast<EVP_PKEY*>(keypair.internal()));
+    _EVP_DigestSignInit(mctx.get(), digestType, const_cast<EVP_PKEY *>(keypair.internal()));
 
     _X509_REQ_sign_ctx(_req.get(), mctx.get());
 }
@@ -73,10 +73,7 @@ void CertificateSigningRequest::verify() const
     }
 }
 
-std::string CertificateSigningRequest::toPem() const
-{
-    return toPEM();
-}
+std::string CertificateSigningRequest::toPem() const { return toPEM(); }
 
 std::string CertificateSigningRequest::toPEM() const
 {
@@ -124,9 +121,6 @@ CertificateSigningRequest CertificateSigningRequest::fromDERFile(const std::stri
     return CertificateSigningRequest{_d2i_X509_REQ_bio(bio.internal())};
 }
 
-CertificateSigningRequest::CertificateSigningRequest(SSL_X509_REQ_Ptr req)
-    : _req{std::move(req)}
-{
-}
+CertificateSigningRequest::CertificateSigningRequest(SSL_X509_REQ_Ptr req) : _req{std::move(req)} {}
 
-}  // ::mococrw
+}  // namespace mococrw

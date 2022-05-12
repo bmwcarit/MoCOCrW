@@ -38,9 +38,11 @@ struct MessageSizeDataSet
                        const AsymmetricPublicKey& pubKey,
                        std::shared_ptr<RSAEncryptionPadding> padding,
                        bool expectThrow)
-        : message(message),
-          encryptionCtx(std::make_shared<RSAEncryptionPublicKeyCtx>(pubKey, padding)),
-          expectThrow(expectThrow) {}
+            : message(message)
+            , encryptionCtx(std::make_shared<RSAEncryptionPublicKeyCtx>(pubKey, padding))
+            , expectThrow(expectThrow)
+    {
+    }
 
     std::string message;
     std::shared_ptr<EncryptionCtx> encryptionCtx;
@@ -48,212 +50,164 @@ struct MessageSizeDataSet
 };
 
 class PaddingModeTest : public ::testing::Test,
-                                     public ::testing::WithParamInterface<MessageSizeDataSet>{
+                        public ::testing::WithParamInterface<MessageSizeDataSet>
+{
 public:
     static const std::vector<MessageSizeDataSet> messageSizeDataSet;
     static const AsymmetricPublicKey rsa1024bit;
     static const AsymmetricPublicKey rsa2048bit;
 };
 
-const AsymmetricPublicKey PaddingModeTest::rsa1024bit = mococrw::AsymmetricKeypair::generate(RSASpec(1024));
-const AsymmetricPublicKey PaddingModeTest::rsa2048bit = mococrw::AsymmetricKeypair::generate(RSASpec(2048));
+const AsymmetricPublicKey PaddingModeTest::rsa1024bit =
+        mococrw::AsymmetricKeypair::generate(RSASpec(1024));
+const AsymmetricPublicKey PaddingModeTest::rsa2048bit =
+        mococrw::AsymmetricKeypair::generate(RSASpec(2048));
 
 /// \brief Data set used to test the message size limits use-cases, encryption functionality
-const std::vector<MessageSizeDataSet>
-PaddingModeTest::messageSizeDataSet
-{
-    // PKCS, 1024-bit key, empty message
-    {
-        "",
-        rsa1024bit,
-        std::make_shared<PKCSPadding>(),
-        false
-    },
-    // PKCS, 1024-bit key, max message size (117)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456",
-        rsa1024bit,
-        std::make_shared<PKCSPadding>(),
-        false
-    },
-    // PKCS, 1024-bit key, max message size + 1 (118)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.1234567",
-        rsa1024bit,
-        std::make_shared<PKCSPadding>(),
-        true
-    },
-    // PKCS, 2048-bit key, empty message
-    {
-        "",
-        rsa2048bit,
-        std::make_shared<PKCSPadding>(),
-        false
-    },
-    // PKCS, 2048-bit key, max message size (245)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.1234",
-        rsa2048bit,
-        std::make_shared<PKCSPadding>(),
-        false
-    },
-    // PKCS, 2048-bit key, max message size + 1 (246)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.12345",
-        rsa2048bit,
-        std::make_shared<PKCSPadding>(),
-        true
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), empty message
-    {
-        "",
-        rsa1024bit,
-        std::make_shared<OAEPPadding>(),
-        false,
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size (62)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.1",
-        rsa1024bit,
-        std::make_shared<OAEPPadding>(),
-        false
-    },
-    // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (63)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.12",
-        rsa1024bit,
-        std::make_shared<OAEPPadding>(),
-        true
-    },
-    // OAEP, 1024-bit key, hashing SHA512, MGF1(SHA256), max message size (-2)
-    {
-        "",
-        rsa1024bit,
-        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
-        true
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), empty message
-    {
-        "",
-        rsa2048bit,
-        std::make_shared<OAEPPadding>(),
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size (190)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789",
-        rsa2048bit,
-        std::make_shared<OAEPPadding>(),
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (191)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.",
-        rsa2048bit,
-        std::make_shared<OAEPPadding>(),
-        true
-    },
-    // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size (126)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.12345",
-        rsa2048bit,
-        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
-        false
-    },
-    // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size + 1 (127)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456",
-        rsa2048bit,
-        std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
-        true
-    },
-    // NO PADDING, 1024-bit key, max message size - 1 (127)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456",
-        rsa1024bit,
-        std::make_shared<NoPadding>(),
-        true
-    },
-    // NO PADDING, 1024-bit key, max message size (128)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.1234567",
-        rsa1024bit,
-        std::make_shared<NoPadding>(),
-        false
-    },
-    // NO PADDING, 1024-bit key, max message size + 1 (129)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.12345679",
-        rsa1024bit,
-        std::make_shared<NoPadding>(),
-        true
-    },
-    // NO PADDING, 2048-bit key, max message size - 1 (255)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".1234",
-        rsa2048bit,
-        std::make_shared<NoPadding>(),
-        true
-    },
-    // NO PADDING, 2048-bit key, max message size (256)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".12345",
-        rsa2048bit,
-        std::make_shared<NoPadding>(),
-        false
-    },
-    // NO PADDING, 2048-bit key, max message size + 1 (257)
-    {
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456789.123456789.123456789.123456789.123456789"
-        ".123456",
-        rsa2048bit,
-        std::make_shared<NoPadding>(),
-        true
-    },
+const std::vector<MessageSizeDataSet> PaddingModeTest::messageSizeDataSet{
+        // PKCS, 1024-bit key, empty message
+        {"", rsa1024bit, std::make_shared<PKCSPadding>(), false},
+        // PKCS, 1024-bit key, max message size (117)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456",
+         rsa1024bit,
+         std::make_shared<PKCSPadding>(),
+         false},
+        // PKCS, 1024-bit key, max message size + 1 (118)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.1234567",
+         rsa1024bit,
+         std::make_shared<PKCSPadding>(),
+         true},
+        // PKCS, 2048-bit key, empty message
+        {"", rsa2048bit, std::make_shared<PKCSPadding>(), false},
+        // PKCS, 2048-bit key, max message size (245)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.1234",
+         rsa2048bit,
+         std::make_shared<PKCSPadding>(),
+         false},
+        // PKCS, 2048-bit key, max message size + 1 (246)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.12345",
+         rsa2048bit,
+         std::make_shared<PKCSPadding>(),
+         true},
+        // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), empty message
+        {
+                "",
+                rsa1024bit,
+                std::make_shared<OAEPPadding>(),
+                false,
+        },
+        // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size (62)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.1",
+         rsa1024bit,
+         std::make_shared<OAEPPadding>(),
+         false},
+        // OAEP, 1024-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (63)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.12",
+         rsa1024bit,
+         std::make_shared<OAEPPadding>(),
+         true},
+        // OAEP, 1024-bit key, hashing SHA512, MGF1(SHA256), max message size (-2)
+        {"",
+         rsa1024bit,
+         std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
+         true},
+        // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), empty message
+        {"", rsa2048bit, std::make_shared<OAEPPadding>(), false},
+        // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size (190)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789",
+         rsa2048bit,
+         std::make_shared<OAEPPadding>(),
+         false},
+        // OAEP, 2048-bit key, hashing SHA256, MGF1(SHA256), max message size + 1 (191)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.",
+         rsa2048bit,
+         std::make_shared<OAEPPadding>(),
+         true},
+        // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size (126)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.12345",
+         rsa2048bit,
+         std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
+         false},
+        // OAEP, 2048-bit key, hashing SHA512, MGF1(SHA256), max message size + 1 (127)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456",
+         rsa2048bit,
+         std::make_shared<OAEPPadding>(openssl::DigestTypes::SHA512, std::make_shared<MGF1>()),
+         true},
+        // NO PADDING, 1024-bit key, max message size - 1 (127)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456",
+         rsa1024bit,
+         std::make_shared<NoPadding>(),
+         true},
+        // NO PADDING, 1024-bit key, max message size (128)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.1234567",
+         rsa1024bit,
+         std::make_shared<NoPadding>(),
+         false},
+        // NO PADDING, 1024-bit key, max message size + 1 (129)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.12345679",
+         rsa1024bit,
+         std::make_shared<NoPadding>(),
+         true},
+        // NO PADDING, 2048-bit key, max message size - 1 (255)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".1234",
+         rsa2048bit,
+         std::make_shared<NoPadding>(),
+         true},
+        // NO PADDING, 2048-bit key, max message size (256)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".12345",
+         rsa2048bit,
+         std::make_shared<NoPadding>(),
+         false},
+        // NO PADDING, 2048-bit key, max message size + 1 (257)
+        {".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456789.123456789.123456789.123456789.123456789"
+         ".123456",
+         rsa2048bit,
+         std::make_shared<NoPadding>(),
+         true},
 };
 
 /**
@@ -294,6 +248,6 @@ TEST_P(PaddingModeTest, testMessageSize)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(testMessageSize, PaddingModeTest,
+INSTANTIATE_TEST_CASE_P(testMessageSize,
+                        PaddingModeTest,
                         testing::ValuesIn(PaddingModeTest::messageSizeDataSet));
-

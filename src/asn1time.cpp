@@ -27,15 +27,9 @@ namespace mococrw
 {
 using namespace openssl;
 
-Asn1Time::Asn1Time(openssl::SSL_ASN1_TIME_Ptr &&ptr)
-    : _asn1Time{std::move(ptr)}
-{
-}
+Asn1Time::Asn1Time(openssl::SSL_ASN1_TIME_Ptr &&ptr) : _asn1Time{std::move(ptr)} {}
 
-Asn1Time::Asn1Time(const ASN1_TIME *t)
-    : _asn1Time{_ASN1_TIME_copy(t)}
-{
-}
+Asn1Time::Asn1Time(const ASN1_TIME *t) : _asn1Time{_ASN1_TIME_copy(t)} {}
 
 Asn1Time Asn1Time::fromString(const std::string &asn1TimeStr)
 {
@@ -49,35 +43,20 @@ Asn1Time Asn1Time::fromTimePoint(std::chrono::system_clock::time_point tp)
     return Asn1Time{_ASN1_TIME_from_time_t(std::chrono::system_clock::to_time_t(tp))};
 }
 
-Asn1Time Asn1Time::fromTimeT(std::time_t tt)
-{
-    return Asn1Time{_ASN1_TIME_from_time_t(tt)};
-}
+Asn1Time Asn1Time::fromTimeT(std::time_t tt) { return Asn1Time{_ASN1_TIME_from_time_t(tt)}; }
 
-Asn1Time Asn1Time::now()
-{
-    return Asn1Time::fromTimePoint(std::chrono::system_clock::now());
-}
+Asn1Time Asn1Time::now() { return Asn1Time::fromTimePoint(std::chrono::system_clock::now()); }
 
-Asn1Time Asn1Time::min()
-{
-    return Asn1Time::fromString("00000101000000Z");
-}
+Asn1Time Asn1Time::min() { return Asn1Time::fromString("00000101000000Z"); }
 
-Asn1Time Asn1Time::max()
-{
-    return Asn1Time::fromString("99991231235959Z");
-}
+Asn1Time Asn1Time::max() { return Asn1Time::fromString("99991231235959Z"); }
 
 std::chrono::system_clock::time_point Asn1Time::toTimePoint() const
 {
     return _asn1TimeToTimePoint(internal());
 }
 
-std::time_t Asn1Time::toTimeT() const
-{
-    return _asn1TimeToTimeT(internal());
-}
+std::time_t Asn1Time::toTimeT() const { return _asn1TimeToTimeT(internal()); }
 
 std::string Asn1Time::toString() const
 {
@@ -86,7 +65,7 @@ std::string Asn1Time::toString() const
     return bio.flushToString();
 }
 
-Asn1Time Asn1Time::operator+(const Asn1Time::Seconds& d) const
+Asn1Time Asn1Time::operator+(const Asn1Time::Seconds &d) const
 {
     /*
      * The fun tale of OpenSSL time continues:
@@ -104,15 +83,15 @@ Asn1Time Asn1Time::operator+(const Asn1Time::Seconds& d) const
 
     auto asn1Epoch = Asn1Time::fromTimeT(epoch);
 
-    //compute the offset between "time" and "asn1Epoch" in days and seconds.
+    // compute the offset between "time" and "asn1Epoch" in days and seconds.
     int days, seconds;
     _ASN1_TIME_diff(&days, &seconds, asn1Epoch.internal(), internal());
 
     using Chronodays = std::chrono::duration<int, std::ratio<24 * 60 * 60, 1>>;
 
     // Check if we exceed the maximum number of days we can store
-    if (Chronodays(std::numeric_limits<int>::max()) < d
-            || Chronodays(std::numeric_limits<int>::min()) > d) {
+    if (Chronodays(std::numeric_limits<int>::max()) < d ||
+        Chronodays(std::numeric_limits<int>::min()) > d) {
         throw MoCOCrWException("Duration is too large for Asn1Time differences");
     }
 
@@ -126,8 +105,8 @@ Asn1Time Asn1Time::operator+(const Asn1Time::Seconds& d) const
     seconds += static_cast<int>(durationSeconds.count());
 
     // Check if an overflow would occur on day addition
-    if ((days > 0 && durationDays.count() > std::numeric_limits<int>::max() - days)
-            || (days < 0 && durationDays.count() < std::numeric_limits<int>::min() - days)) {
+    if ((days > 0 && durationDays.count() > std::numeric_limits<int>::max() - days) ||
+        (days < 0 && durationDays.count() < std::numeric_limits<int>::min() - days)) {
         throw MoCOCrWException("Duration would overflow Asn1Time");
     }
     // Add the duration days to the delta days
@@ -136,17 +115,14 @@ Asn1Time Asn1Time::operator+(const Asn1Time::Seconds& d) const
     try {
         // And finally convert (epoch + delta) to an ASN1_TIME again
         return Asn1Time{_ASN1_TIME_adj(epoch, days, seconds)};
-    } catch (const openssl::OpenSSLException& e) {
+    } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException("Addition leaves Asn1Time range: "s + e.what());
     }
 }
 
-Asn1Time Asn1Time::operator-(const Asn1Time::Seconds& d) const
-{
-    return operator+(-1 * d);
-}
+Asn1Time Asn1Time::operator-(const Asn1Time::Seconds &d) const { return operator+(-1 * d); }
 
-Asn1Time::Seconds Asn1Time::operator-(const Asn1Time& other) const
+Asn1Time::Seconds Asn1Time::operator-(const Asn1Time &other) const
 {
     int days;
     int seconds;
@@ -157,34 +133,16 @@ Asn1Time::Seconds Asn1Time::operator-(const Asn1Time& other) const
     return std::chrono::hours(24 * days) + Seconds(seconds);
 }
 
-bool Asn1Time::operator==(const Asn1Time &rhs) const
-{
-    return *this - rhs == Seconds(0);
-}
+bool Asn1Time::operator==(const Asn1Time &rhs) const { return *this - rhs == Seconds(0); }
 
-bool Asn1Time::operator!=(const Asn1Time &rhs) const
-{
-    return !(*this == rhs);
-}
+bool Asn1Time::operator!=(const Asn1Time &rhs) const { return !(*this == rhs); }
 
-bool Asn1Time::operator<(const Asn1Time &rhs) const
-{
-    return *this - rhs < Seconds(0);
-}
+bool Asn1Time::operator<(const Asn1Time &rhs) const { return *this - rhs < Seconds(0); }
 
-bool Asn1Time::operator>(const Asn1Time &rhs) const
-{
-    return !(*this <= rhs);
-}
+bool Asn1Time::operator>(const Asn1Time &rhs) const { return !(*this <= rhs); }
 
-bool Asn1Time::operator<=(const Asn1Time &rhs) const
-{
-    return *this - rhs <= Seconds(0);
-}
+bool Asn1Time::operator<=(const Asn1Time &rhs) const { return *this - rhs <= Seconds(0); }
 
-bool Asn1Time::operator>=(const Asn1Time &rhs) const
-{
-    return !(*this < rhs);
-}
+bool Asn1Time::operator>=(const Asn1Time &rhs) const { return !(*this < rhs); }
 
-}
+}  // namespace mococrw

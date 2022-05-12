@@ -6,7 +6,28 @@ on:
       - openssl1.1
   pull_request:
 
+env:
+  DOCKER_TAG: buildenv
+  DOCKER_FILE_PATH: ./docker-build-env/Dockerfile
+
 jobs:
+  check-format:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@v2
+
+      - name: "Build Docker Image"
+        uses: ./.github/actions/build-docker
+        with:
+          docker_tag: ${{ env.DOCKER_TAG }}
+          docker_file_path: ${{ env.DOCKER_FILE_PATH }}
+
+      - name: "Check code format"
+        run: |
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src ${{ env.DOCKER_TAG }} bash -c \
+            './scripts/check_format.sh'
+
   build-and-test:
     runs-on: ubuntu-latest
     strategy:
@@ -18,17 +39,16 @@ jobs:
       - name: "Checkout"
         uses: actions/checkout@v2
 
-      - name: "Load Docker cache"
-        uses: satackey/action-docker-layer-caching@v0.0.11
-
-      - name: "Build Docker image"
-        run: |
-          docker build -t buildenv - < docker-build-env/Dockerfile
+      - name: "Build Docker Image"
+        uses: ./.github/actions/build-docker
+        with:
+          docker_tag: ${{ env.DOCKER_TAG }}
+          docker_file_path: ${{ env.DOCKER_FILE_PATH }}
 
       - name: "Build MoCOCrW"
         run: |
           mkdir build
-          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build buildenv bash -c \
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c \
             'cmake \
               -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -39,4 +59,4 @@ jobs:
 
       - name: "Run tests"
         run: |
-          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build buildenv bash -c 'ctest -j $(nproc)'
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c 'ctest -j $(nproc)'

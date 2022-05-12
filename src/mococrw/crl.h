@@ -80,7 +80,7 @@ public:
      * Creates a CertificateRevocationList from a DER representation.
      * @throw openssl::OpenSSLException if the DER was invalid.
      */
-    static CertificateRevocationList fromDER(const std::vector<uint8_t> &derData);
+    static CertificateRevocationList fromDER(const std::vector<uint8_t>& derData);
 
     /**
      * Creates a CertificateRevocationList from a DER representation in a file.
@@ -102,12 +102,10 @@ private:
     CertificateRevocationList(openssl::SSL_X509_CRL_Ptr crl) : _crl{std::move(crl)} {}
 
     openssl::SSL_X509_CRL_SharedPtr _crl;
-
 };
 
 namespace util
 {
-
 /**
  * Read a chain of multiple concatenated CRLs in PEM format.
  *
@@ -117,8 +115,8 @@ namespace util
  *         PEM string
  * @throw MoCOCrWException if the input or one of the included CRLs is invalid
  */
-std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string &pemChain);
+std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string& pemChain);
 
-}
+}  // namespace util
 
-}
+}  // namespace mococrw

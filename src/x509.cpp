@@ -17,20 +17,21 @@
  * #L%
  */
 
-#include <fstream>
-#include <boost/range/algorithm_ext/erase.hpp>
 #include <boost/format.hpp>
+#include <boost/range/algorithm_ext/erase.hpp>
+#include <fstream>
 
-#include "mococrw/x509.h"
 #include "mococrw/bio.h"
 #include "mococrw/error.h"
 #include "mococrw/stack_utils.h"
+#include "mococrw/x509.h"
 
 #include "format_utils.h"
 
 using namespace std::string_literals;
 
-namespace {
+namespace
+{
 /**
  * Helper function for reformatPEMCertificate:
  * Searches for the next occurence of the given marker in pem starting at start
@@ -40,7 +41,9 @@ namespace {
  * @param start Position to start searching at
  * @return Start of next occurence of marker
  */
-inline size_t findStartOfNextMarker(const std::string& pem, const std::string& marker, size_t start = 0)
+inline size_t findStartOfNextMarker(const std::string &pem,
+                                    const std::string &marker,
+                                    size_t start = 0)
 {
     return pem.find(marker, start);
 }
@@ -54,7 +57,9 @@ inline size_t findStartOfNextMarker(const std::string& pem, const std::string& m
  * @param start Position to start searching at
  * @return End of next occurence of marker
  */
-inline size_t findEndOfNextMarker(const std::string& pem, const std::string& marker, size_t start = 0)
+inline size_t findEndOfNextMarker(const std::string &pem,
+                                  const std::string &marker,
+                                  size_t start = 0)
 {
     return findStartOfNextMarker(pem, marker, start) + marker.size();
 }
@@ -74,7 +79,8 @@ inline size_t findEndOfNextMarker(const std::string& pem, const std::string& mar
  * @param pem String containing the certificate to be reformatted
  * @returns Certificate with reformatted base64
  */
-inline std::string reformatPEMCertificate(const std::string& pem) {
+inline std::string reformatPEMCertificate(const std::string &pem)
+{
     // search for begin-marker
     std::string prevBase64;
     size_t endBeginMarker = findEndOfNextMarker(pem, "-----BEGIN CERTIFICATE-----");
@@ -117,7 +123,7 @@ inline std::string reformatPEMCertificate(const std::string& pem) {
     return boost::str(boost::format("%1%\n%2%\n%3%") % prevBase64 % splittedBase64 % postBase64);
 }
 
-}
+}  // namespace
 
 namespace mococrw
 {
@@ -172,22 +178,23 @@ X509Certificate X509Certificate::fromDERFile(const std::string &filename)
 std::string X509Certificate::toPEM() const
 {
     BioObject bio{BioObject::Types::MEM};
-    _PEM_write_bio_X509(bio.internal(), const_cast<X509*>(internal()));
+    _PEM_write_bio_X509(bio.internal(), const_cast<X509 *>(internal()));
     return bio.flushToString();
 }
 
 std::vector<uint8_t> X509Certificate::toDER() const
 {
     BioObject bio{BioObject::Types::MEM};
-    _i2d_X509_bio(bio.internal(), const_cast<X509*>(internal()));
+    _i2d_X509_bio(bio.internal(), const_cast<X509 *>(internal()));
     return bio.flushToVector();
 }
 
 void X509Certificate::VerificationContext::validityCheck() const
 {
     if (_enforceCrlForWholeChain && !_enforceSelfSignedRootCertificate) {
-        throw MoCOCrWException("OpenSSL doesn't support CRL check for all CAs when the trusted"
-                               "certificate isn't self signed");
+        throw MoCOCrWException(
+                "OpenSSL doesn't support CRL check for all CAs when the trusted"
+                "certificate isn't self signed");
     }
 
     if (_enforceCrlForWholeChain && _crls.empty()) {
@@ -195,23 +202,22 @@ void X509Certificate::VerificationContext::validityCheck() const
     }
 }
 
-X509Certificate::VerificationContext&
+X509Certificate::VerificationContext &
 X509Certificate::VerificationContext::setVerificationCheckTime(Asn1Time checkTime)
 {
     try {
         _verificationCheckTime = checkTime.toTimeT();
-    } catch (const OpenSSLException& e) {
+    } catch (const OpenSSLException &e) {
         throw MoCOCrWException(e.what());
     }
     return *this;
 }
 
 void X509Certificate::verify(const std::vector<X509Certificate> &trustStore,
-                const std::vector<X509Certificate> &intermediateCAs) const
+                             const std::vector<X509Certificate> &intermediateCAs) const
 {
     VerificationContext ctx;
-    ctx.addTrustedCertificates(trustStore)
-       .addIntermediateCertificates(intermediateCAs);
+    ctx.addTrustedCertificates(trustStore).addIntermediateCertificates(intermediateCAs);
     verify(ctx);
 }
 
@@ -221,17 +227,17 @@ void X509Certificate::verify(const X509Certificate::VerificationContext &ctx) co
 
     auto caStore = createManagedOpenSSLObject<SSL_X509_STORE_Ptr>();
     for (auto &cert : ctx._trustedCerts) {
-        _X509_STORE_add_cert(caStore.get(), const_cast<X509*>(cert.internal()));
+        _X509_STORE_add_cert(caStore.get(), const_cast<X509 *>(cert.internal()));
     }
-    auto intermediateStack = utility::buildStackFromContainer<SSL_STACK_X509_Ptr>(
-                ctx._intermediateCerts);
+    auto intermediateStack =
+            utility::buildStackFromContainer<SSL_STACK_X509_Ptr>(ctx._intermediateCerts);
 
     auto verifyCtx = createManagedOpenSSLObject<SSL_X509_STORE_CTX_Ptr>();
     // we need to cast the internal ptr to non-const because openssl const correctness is
     // just broken
     _X509_STORE_CTX_init(verifyCtx.get(),
                          caStore.get(),
-                         const_cast<X509*>(internal()),
+                         const_cast<X509 *>(internal()),
                          intermediateStack.get());
 
     auto param = _X509_STORE_CTX_get0_param(verifyCtx.get());
@@ -263,11 +269,9 @@ void X509Certificate::verify(const X509Certificate::VerificationContext &ctx) co
     SSL_STACK_X509_CRL_Ptr crlStack;
 
     if (!ctx._crls.empty()) {
-
         crlStack = utility::buildStackFromContainer<SSL_STACK_X509_CRL_Ptr>(ctx._crls);
 
-        _X509_STORE_CTX_set0_crls(verifyCtx.get(),
-                                  crlStack.get());
+        _X509_STORE_CTX_set0_crls(verifyCtx.get(), crlStack.get());
     }
 
     try {
@@ -280,73 +284,73 @@ void X509Certificate::verify(const X509Certificate::VerificationContext &ctx) co
 DistinguishedName X509Certificate::getSubjectDistinguishedName() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    auto x509NamePtr = _X509_get_subject_name(const_cast<X509*>(internal()));
+    auto x509NamePtr = _X509_get_subject_name(const_cast<X509 *>(internal()));
     return DistinguishedName::fromX509Name(x509NamePtr);
 }
 
 DistinguishedName X509Certificate::getIssuerDistinguishedName() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    auto x509NamePtr = _X509_get_issuer_name(const_cast<X509*>(internal()));
+    auto x509NamePtr = _X509_get_issuer_name(const_cast<X509 *>(internal()));
     return DistinguishedName::fromX509Name(x509NamePtr);
 }
 
 AsymmetricPublicKey X509Certificate::getPublicKey() const
 {
     /* const correctness still broken in openssl */
-    auto pubkey = _X509_get_pubkey(const_cast<X509*>(internal()));
+    auto pubkey = _X509_get_pubkey(const_cast<X509 *>(internal()));
     return AsymmetricPublicKey(std::move(pubkey));
 }
 
 bool X509Certificate::isCA() const
 {
-    return  _X509_check_ca(_x509.get());;
+    return _X509_check_ca(_x509.get());
+    ;
 }
 
 std::chrono::system_clock::time_point X509Certificate::getNotBefore() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_notBefore(const_cast<X509*>(internal()));
+    return _X509_get_notBefore(const_cast<X509 *>(internal()));
 }
 
 std::chrono::system_clock::time_point X509Certificate::getNotAfter() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_notAfter(const_cast<X509*>(internal()));
+    return _X509_get_notAfter(const_cast<X509 *>(internal()));
 }
 
 Asn1Time X509Certificate::getNotBeforeAsn1() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return Asn1Time{_X509_get_notBefore_ASN1(const_cast<X509*>(internal()))};
+    return Asn1Time{_X509_get_notBefore_ASN1(const_cast<X509 *>(internal()))};
 }
 
 Asn1Time X509Certificate::getNotAfterAsn1() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return Asn1Time{_X509_get_notAfter_ASN1(const_cast<X509*>(internal()))};
+    return Asn1Time{_X509_get_notAfter_ASN1(const_cast<X509 *>(internal()))};
 }
 
 uint64_t X509Certificate::getSerialNumber() const
 {
-    return _X509_get_serialNumber(const_cast<X509*>(internal()));
+    return _X509_get_serialNumber(const_cast<X509 *>(internal()));
 }
 
 std::string X509Certificate::getSerialNumberDecimal() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_serialNumber_dec(const_cast<X509*>(internal()));
+    return _X509_get_serialNumber_dec(const_cast<X509 *>(internal()));
 }
 
 std::vector<uint8_t> X509Certificate::getSerialNumberBinary() const
 {
     /* OpenSSL's const-correctness is totally broken. */
-    return _X509_get_serialNumber_bin(const_cast<X509*>(internal()));
+    return _X509_get_serialNumber_bin(const_cast<X509 *>(internal()));
 }
 
-
-namespace util {
-
+namespace util
+{
 std::vector<X509Certificate> loadPEMChain(const std::string &pemChain)
 {
     const auto beginMarker = "-----BEGIN CERTIFICATE-----"s;
@@ -355,12 +359,14 @@ std::vector<X509Certificate> loadPEMChain(const std::string &pemChain)
     auto pemList = splitPEMChain(pemChain, beginMarker, endMarker);
 
     std::vector<X509Certificate> certChain;
-    std::transform(pemList.begin(), pemList.end(), std::back_inserter(certChain),
+    std::transform(pemList.begin(),
+                   pemList.end(),
+                   std::back_inserter(certChain),
                    X509Certificate::fromPEM);
 
     return certChain;
 }
 
-}
+}  // namespace util
 
-}  // ::mococrw
+}  // namespace mococrw

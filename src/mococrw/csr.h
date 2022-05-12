@@ -20,16 +20,14 @@
 
 #include "openssl_wrap.h"
 
-#include "key.h"
 #include "distinguished_name.h"
+#include "key.h"
 
 namespace mococrw
 {
-
 class CertificateSigningRequest
 {
 public:
-
     /**
      * Construct a new CertificateSigningRequest for the given distinguished name.
      * The given public key is integrated in the CSR whereas the given private key
@@ -58,13 +56,11 @@ public:
      */
     std::vector<uint8_t> toDER() const;
 
-
     /**
      * Return the PEM for this CSR as a string.
      * @deprecated - inconsistent capitalization with rest of lib
      */
-    [[deprecated]]
-    std::string toPem() const;
+    [[deprecated]] std::string toPem() const;
 
     /**
      * Convert a CSR in PEM format to a CertificateSigningRequest.
@@ -102,7 +98,7 @@ public:
      * @throw MoCOCrWException if the verification fails.
      */
     void verify() const;
-    
+
     /**
      * Get the internal openssl x509_req instance.
      *
@@ -119,4 +115,4 @@ private:
     openssl::SSL_X509_REQ_Ptr _req;
 };
 
-}
+}  // namespace mococrw

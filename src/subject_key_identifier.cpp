@@ -18,7 +18,7 @@
  */
 #include "mococrw/subject_key_identifier.h"
 
-namespace mococrw {
-
-    constexpr openssl::X509Extension_NID SubjectKeyIdentifierExtension::NID;
-} //::mococrw
+namespace mococrw
+{
+constexpr openssl::X509Extension_NID SubjectKeyIdentifierExtension::NID;
+}  // namespace mococrw

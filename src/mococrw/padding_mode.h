@@ -18,16 +18,17 @@
  */
 #pragma once
 
+#include "error.h"
 #include "key.h"
 #include "openssl_wrap.h"
-#include "error.h"
 
-namespace mococrw {
-
+namespace mococrw
+{
 /**
  * @brief Interface for paddings for RSA encryptions
  */
-class RSAEncryptionPadding {
+class RSAEncryptionPadding
+{
 public:
     /**
      * @brief Destructor
@@ -40,7 +41,7 @@ public:
      * @param messageSize The size of the message that will be encrypted
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    virtual bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const = 0;
+    virtual bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const = 0;
 
     /**
      * @brief Prepares the given openssl context with the padding specific parameters.
@@ -54,7 +55,8 @@ public:
  *
  *  Base Class for RSA Signature Paddings (because they all share the hash function attribute)
  */
-class RSASignaturePadding {
+class RSASignaturePadding
+{
 public:
     /**
      * @brief Destructor
@@ -70,15 +72,15 @@ public:
                                        openssl::DigestTypes hashFunction) const = 0;
 };
 
-
 /**
  * @brief NoPadding
  *
  * This class defines the parameters specific to the RSA no padding mode.
  */
-class NoPadding : public RSAEncryptionPadding {
+class NoPadding : public RSAEncryptionPadding
+{
 public:
-    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
 
     void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
 };
@@ -89,9 +91,10 @@ public:
  * This class defines the parameters specific to the PKCS#1 v1.5 padding mode.
  *
  */
-class PKCSPadding : public RSAEncryptionPadding, public RSASignaturePadding {
+class PKCSPadding : public RSAEncryptionPadding, public RSASignaturePadding
+{
 public:
-    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
 
     void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
 
@@ -108,10 +111,12 @@ private:
 /**
  * @brief Interface for mask generation functions
  */
-class MaskGenerationFunction {
+class MaskGenerationFunction
+{
 public:
     /**
-     * @brief Prepares the given openssl context with the mask generation function specific parameters.
+     * @brief Prepares the given openssl context with the mask generation function specific
+     * parameters.
      * @param ctx OpenSSL context
      */
     virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const = 0;
@@ -126,7 +131,8 @@ public:
  * Defaults:
  *  - Hash Function: SHA256
  */
-class MGF1 : public MaskGenerationFunction {
+class MGF1 : public MaskGenerationFunction
+{
 public:
     /**
      * @brief Construtor
@@ -159,7 +165,8 @@ private:
  *  - Mask Generation Function: MGF1(<Hash Function>)
  *  - Label: Empty String
  */
-class OAEPPadding : public RSAEncryptionPadding {
+class OAEPPadding : public RSAEncryptionPadding
+{
 public:
     /**
      * @brief Constructor
@@ -170,7 +177,7 @@ public:
      */
     OAEPPadding(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256,
                 std::shared_ptr<MaskGenerationFunction> maskGenerationFunction = nullptr,
-                const std::string& label="");
+                const std::string& label = "");
 
     /**
      * @brief Copy Constrcutor
@@ -187,7 +194,7 @@ public:
      */
     ~OAEPPadding();
 
-    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
 
     void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
 
@@ -214,7 +221,8 @@ private:
  *   By default, the hash function used for the signature is also used for mask generation
  * - Salt length: Length of Hash Digest
  */
-class PSSPadding: public RSASignaturePadding {
+class PSSPadding : public RSASignaturePadding
+{
 public:
     /**
      * @brief Constructor
@@ -256,4 +264,4 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
-}
+}  // namespace mococrw

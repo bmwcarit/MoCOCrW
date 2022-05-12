@@ -19,27 +19,27 @@
 
 #include "mococrw/util.h"
 
-#include <sstream>
 #include <iomanip>
+#include <sstream>
 
 #include "mococrw/openssl_wrap.h"
-
 
 namespace mococrw
 {
 namespace utility
 {
-
-std::string toHex(const std::vector<uint8_t> &data) {
+std::string toHex(const std::vector<uint8_t> &data)
+{
     std::stringstream result;
-    for(size_t i = 0; i < data.size(); i++) {
+    for (size_t i = 0; i < data.size(); i++) {
         result << std::hex << std::setfill('0') << std::setw(2) << (int)data[i];
     }
     return result.str();
 }
 
-std::vector<uint8_t> fromHex(const std::string &hexData) {
-    std::vector <uint8_t> binary;
+std::vector<uint8_t> fromHex(const std::string &hexData)
+{
+    std::vector<uint8_t> binary;
     binary.reserve(hexData.size() / 2);
     size_t startPos = 0;
     if (hexData.rfind("0x") == 0) {
@@ -49,7 +49,7 @@ std::vector<uint8_t> fromHex(const std::string &hexData) {
         auto encodedByte = hexData.substr(i, 2);
         char *endptr;
         errno = 0;
-        uint8_t b = (uint8_t) strtoul(encodedByte.c_str(), &endptr, 16);
+        uint8_t b = (uint8_t)strtoul(encodedByte.c_str(), &endptr, 16);
 
         if (errno != 0 && b == 0) {
             std::string error_string = "Invalid hex string: ";
@@ -57,7 +57,8 @@ std::vector<uint8_t> fromHex(const std::string &hexData) {
             throw MoCOCrWException(error_string);
         }
         /* From strtoul documentation:
-         * "In particular, if *nptr is not '\0' but **endptr is '\0' on return, the entire string is valid." */
+         * "In particular, if *nptr is not '\0' but **endptr is '\0' on return, the entire string is
+         * valid." */
         if (!(*encodedByte.c_str() != '\0' && *endptr == '\0')) {
             std::string error_string = "Invalid hex string: ";
             error_string += hexData;
@@ -69,11 +70,12 @@ std::vector<uint8_t> fromHex(const std::string &hexData) {
     return binary;
 }
 
-std::vector<uint8_t> cryptoRandomBytes(size_t length) {
+std::vector<uint8_t> cryptoRandomBytes(size_t length)
+{
     std::vector<uint8_t> buffer(length);
     openssl::_RAND_bytes(buffer.data(), buffer.size());
     return buffer;
 }
 
-}
-}
+}  // namespace utility
+}  // namespace mococrw

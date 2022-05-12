@@ -90,17 +90,23 @@ TEST(BioTest, testOpenFileBioForWriting)
 
 TEST(BioTest, testOpenNonexistingFileForReading)
 {
-    ASSERT_THROW({
-        FileBio testFileBio("iDoNotExist.file", FileBio::FileMode::READ, FileBio::FileType::TEXT);
-    }, OpenSSLException);
+    ASSERT_THROW(
+            {
+                FileBio testFileBio(
+                        "iDoNotExist.file", FileBio::FileMode::READ, FileBio::FileType::TEXT);
+            },
+            OpenSSLException);
 }
 
 TEST(BioTest, testOpenAccessDeniedWriting)
 {
-    ASSERT_THROW({
-        FileBio testFileBio("/root/iAmNotAllowedHere.file", FileBio::FileMode::WRITE,
-                            FileBio::FileType::TEXT);
-    }, OpenSSLException);
+    ASSERT_THROW(
+            {
+                FileBio testFileBio("/root/iAmNotAllowedHere.file",
+                                    FileBio::FileMode::WRITE,
+                                    FileBio::FileType::TEXT);
+            },
+            OpenSSLException);
 }
 
 TEST(BioTest, testFileBioReadingWorks)

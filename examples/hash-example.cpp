@@ -41,7 +41,8 @@ void oneShotSha512(const std::vector<uint8_t> &message)
     std::cout << utility::toHex(sha512(message)) << std::endl << std ::endl;
 
     /* The interface for char arrays (OpenSSLException is thrown if an error in OpenSSL happens) */
-    std::cout << utility::toHex(sha512(message.data(), message.size())) << std::endl << std::endl;;
+    std::cout << utility::toHex(sha512(message.data(), message.size())) << std::endl << std::endl;
+    ;
 
     /* The interface for strings (OpenSSLException is thrown if an error in OpenSSL happens) */
     std::cout << utility::toHex(sha512("hello world")) << std::endl;

@@ -18,17 +18,17 @@
  */
 #pragma once
 
-#include <vector>
 #include <string>
+#include <vector>
 
 #include <boost/format.hpp>
 
 #include "mococrw/error.h"
 
-namespace mococrw {
-
-namespace util {
-
+namespace mococrw
+{
+namespace util
+{
 /**
  * Splits a string of concatenated PEM elements into a list of PEMs.
  * If not existing, this also adds a line break after the start element and before the end element
@@ -48,7 +48,6 @@ inline std::vector<std::string> splitPEMChain(const std::string& pemChain,
     std::vector<std::string> pemList;
 
     while (pos < pemChain.size()) {
-
         auto nextBeginPos = pemChain.find(beginMarker, pos);
         if (nextBeginPos == std::string::npos) {
             // This is an error case if anything else than whitespace is in the rest of the string
@@ -64,13 +63,13 @@ inline std::vector<std::string> splitPEMChain(const std::string& pemChain,
             if (pemChain.substr(pos, nextBeginPos - pos).find_first_not_of(" \r\n\t") !=
                 std::string::npos) {
                 auto formatter =
-                     boost::format("PEM Chain invalid. Invalid characters before element %d");
+                        boost::format("PEM Chain invalid. Invalid characters before element %d");
                 formatter % index;
                 throw MoCOCrWException(formatter.str());
             }
         }
-        auto encodedPemBeginPos = pemChain.find_first_not_of(" \r\n\t",
-                                                             nextBeginPos + beginMarker.size());
+        auto encodedPemBeginPos =
+                pemChain.find_first_not_of(" \r\n\t", nextBeginPos + beginMarker.size());
 
         auto nextEndPos = pemChain.find(endMarker, encodedPemBeginPos);
         if (nextEndPos == std::string::npos) {
@@ -86,13 +85,11 @@ inline std::vector<std::string> splitPEMChain(const std::string& pemChain,
             throw MoCOCrWException(formatter.str());
         }
         // remove trailing whitespaces from PEM content
-        encodedPem.erase(lastNonWhitespace+1);
+        encodedPem.erase(lastNonWhitespace + 1);
         // OpenSSL expects a newline after the begin marker and before the end marker
         // so we make sure that there is one...
-        auto certificatePem = boost::str(boost::format("%1%\n%2%\n%3%")
-                                         % beginMarker
-                                         % encodedPem
-                                         % endMarker);
+        auto certificatePem =
+                boost::str(boost::format("%1%\n%2%\n%3%") % beginMarker % encodedPem % endMarker);
 
         pemList.emplace_back(std::move(certificatePem));
         pos = nextEndPos + endMarker.size();
@@ -102,6 +99,6 @@ inline std::vector<std::string> splitPEMChain(const std::string& pemChain,
     return pemList;
 }
 
-}
+}  // namespace util
 
-}
+}  // namespace mococrw

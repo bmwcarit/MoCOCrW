@@ -22,7 +22,6 @@
 
 namespace mococrw
 {
-
 /**
  * @brief The ExtensionBase class is an abstract class
  * which needs to be implemented by all Extensions in this file
@@ -48,10 +47,9 @@ public:
      */
     openssl::SSL_X509_EXTENSION_Ptr buildExtension(X509V3_CTX *context) const
     {
-        return openssl::_X509V3_EXT_conf_nid(static_cast<int>(getNid()),
-                                             context,
-                                             getConfigurationString());
+        return openssl::_X509V3_EXT_conf_nid(
+                static_cast<int>(getNid()), context, getConfigurationString());
     }
 };
 
-} //::mococrw
+}  // namespace mococrw

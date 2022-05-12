@@ -23,21 +23,20 @@
 #include <vector>
 
 #include "asn1time.h"
+#include "crl.h"
 #include "distinguished_name.h"
 #include "key.h"
 #include "openssl_wrap.h"
-#include "crl.h"
 
 namespace mococrw
 {
-
 class X509Certificate
 {
 public:
-    static X509Certificate fromPEM(const std::string &pem);
-    static X509Certificate fromPEMFile(const std::string &filename);
-    static X509Certificate fromDER(const std::vector<uint8_t> &derData);
-    static X509Certificate fromDERFile(const std::string &filename);
+    static X509Certificate fromPEM(const std::string& pem);
+    static X509Certificate fromPEMFile(const std::string& filename);
+    static X509Certificate fromDER(const std::vector<uint8_t>& derData);
+    static X509Certificate fromDERFile(const std::string& filename);
 
     /**
      * Return a PEM representation of this certificate.
@@ -133,8 +132,8 @@ public:
      * OpenSSL's native methods is necessary for some
      * reason.
      */
-    const X509 *internal() const { return _x509.get(); }
-    X509 *internal() { return _x509.get(); }
+    const X509* internal() const { return _x509.get(); }
+    X509* internal() { return _x509.get(); }
 
     /**
      * This helper class represents a context of an X509 certificate in which it might be valid
@@ -148,18 +147,19 @@ public:
     {
     public:
         VerificationContext()
-            : _trustedCerts{}
-            , _intermediateCerts{}
-            , _crls{}
-            , _enforceSelfSignedRootCertificate{false}
-            , _enforceCrlForWholeChain{false}
-            , _verificationCheckTime{}
-        {}
+                : _trustedCerts{}
+                , _intermediateCerts{}
+                , _crls{}
+                , _enforceSelfSignedRootCertificate{false}
+                , _enforceCrlForWholeChain{false}
+                , _verificationCheckTime{}
+        {
+        }
 
         /**
          * Adds a number of trusted certificates to this VerificationContext.
          */
-        template<typename Container = std::initializer_list<X509Certificate>>
+        template <typename Container = std::initializer_list<X509Certificate>>
         VerificationContext& addTrustedCertificates(Container&& trustedCerts)
         {
             _addAll(_trustedCerts, std::forward<Container>(trustedCerts));
@@ -178,7 +178,7 @@ public:
         /**
          * Adds a number of intermediate certificates to this VerificationContext.
          */
-        template<typename Container = std::initializer_list<X509Certificate>>
+        template <typename Container = std::initializer_list<X509Certificate>>
         VerificationContext& addIntermediateCertificates(Container&& intermediateCerts)
         {
             _addAll(_intermediateCerts, std::forward<Container>(intermediateCerts));
@@ -198,7 +198,7 @@ public:
          * Adds a number of CRLs to this VerificationContext.
          * Unless the given container contains no elements, this activates CRL checking.
          */
-        template<typename Container = std::initializer_list<CertificateRevocationList>>
+        template <typename Container = std::initializer_list<CertificateRevocationList>>
         VerificationContext& addCertificateRevocationLists(Container&& revocationLists)
         {
             _addAll(_crls, std::forward<Container>(revocationLists));
@@ -262,16 +262,15 @@ public:
         bool _enforceCrlForWholeChain;
         boost::optional<std::time_t> _verificationCheckTime;
 
-        template<typename Container1, typename Container2>
+        template <typename Container1, typename Container2>
         void _addAll(Container1& addTo, Container2&& addThese)
         {
-            using Iterator = typename std::conditional<std::is_rvalue_reference<Container2&&>::value,
-                decltype(std::make_move_iterator(addThese.begin())),
-                decltype(addThese.begin())>::type;
+            using Iterator =
+                    typename std::conditional<std::is_rvalue_reference<Container2&&>::value,
+                                              decltype(std::make_move_iterator(addThese.begin())),
+                                              decltype(addThese.begin())>::type;
 
-             addTo.insert(addTo.end(),
-                          Iterator(addThese.begin()),
-                          Iterator(addThese.end()));
+            addTo.insert(addTo.end(), Iterator(addThese.begin()), Iterator(addThese.end()));
         }
     };
 
@@ -297,8 +296,8 @@ public:
      *                        used to construct the chain.
      * @throw MoCOCrWException if the validation fails.
      */
-    void verify(const std::vector<X509Certificate> &trustStore,
-                const std::vector<X509Certificate> &intermediateCAs) const;
+    void verify(const std::vector<X509Certificate>& trustStore,
+                const std::vector<X509Certificate>& intermediateCAs) const;
 
     /**
      * @brief Verify the validity of a certificate
@@ -333,23 +332,24 @@ public:
      * Create a new X509 certificate from an existing openssl certificate.
      * @param ptr a unique pointer to the existing openssl certificate.
      */
-    explicit X509Certificate(openssl::SSL_X509_Ptr &&ptr) : _x509{std::move(ptr)} {}
+    explicit X509Certificate(openssl::SSL_X509_Ptr&& ptr) : _x509{std::move(ptr)} {}
 
 private:
     openssl::SSL_X509_SharedPtr _x509;
 };
 
-namespace util {
-    /**
-     * Read a chain of multiple concatinated certificates in PEM format.
-     *
-     * @param pemChain A string with PEM certificates just concatenated. They may be
-     *                 in multiple lines or in just one line.
-     * @return A vector with the loaded certificates in the order they occured in the
-     *         PEM string
-     * @throw MoCOCrWException if the input or one of the included certificates is invalid
-     */
-    std::vector<X509Certificate> loadPEMChain(const std::string &pemChain);
-}
+namespace util
+{
+/**
+ * Read a chain of multiple concatinated certificates in PEM format.
+ *
+ * @param pemChain A string with PEM certificates just concatenated. They may be
+ *                 in multiple lines or in just one line.
+ * @return A vector with the loaded certificates in the order they occured in the
+ *         PEM string
+ * @throw MoCOCrWException if the input or one of the included certificates is invalid
+ */
+std::vector<X509Certificate> loadPEMChain(const std::string& pemChain);
+}  // namespace util
 
-}  // ::mococrw
+}  // namespace mococrw
