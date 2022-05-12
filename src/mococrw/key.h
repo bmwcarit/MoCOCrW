@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
  * #L%
  */
 #pragma once
+#ifdef HSM_ENABLED
+#include "mococrw/hsm.h"
+#endif
 #include "openssl_wrap.h"
 
 namespace mococrw
@@ -82,6 +85,19 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
     static AsymmetricPublicKey readPublicKeyFromPEM(const std::string& pem);
+
+#ifdef HSM_ENABLED
+    /**
+     * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
+     * object as a result.
+     */
+    static AsymmetricPublicKey readPublicKeyFromHSM(HSM& hsm, const std::string& keyID);
+
+    /**
+     * Stores a public key to an HSM.
+     */
+    void writePublicKeyToHSM(HSM& hsm, const std::string& keyLabel, const std::string& keyID);
+#endif
 
     /**
      * @brief Returns a public key object based on the provided EC point
@@ -223,6 +239,21 @@ public:
      */
     static AsymmetricKeypair generateRSA();
 
+#ifdef HSM_ENABLED
+    /**
+     * Generate a RSA asymmetric keypair with default Spec.
+     *
+     * Currently, a default-spec is an RSASpec with 2048
+     * bit modulus. (@see RSASpec)
+     *
+     * @throws This method may throw an OpenSSLException or
+     * a P11Excetion if OpenSSL or P11 indicates an error.
+     */
+    static AsymmetricKeypair generateRSAViaHSM(HSM& hsm,
+                                               const std::string& label,
+                                               const std::string& id);
+#endif
+
     /**
      * Generate an ECC asymmetric keypair with default Spec.
      *
@@ -254,6 +285,19 @@ public:
     static AsymmetricKeypair readPrivateKeyFromPEM(const std::string& pem,
                                                    const std::string& password);
 
+#ifdef HSM_ENABLED
+    /**
+     * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
+     * object as a result.
+     */
+    static AsymmetricKeypair readPrivateKeyFromHSM(HSM& hsm, const std::string& keyID);
+
+    /**
+     * Stores a private key to an HSM.
+     */
+    void writePrivateKeyToHSM(HSM& hsm, const std::string& keyLabel, const std::string& keyID);
+#endif
+
 private:
     AsymmetricKeypair(AsymmetricKey&& key) : AsymmetricPublicKey{std::move(key)} {}
 };
@@ -278,6 +322,16 @@ public:
      *
      */
     virtual AsymmetricKey generate() const = 0;
+
+#ifdef HSM_ENABLED
+    /**
+     * Generate an AsymmetricKey via HSM from this
+     * spec instance.
+     */
+    virtual AsymmetricKey generateViaHSM(HSM& hsm,
+                                         const std::string& label,
+                                         const std::string& id) const = 0;
+#endif
 };
 /**
  * RSA specification used to hold the necessary parameters to generate a RSA key pair.
@@ -292,6 +346,11 @@ public:
     explicit RSASpec(unsigned int numBits) : _numBits{numBits} {}
     RSASpec() : RSASpec{defaultSize} {}
     AsymmetricKey generate() const override;
+#ifdef HSM_ENABLED
+    AsymmetricKey generateViaHSM(HSM& hsm,
+                                 const std::string& label,
+                                 const std::string& id) const override;
+#endif
     inline unsigned int numberOfBits() const { return _numBits; }
 
 private:
@@ -313,6 +372,11 @@ public:
     ECCSpec() : ECCSpec{defaultCurveNid} {}
     inline openssl::ellipticCurveNid curve() const { return _curveNid; }
     AsymmetricKey generate() const override;
+#ifdef HSM_ENABLED
+    AsymmetricKey generateViaHSM(HSM& hsm,
+                                 const std::string& label,
+                                 const std::string& id) const override;
+#endif
 
 private:
     openssl::ellipticCurveNid _curveNid;

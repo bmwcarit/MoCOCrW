@@ -1,0 +1,2 @@
+# Leak arises from OpenSSL usage of MoCOCrW and SoftHSM2.
+leak:OPENSSL_init_crypto

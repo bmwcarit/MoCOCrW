@@ -114,6 +114,7 @@ string(CONCAT _asan_options
     "detect_stack_use_after_return=true,"
     "${ASAN_OPTIONS}"
 )
+
 add_custom_target(asan
     COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
 

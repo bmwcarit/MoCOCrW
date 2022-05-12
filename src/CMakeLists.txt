@@ -37,6 +37,17 @@ set(LIBRARY_SOURCES
     x509.cpp
 )
 
+# Add additional source files if HSM features are enabled.
+if(HSM_ENABLED)
+  set(LIBRARY_SOURCES
+      ${LIBRARY_SOURCES}
+      hsm.cpp
+      pkcs11_hsm.cpp
+      p11_lib.cpp
+      p11_wrap.cpp
+  )
+endif()
+
 set(LIBRARY_PUBLIC_HEADERS
     mococrw/asn1time.h
     mococrw/asymmetric_crypto_ctx.h
@@ -64,6 +75,15 @@ set(LIBRARY_PUBLIC_HEADERS
     mococrw/x509.h
 )
 
+# Add additional header files if HSM features are enabled.
+if(HSM_ENABLED)
+  set(LIBRARY_PUBLIC_HEADERS
+      ${LIBRARY_PUBLIC_HEADERS}
+      mococrw/hsm.h
+      mococrw/p11_lib.h
+      mococrw/p11_wrap.h
+  )
+endif()
 
 add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})

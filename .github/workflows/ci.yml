@@ -12,7 +12,10 @@ env:
 
   DOCKER_WITH_HSM_TAG: buildenv_with_hsm
   DOCKER_WITH_HSM_FILE_PATH: ./docker-build-env/Dockerfile-With-HSM
- 
+
+  ASAN_OPTIONS: "fast_unwind_on_malloc=false"
+  LSAN_OPTIONS: "suppressions=/src/lsan_suppression.txt"
+
   TOKEN_LABEL: token-label
   USER_PIN: 1234
   SO_PIN: 4321
@@ -88,7 +91,9 @@ jobs:
 
       - name: "Run tests"
         run: |
-          docker run --rm -e SOFTHSM2_CONF="${{ matrix.softhsm2_conf }}" \
+          # Initialise and delete token prior to and after the execution of ctests
+          # so that HSM tests/examples can work.
+          docker run --rm -e ASAN_OPTIONS="${{ env.ASAN_OPTIONS }}" -e LSAN_OPTIONS="${{ env.LSAN_OPTIONS }}" \
             -u "$UID"${{ matrix.softhsm2_grp }} \
             -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
             'if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \

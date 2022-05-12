@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,9 +16,9 @@
  * limitations under the License.
  * #L%
  */
-#include <sstream>
-
 #include <boost/format.hpp>
+#include <sstream>
+#include <stdexcept>
 
 #include "mococrw/bio.h"
 #include "mococrw/error.h"
@@ -68,6 +68,16 @@ AsymmetricKeypair AsymmetricKeypair::generateRSA()
     return generate(defaultSpec);
 }
 
+#ifdef HSM_ENABLED
+AsymmetricKeypair AsymmetricKeypair::generateRSAViaHSM(HSM &hsm,
+                                                       const std::string &label,
+                                                       const std::string &id)
+{
+    RSASpec defaultSpec{};
+    return defaultSpec.generateViaHSM(hsm, label, id);
+}
+#endif
+
 AsymmetricKeypair AsymmetricKeypair::generateECC()
 {
     ECCSpec defaultSpec{};
@@ -105,6 +115,21 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string 
     auto key = _PEM_read_bio_PUBKEY(bio.internal());
     return AsymmetricPublicKey{std::move(key)};
 }
+
+#ifdef HSM_ENABLED
+AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(HSM &hsm, const std::string &keyID)
+{
+    auto key = hsm.loadPublicKey(keyID);
+    return AsymmetricPublicKey{std::move(key)};
+}
+
+void AsymmetricPublicKey::writePublicKeyToHSM(HSM &hsm,
+                                              const std::string &keyLabel,
+                                              const std::string &keyID)
+{
+    hsm.storePublicKey(internal(), keyLabel, keyID);
+}
+#endif
 
 AsymmetricPublicKey AsymmetricPublicKey::fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
                                                      const std::vector<uint8_t> &point)
@@ -177,6 +202,21 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
     return AsymmetricKeypair{std::move(key)};
 }
 
+#ifdef HSM_ENABLED
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID)
+{
+    auto key = hsm.loadPrivateKey(keyID);
+    return AsymmetricKeypair{std::move(key)};
+}
+
+void AsymmetricKeypair::writePrivateKeyToHSM(HSM &hsm,
+                                             const std::string &keyLabel,
+                                             const std::string &keyID)
+{
+    hsm.storePrivateKey(internal(), keyLabel, keyID);
+}
+#endif
+
 AsymmetricKey RSASpec::generate() const
 {
     auto keyCtx = _EVP_PKEY_CTX_new_id(EVP_PKEY_RSA);
@@ -217,6 +257,25 @@ AsymmetricKey ECCSpec::generate() const
     }
     return AsymmetricKey{std::move(pkey)};
 }
+
+#ifdef HSM_ENABLED
+AsymmetricKey RSASpec::generateViaHSM(HSM &hsm,
+                                      const std::string &label,
+                                      const std::string &id) const
+{
+    hsm.generateKey(_numBits, label, id);
+    auto pkey = hsm.loadPrivateKey(id);
+
+    return AsymmetricKey{std::move(pkey)};
+}
+
+AsymmetricKey ECCSpec::generateViaHSM(HSM &hsm,
+                                      const std::string &label,
+                                      const std::string &id) const
+{
+    throw std::runtime_error("Not yet implemented");
+}
+#endif
 
 std::unique_ptr<AsymmetricKey::Spec> AsymmetricKey::getKeySpec() const
 {

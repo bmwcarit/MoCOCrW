@@ -26,6 +26,30 @@ add_test(
     COMMAND hash-example
 )
 
+# Only build HSM example if HSM features have been enabled.
+#
+# TODO: Make the HSM flag be an imported variable so clients
+# can easily determine its status.
+if(HSM_ENABLED)
+    add_executable(hsm-store-example hsm-store-example.cpp)
+    target_link_libraries(hsm-store-example PUBLIC MoCOCrW::mococrw)
+    target_compile_definitions(hsm-store-example PUBLIC HSM_ENABLED)
+    add_test(
+	NAME hsmStoreExample
+        COMMAND hsm-store-example
+    )
+
+    add_executable(hsm-gen-example hsm-gen-example.cpp)
+    target_link_libraries(hsm-gen-example PUBLIC MoCOCrW::mococrw)
+    target_compile_definitions(hsm-gen-example PUBLIC HSM_ENABLED)
+    add_test(
+	NAME hsmGenExample
+        COMMAND hsm-gen-example
+    )
+else()
+    message(WARNING "Skipping HSM example, as HSM features are disabled.")
+endif()
+
 add_executable(kdf-example kdf-example.cpp)
 target_link_libraries(kdf-example PUBLIC MoCOCrW::mococrw)
 add_test(
