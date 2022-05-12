@@ -25,6 +25,15 @@ jobs:
         run: |
           docker build -t buildenv - < docker-build-env/Dockerfile
 
+      - name: "Check code format"
+        run: |
+          clang-format --version
+          find . -iname *.h -o -iname *.cpp | xargs clang-format -i
+          if ! git diff --quiet; then
+            git diff 
+            exit 1
+          fi
+
       - name: "Build MoCOCrW"
         run: |
           mkdir build

@@ -4,6 +4,7 @@ FROM ubuntu:focal
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
         ca-certificates \
         clang \
+        clang-format \
         cmake \
         g++ \
         googletest \
