@@ -17,14 +17,13 @@
  * #L%
  */
 #pragma once
+#include <cstdint>
 #include <memory>
 #include <vector>
-#include <cstdint>
 #include "hash.h"
 
 namespace mococrw
 {
-
 /**
  * @brief Abstract class for key derivation functions
  */
@@ -38,19 +37,22 @@ public:
     /**
      * @brief Provides a derived key.
      *
-     * This function returns a derived key based on the arguments passed to this function and the arguments provided to
-     * the constructor
+     * This function returns a derived key based on the arguments passed to this function and the
+     * arguments provided to the constructor
      * @param password The password/secret key which shall be used for key derivation
      * @param outputLength The length of the derived key in bytes.
      * @param salt The salt used for the key derivation
-     * @throws OpenSSLException This method may throw an OpenSSLException if OpenSSL indicates an error.
+     * @throws OpenSSLException This method may throw an OpenSSLException if OpenSSL indicates an
+     * error.
      * @return The derived key
      */
-    virtual std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password, const size_t outputLength,
+    virtual std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
+                                           const size_t outputLength,
                                            const std::vector<uint8_t> &salt) = 0;
 };
 
-class PBKDF2: public KeyDerivationFunction {
+class PBKDF2 : public KeyDerivationFunction
+{
 public:
     /**
      * @brief Constructor
@@ -67,7 +69,8 @@ public:
     /**
      * @see KeyDerivationFunction::deriveKey
      */
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password, const size_t outputLength,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
+                                   const size_t outputLength,
                                    const std::vector<uint8_t> &salt) override;
 
     /**
@@ -94,7 +97,7 @@ public:
      * @param other The object to copy
      * @return The result of the assignment
      */
-    PBKDF2& operator=(const PBKDF2 &other);
+    PBKDF2 &operator=(const PBKDF2 &other);
 
 private:
     /**
@@ -126,7 +129,8 @@ public:
     /**
      * @see KeyDerivationFunction::deriveKey
      */
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password, const size_t outputLength,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
+                                   const size_t outputLength,
                                    const std::vector<uint8_t> &salt) override;
 
     /**
@@ -153,7 +157,7 @@ public:
      * @param other The object to copy
      * @return The result of the assignment
      */
-    X963KDF& operator=(const X963KDF &other);
+    X963KDF &operator=(const X963KDF &other);
 
 private:
     /**
@@ -168,4 +172,4 @@ private:
     std::unique_ptr<Impl> _impl;
 };
 
-}
+}  // namespace mococrw

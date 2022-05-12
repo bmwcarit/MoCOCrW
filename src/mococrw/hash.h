@@ -17,41 +17,40 @@
  * #L%
  */
 #pragma once
-#include <vector>
 #include <map>
+#include <vector>
 
 #include "mococrw/openssl_wrap.h"
 
 namespace mococrw
 {
-
 std::vector<uint8_t> sha1(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha1(const std::string &message);
-std::vector<uint8_t> sha1(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha1(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha256(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha256(const std::string &message);
-std::vector<uint8_t> sha256(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha256(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha384(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha384(const std::string &message);
-std::vector<uint8_t> sha384(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha384(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha512(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha512(const std::string &message);
-std::vector<uint8_t> sha512(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha512(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha3_256(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha3_256(const std::string &message);
-std::vector<uint8_t> sha3_256(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha3_256(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha3_384(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha3_384(const std::string &message);
-std::vector<uint8_t> sha3_384(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha3_384(const uint8_t *message, size_t messageLength);
 
 std::vector<uint8_t> sha3_512(const std::vector<uint8_t> &message);
 std::vector<uint8_t> sha3_512(const std::string &message);
-std::vector<uint8_t> sha3_512(const uint8_t* message, size_t messageLength);
+std::vector<uint8_t> sha3_512(const uint8_t *message, size_t messageLength);
 
 class Hash
 {
@@ -66,9 +65,10 @@ public:
     static size_t getDigestSize(openssl::DigestTypes digestType);
     static Hash fromDigestType(const openssl::DigestTypes digestType);
     std::vector<uint8_t> digest();
-    Hash& update(const std::vector<uint8_t> &chunk);
-    Hash& update(const std::string &chunk);
-    Hash& update(const uint8_t* chunk, size_t length);
+    Hash &update(const std::vector<uint8_t> &chunk);
+    Hash &update(const std::string &chunk);
+    Hash &update(const uint8_t *chunk, size_t length);
+
 private:
     Hash(const openssl::DigestTypes _digestType);
     static const std::map<openssl::DigestTypes, size_t> lengthInBytes;
@@ -77,4 +77,4 @@ private:
     openssl::DigestTypes _digestType;
 };
 
-}
+}  // namespace mococrw

@@ -20,10 +20,10 @@
 
 #include <fstream>
 
-#include "mococrw/x509.h"
 #include "mococrw/crl.h"
+#include "mococrw/x509.h"
 
-template<class T>
+template <class T>
 std::vector<T> bytesFromFile(const std::string &filename)
 {
     static_assert(sizeof(T) == sizeof(char), "bytesFromFile only works with 1 byte data types");
@@ -41,13 +41,13 @@ std::vector<T> bytesFromFile(const std::string &filename)
 
     std::vector<T> buffer;
     buffer.resize(size);
-    file.read(reinterpret_cast<char*>(buffer.data()), size);
+    file.read(reinterpret_cast<char *>(buffer.data()), size);
     return buffer;
 }
 
-template<class F, typename... Args>
-std::result_of_t<F&&(const std::string&, Args...)> openSSLObjectFromFile(
-        F&& f, const std::string& filename, Args&&... args)
+template <class F, typename... Args>
+std::result_of_t<F && (const std::string &, Args...)> openSSLObjectFromFile(
+        F &&f, const std::string &filename, Args &&...args)
 {
     auto buffer = bytesFromFile<char>(filename);
     return f({buffer.data(), buffer.size()}, std::forward<Args>(args)...);
@@ -80,9 +80,11 @@ mococrw::CertificateRevocationList loadCrlFromDERFile(const std::string &filenam
     return mococrw::CertificateRevocationList::fromDER(buffer);
 }
 
-mococrw::AsymmetricPrivateKey loadPrivkeyFromFile(const std::string &filename, const std::string &password)
+mococrw::AsymmetricPrivateKey loadPrivkeyFromFile(const std::string &filename,
+                                                  const std::string &password)
 {
-    return openSSLObjectFromFile(&mococrw::AsymmetricPrivateKey::readPrivateKeyFromPEM, filename, password);
+    return openSSLObjectFromFile(
+            &mococrw::AsymmetricPrivateKey::readPrivateKeyFromPEM, filename, password);
 }
 
 void writePemToFile(const std::string &pem, const std::string &filename)

@@ -56,6 +56,7 @@ public:
      * Note that this operation will empty the buffer.
      */
     std::vector<uint8_t> flushToVector();
+
 protected:
     BioObject() = default;
 
@@ -68,23 +69,14 @@ enum class BioObject::Types : int {
     FILE,
 };
 
-
 class FileBio : public BioObject
 {
 public:
-    enum class FileMode
-    {
-        READ,
-        WRITE
-    };
+    enum class FileMode { READ, WRITE };
 
-    enum class FileType
-    {
-        TEXT,
-        BINARY
-    };
+    enum class FileType { TEXT, BINARY };
 
     explicit FileBio(const std::string &filename, FileMode mode, FileType type);
 };
 
-}  // ::mococrw
+}  // namespace mococrw

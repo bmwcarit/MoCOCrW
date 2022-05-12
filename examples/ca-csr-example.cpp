@@ -17,14 +17,14 @@
  * #L%
  */
 
-#include <mococrw/x509.h>
-#include <mococrw/ca.h>
-#include <mococrw/key.h>
-#include <mococrw/basic_constraints.h>
 #include <mococrw/asn1time.h>
+#include <mococrw/basic_constraints.h>
+#include <mococrw/ca.h>
+#include <mococrw/csr.h>
+#include <mococrw/key.h>
 #include <mococrw/key_usage.h>
 #include <mococrw/sign_params.h>
-#include <mococrw/csr.h>
+#include <mococrw/x509.h>
 
 #include <iostream>
 
@@ -36,7 +36,6 @@ static auto notBeforeTime = Asn1Time::now();
 
 /******************* Root CA *******************/
 /***********************************************/
-
 
 CertificateAuthority getRootCa(const X509Certificate &rootCaCert,
                                const AsymmetricKeypair &rootCaKey)
@@ -51,42 +50,41 @@ CertificateAuthority getRootCa(const X509Certificate &rootCaCert,
     const auto rootCaKeyUsage = KeyUsageExtension::Builder{}.keyCertSign().cRLSign().build();
 
     auto rootCaSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(300))
-            .notBeforeAsn1(notBeforeTime + std::chrono::seconds{5})
-            .digestType(digestType)
-            .addExtension(rootCertSignConstraints)
-            .addExtension(rootCaKeyUsage)
-            .build();
+                                    .certificateValidity(Asn1Time::Seconds(300))
+                                    .notBeforeAsn1(notBeforeTime + std::chrono::seconds{5})
+                                    .digestType(digestType)
+                                    .addExtension(rootCertSignConstraints)
+                                    .addExtension(rootCaKeyUsage)
+                                    .build();
 
-    return CertificateAuthority(
-                rootCaSignParams,
-                // next serial number
-                1,
-                rootCaCert,
-                rootCaKey);
+    return CertificateAuthority(rootCaSignParams,
+                                // next serial number
+                                1,
+                                rootCaCert,
+                                rootCaKey);
 }
 
 CertificateAuthority getIntermediateCa(const X509Certificate &intermediateCaCert,
                                        const AsymmetricKeypair &intermediateCaKey)
 {
-    auto intermediateCaKeyUsage = KeyUsageExtension::Builder{}.digitalSignature().keyEncipherment().build();
+    auto intermediateCaKeyUsage =
+            KeyUsageExtension::Builder{}.digitalSignature().keyEncipherment().build();
     // Set CA = false for leaf certificates. Path length is ignored then.
     BasicConstraintsExtension intermediateCaSigningConstraints(false, 0);
 
     auto intermediateCaSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(notBeforeTime + std::chrono::seconds{10})
-            .digestType(digestType)
-            .addExtension(intermediateCaSigningConstraints)
-            .addExtension(intermediateCaKeyUsage)
-            .build();
+                                            .certificateValidity(Asn1Time::Seconds(120))
+                                            .notBeforeAsn1(notBeforeTime + std::chrono::seconds{10})
+                                            .digestType(digestType)
+                                            .addExtension(intermediateCaSigningConstraints)
+                                            .addExtension(intermediateCaKeyUsage)
+                                            .build();
 
-    return CertificateAuthority(
-                intermediateCaSignParams,
-                // next serial number
-                1,
-                intermediateCaCert,
-                intermediateCaKey);
+    return CertificateAuthority(intermediateCaSignParams,
+                                // next serial number
+                                1,
+                                intermediateCaCert,
+                                intermediateCaKey);
 }
 
 X509Certificate createRootCertificate(const AsymmetricKeypair &rootEccKey)
@@ -99,34 +97,33 @@ X509Certificate createRootCertificate(const AsymmetricKeypair &rootEccKey)
     const auto rootCaKeyUsage = KeyUsageExtension::Builder{}.keyCertSign().cRLSign().build();
 
     auto rootCaSelfSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(600))
-            .notBeforeAsn1(notBeforeTime)
-            .digestType(digestType)
-            .addExtension(rootCertConstraint)
-            .addExtension(rootCaKeyUsage)
-            .build();
+                                        .certificateValidity(Asn1Time::Seconds(600))
+                                        .notBeforeAsn1(notBeforeTime)
+                                        .digestType(digestType)
+                                        .addExtension(rootCertConstraint)
+                                        .addExtension(rootCaKeyUsage)
+                                        .build();
 
     // These are all X509 cert details supported by mococrw
     auto rootCertDetails = DistinguishedName::Builder{}
-            .commonName("ImATeapot")
-            .countryName("DE")
-            .organizationName("Linux AG")
-            .organizationalUnitName("Linux Support")
-            .pkcs9EmailAddress("support@example.com")
-            .localityName("oben")
-            .stateOrProvinceName("nebenan")
-            .serialNumber("08E36DD501941432358AFE8256BC6EFD")
-            .givenName("Hot Teapot")
-            .userId("1000")
-            .title("Teapots contain tea")
-            .build();
+                                   .commonName("ImATeapot")
+                                   .countryName("DE")
+                                   .organizationName("Linux AG")
+                                   .organizationalUnitName("Linux Support")
+                                   .pkcs9EmailAddress("support@example.com")
+                                   .localityName("oben")
+                                   .stateOrProvinceName("nebenan")
+                                   .serialNumber("08E36DD501941432358AFE8256BC6EFD")
+                                   .givenName("Hot Teapot")
+                                   .userId("1000")
+                                   .title("Teapots contain tea")
+                                   .build();
 
-    return CertificateAuthority::createRootCertificate(
-                rootEccKey,
-                rootCertDetails,
-                // serial number
-                0,
-                rootCaSelfSignParams);
+    return CertificateAuthority::createRootCertificate(rootEccKey,
+                                                       rootCertDetails,
+                                                       // serial number
+                                                       0,
+                                                       rootCaSelfSignParams);
 }
 
 X509Certificate signCertificateWithRootCa(const X509Certificate &signingCert,
@@ -154,7 +151,6 @@ X509Certificate signCertificateWithIntermediateCa(const X509Certificate &signing
                                                   const AsymmetricKeypair &signingKey,
                                                   const CertificateSigningRequest &csr)
 {
-
     auto ca = getIntermediateCa(signingCert, signingKey);
     try {
         return ca.signCSR(csr);
@@ -177,37 +173,29 @@ X509Certificate createIntermediateCaCertificate(const AsymmetricKeypair &interme
                                                 const X509Certificate &rootCert)
 {
     auto intermediateCaCertDetails = DistinguishedName::Builder{}
-            .organizationalUnitName("ezcode")
-            .organizationName("eazz")
-            .countryName("DE")
-            .commonName("Common secondary certificate")
-            .build();
+                                             .organizationalUnitName("ezcode")
+                                             .organizationName("eazz")
+                                             .countryName("DE")
+                                             .commonName("Common secondary certificate")
+                                             .build();
 
-    auto csr = CertificateSigningRequest(intermediateCaCertDetails,
-                                         intermediateCaKey,
-                                         digestType);
+    auto csr = CertificateSigningRequest(intermediateCaCertDetails, intermediateCaKey, digestType);
     auto intermediateCaCert = signCertificateWithRootCa(rootCert, rootCaKey, csr);
 
     return intermediateCaCert;
 }
 
-
 CertificateSigningRequest createClientCsr(const AsymmetricKeypair &clientKey)
 {
     auto clientCertDetails = DistinguishedName::Builder{}
-            .organizationalUnitName("ez-code")
-            .organizationName("flamingo")
-            .countryName("DE")
-            .commonName("Client certificate")
-            .build();
+                                     .organizationalUnitName("ez-code")
+                                     .organizationName("flamingo")
+                                     .countryName("DE")
+                                     .commonName("Client certificate")
+                                     .build();
 
     /* Create the CSR. This CSR is then send to the CA for signing (here: signClientCsr()) */
-    return CertificateSigningRequest(
-                clientCertDetails,
-                clientKey,
-                digestType
-                );
-
+    return CertificateSigningRequest(clientCertDetails, clientKey, digestType);
 }
 
 X509Certificate signClientCsr(const CertificateSigningRequest &clientCsr,
@@ -225,7 +213,8 @@ int main(void)
     std::cout << rootCaCert.toPEM() << std::endl << std::endl;
 
     auto intermediateCaEccKey = AsymmetricKeypair::generateECC();
-    auto intermediateCaCert = createIntermediateCaCertificate(intermediateCaEccKey, rootCaEccKey, rootCaCert);
+    auto intermediateCaCert =
+            createIntermediateCaCertificate(intermediateCaEccKey, rootCaEccKey, rootCaCert);
     std::cout << intermediateCaCert.toPEM() << std::endl << std::endl;
 
     auto clientKey = AsymmetricKeypair::generateECC();

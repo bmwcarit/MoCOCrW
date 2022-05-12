@@ -30,16 +30,17 @@ using namespace mococrw;
 using namespace mococrw::openssl;
 
 using testing::Eq;
-using testing::Ne;
-using testing::Gt;
 using testing::Ge;
-using testing::Lt;
+using testing::Gt;
 using testing::Le;
+using testing::Lt;
+using testing::Ne;
 
 class Asn1TimeTest : public ::testing::Test
 {
 public:
     void SetUp() override;
+
 protected:
     std::time_t tt_2017_3_27__19_00_38;
     std::chrono::system_clock::time_point tp_2017_3_27__19_00_38;
@@ -133,14 +134,10 @@ TEST_F(Asn1TimeTest, fromTimeTWorks)
 TEST_F(Asn1TimeTest, invalidTimePointConversionThrows)
 {
     auto year9042 = Asn1Time::fromString("90420101000000Z");
-    EXPECT_THROW({
-        year9042.toTimePoint();
-    }, OpenSSLException);
+    EXPECT_THROW({ year9042.toTimePoint(); }, OpenSSLException);
 
     auto year0042 = Asn1Time::fromString("00420101000000Z");
-    EXPECT_THROW({
-        year0042.toTimePoint();
-    }, OpenSSLException);
+    EXPECT_THROW({ year0042.toTimePoint(); }, OpenSSLException);
 }
 
 TEST_F(Asn1TimeTest, nowTimeIsCorrect)
@@ -148,7 +145,7 @@ TEST_F(Asn1TimeTest, nowTimeIsCorrect)
     Asn1Time nowTimeFromApi = Asn1Time::now();
     auto nowTimeFromSystem = std::chrono::system_clock::now();
 
-    //OpenSSL has a precision of 1 second, so we check that
+    // OpenSSL has a precision of 1 second, so we check that
     // -1 < nowApi - nowSystem < 1
     ASSERT_LT(std::chrono::seconds(-1), nowTimeFromApi.toTimePoint() - nowTimeFromSystem);
     ASSERT_LT(nowTimeFromApi.toTimePoint() - nowTimeFromSystem, std::chrono::seconds(1));
@@ -165,8 +162,8 @@ TEST_F(Asn1TimeTest, addTimeIsCorrect)
 TEST_F(Asn1TimeTest, subtractTimeIsCorrect)
 {
     auto year2001FromString = Asn1Time::fromString("20010101010000Z");
-    auto year2001FromSubtract = Asn1Time::fromString("20020101000000Z")
-            - std::chrono::hours(24 * 365 - 1);
+    auto year2001FromSubtract =
+            Asn1Time::fromString("20020101000000Z") - std::chrono::hours(24 * 365 - 1);
 
     ASSERT_EQ(year2001FromString, year2001FromSubtract);
 }
@@ -182,8 +179,8 @@ TEST_F(Asn1TimeTest, addingToLargeTimesWorks)
 TEST_F(Asn1TimeTest, addingLargeDurationsWorks)
 {
     auto year2000FromString = Asn1Time::fromString("20000101000000Z");
-    auto year2000FromAdd = Asn1Time::fromString("10000101000000Z")
-            + std::chrono::hours(365242 * 24);
+    auto year2000FromAdd =
+            Asn1Time::fromString("10000101000000Z") + std::chrono::hours(365242 * 24);
 
     ASSERT_EQ(year2000FromString, year2000FromAdd);
 }
@@ -191,8 +188,8 @@ TEST_F(Asn1TimeTest, addingLargeDurationsWorks)
 TEST_F(Asn1TimeTest, subtractingLargeDurationsWorks)
 {
     auto year2000FromString = Asn1Time::fromString("20000101000000Z");
-    auto year2000FromSubtraction = Asn1Time::fromString("30000101000000Z")
-            - std::chrono::hours(365243 * 24);
+    auto year2000FromSubtraction =
+            Asn1Time::fromString("30000101000000Z") - std::chrono::hours(365243 * 24);
 
     ASSERT_EQ(year2000FromString, year2000FromSubtraction);
 }
@@ -237,7 +234,7 @@ TEST_F(Asn1TimeTest, addingOverflowingDurationThrows)
 {
     auto asn1time = Asn1Time::fromString("20000101000000Z");
     auto duration = std::chrono::seconds(std::numeric_limits<int>::max());
-    duration *= 366 * 24 * 60 * 60; // Make the number of days exceed MAX_INT
+    duration *= 366 * 24 * 60 * 60;  // Make the number of days exceed MAX_INT
 
     ASSERT_THROW(asn1time + duration, mococrw::MoCOCrWException);
 }

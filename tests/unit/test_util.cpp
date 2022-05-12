@@ -30,9 +30,7 @@ public:
     void SetUp() override;
 };
 
-void UtilTest::SetUp()
-{
-}
+void UtilTest::SetUp() {}
 
 TEST_F(UtilTest, toHexLessThanSixteen)
 {

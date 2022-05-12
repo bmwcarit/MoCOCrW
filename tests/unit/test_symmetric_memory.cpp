@@ -24,9 +24,11 @@
 
 using namespace mococrw;
 
-class SymmetricCipherMemoryStrategy : public  ::testing::Test {
+class SymmetricCipherMemoryStrategy : public ::testing::Test
+{
 protected:
-    void SetUp() override {
+    void SetUp() override
+    {
         for (int i = 0; i < NUMBER_OF_TEST_BLOCKS; i++) {
             std::vector<uint8_t> block(TEST_BLOCK_LENGTH, i);
             _expectedData.insert(std::end(_expectedData), std::begin(block), std::end(block));
@@ -35,9 +37,10 @@ protected:
 
     void assembleFromChunksAndCompareWithExpected(
             const std::vector<uint8_t>& expected,
-            const std::vector<std::vector<uint8_t>>& actualChunks) const {
-        std::vector<uint8_t > readData;
-        for (const auto &chunk : actualChunks) {
+            const std::vector<std::vector<uint8_t>>& actualChunks) const
+    {
+        std::vector<uint8_t> readData;
+        for (const auto& chunk : actualChunks) {
             readData.insert(std::end(readData), std::begin(chunk), std::end(chunk));
         }
         ASSERT_THAT(readData, ::testing::ElementsAreArray(expected));
@@ -47,10 +50,11 @@ protected:
 
     const int NUMBER_OF_TEST_BLOCKS = 4;
     const int TEST_BLOCK_LENGTH = 16;
-    std::vector<uint8_t > _expectedData;
+    std::vector<uint8_t> _expectedData;
 };
 
-TEST_F(SymmetricCipherMemoryStrategy, SeveralWritesAndReadAll) {
+TEST_F(SymmetricCipherMemoryStrategy, SeveralWritesAndReadAll)
+{
     sut.write({std::begin(_expectedData), std::begin(_expectedData) + 3});
     sut.write({std::begin(_expectedData) + 3, std::begin(_expectedData) + 7});
     sut.write({std::begin(_expectedData) + 7, std::end(_expectedData)});
@@ -59,7 +63,8 @@ TEST_F(SymmetricCipherMemoryStrategy, SeveralWritesAndReadAll) {
     ASSERT_THAT(readChunk, ::testing::ElementsAreArray(_expectedData));
 }
 
-TEST_F(SymmetricCipherMemoryStrategy, ReadMoreThanQueueHolds) {
+TEST_F(SymmetricCipherMemoryStrategy, ReadMoreThanQueueHolds)
+{
     sut.write({std::begin(_expectedData), std::begin(_expectedData) + 3});
     sut.write({std::begin(_expectedData) + 3, std::begin(_expectedData) + 20});
 
@@ -67,17 +72,18 @@ TEST_F(SymmetricCipherMemoryStrategy, ReadMoreThanQueueHolds) {
     ASSERT_EQ(readChunk.size(), 20);
 }
 
-TEST_F(SymmetricCipherMemoryStrategy, EmptyReadAll) {
+TEST_F(SymmetricCipherMemoryStrategy, EmptyReadAll)
+{
     auto readBlock = sut.read(TEST_BLOCK_LENGTH);
     ASSERT_TRUE(readBlock.empty());
 }
 
-TEST_F(SymmetricCipherMemoryStrategy, ReadInWrittenBlockSizes) {
+TEST_F(SymmetricCipherMemoryStrategy, ReadInWrittenBlockSizes)
+{
     auto dataPacketizer = std::begin(_expectedData);
 
     for (int i = 0; i < NUMBER_OF_TEST_BLOCKS - 1; ++i) {
-        sut.write({dataPacketizer,
-                   dataPacketizer + TEST_BLOCK_LENGTH});
+        sut.write({dataPacketizer, dataPacketizer + TEST_BLOCK_LENGTH});
         dataPacketizer += TEST_BLOCK_LENGTH;
     }
 
@@ -94,7 +100,8 @@ TEST_F(SymmetricCipherMemoryStrategy, ReadInWrittenBlockSizes) {
                                              {readBlock1, readBlock2, readBlock3, readBlock4});
 }
 
-TEST_F(SymmetricCipherMemoryStrategy, ReadInUnalignedBlockSizes) {
+TEST_F(SymmetricCipherMemoryStrategy, ReadInUnalignedBlockSizes)
+{
     auto dataPacketizer = std::begin(_expectedData);
     for (int i = 0; i < NUMBER_OF_TEST_BLOCKS - 1; ++i) {
         sut.write({dataPacketizer, dataPacketizer + TEST_BLOCK_LENGTH});

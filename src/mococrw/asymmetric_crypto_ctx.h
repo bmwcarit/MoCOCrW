@@ -19,18 +19,18 @@
 #pragma once
 
 #include <memory>
+#include "openssl_wrap.h"
 #include "padding_mode.h"
 #include "x509.h"
-#include "openssl_wrap.h"
 
-namespace mococrw {
-
+namespace mococrw
+{
 /**
  * @brief Interface for encryption contexts
  */
-class EncryptionCtx {
+class EncryptionCtx
+{
 public:
-
     /**
      * @brief Destructor
      */
@@ -51,7 +51,8 @@ public:
 /**
  * @brief Interface for decryption contexts
  */
-class DecryptionCtx {
+class DecryptionCtx
+{
 public:
     /**
      * @brief Destructor
@@ -84,7 +85,8 @@ public:
  *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Label: Empty String
  */
-class RSAEncryptionPrivateKeyCtx : public DecryptionCtx {
+class RSAEncryptionPrivateKeyCtx : public DecryptionCtx
+{
 public:
     /**
      * @brief Constructor
@@ -92,8 +94,9 @@ public:
      * @param padding OAEP Padding parameters to be used
      * @throw MoCOCrWException If key is not an RSA private key
      */
-    RSAEncryptionPrivateKeyCtx(const AsymmetricPrivateKey& key,
-                               std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
+    RSAEncryptionPrivateKeyCtx(
+            const AsymmetricPrivateKey& key,
+            std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Destructor
      */
@@ -138,7 +141,8 @@ private:
  *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Label: Empty String
  */
-class RSAEncryptionPublicKeyCtx : public EncryptionCtx {
+class RSAEncryptionPublicKeyCtx : public EncryptionCtx
+{
 public:
     /**
      * @brief Constructor
@@ -146,16 +150,18 @@ public:
      * @param padding Padding parameters to be used (default OEAP)
      * @throw MoCOCrWException If key is not an RSA public key
      */
-    RSAEncryptionPublicKeyCtx(const AsymmetricPublicKey& key,
-                              std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
+    RSAEncryptionPublicKeyCtx(
+            const AsymmetricPublicKey& key,
+            std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Constructor
      * @param cert X509 Certificate containing RSA public key to be used
      * @param padding Padding parameters to be used (default OAEP)
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
-    RSAEncryptionPublicKeyCtx(const X509Certificate& cert,
-                              std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
+    RSAEncryptionPublicKeyCtx(
+            const X509Certificate& cert,
+            std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
 
     /**
      * @brief Copy Constructor
@@ -190,7 +196,8 @@ private:
 /**
  * @brief Interface for classes that support signing (pre-hashed) digests.
  */
-class DigestSignatureCtx {
+class DigestSignatureCtx
+{
 public:
     /**
      * @brief Destructor
@@ -207,13 +214,14 @@ public:
      * @throw MoCOCrWException If the sign operation fails.
      * @throw MoCOCrWException If digest size doesn't match the expected digest size.
      */
-    virtual std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) = 0;
+    virtual std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) = 0;
 };
 
 /**
  * @brief Interface for contexts that support signing messages.
  */
-class MessageSignatureCtx {
+class MessageSignatureCtx
+{
 public:
     /**
      * @brief Destructor
@@ -230,13 +238,14 @@ public:
      * @return The created signature
      * @throw MoCOCrWException If the sign operation fails.
      */
-    virtual std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) = 0;
+    virtual std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) = 0;
 };
 
 /**
  * @brief Interface for contexts that support verification of (pre-hashed) digests.
  */
-class DigestVerificationCtx {
+class DigestVerificationCtx
+{
 public:
     /**
      * @brief Destructor
@@ -252,14 +261,15 @@ public:
      * @param digest The signed digest
      * @throw MoCOCrWException If the verification fails.
      */
-    virtual void verifyDigest(const std::vector<uint8_t> &signature,
-                              const std::vector<uint8_t> &digest) = 0;
+    virtual void verifyDigest(const std::vector<uint8_t>& signature,
+                              const std::vector<uint8_t>& digest) = 0;
 };
 
 /**
  * @brief Interface for contexts that support verification of message.
  */
-class MessageVerificationCtx {
+class MessageVerificationCtx
+{
 public:
     /**
      * @brief Destructor
@@ -275,8 +285,8 @@ public:
      * @param message The signed message
      * @throw MoCOCrWException If the verification fails.
      */
-    virtual void verifyMessage(const std::vector<uint8_t> &signature,
-                               const std::vector<uint8_t> &message) = 0;
+    virtual void verifyMessage(const std::vector<uint8_t>& signature,
+                               const std::vector<uint8_t>& message) = 0;
 };
 
 /**
@@ -292,7 +302,8 @@ public:
  *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Salt Length: length of \<Hash Function\> digests
  */
-class RSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx {
+class RSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx
+{
 public:
     /**
      * @brief Constructor
@@ -301,9 +312,10 @@ public:
      * @param padding PSS Padding parameters to be used
      * @throw MoCOCrWException If key is not an RSA private key
      */
-    RSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
-                              openssl::DigestTypes hashFunction,
-                              std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
+    RSASignaturePrivateKeyCtx(
+            const AsymmetricPrivateKey& key,
+            openssl::DigestTypes hashFunction,
+            std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
@@ -320,9 +332,9 @@ public:
      */
     ~RSASignaturePrivateKeyCtx();
 
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) override;
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -350,7 +362,8 @@ private:
  *  - Mask Generation Function: MGF1(\<Hash Function\>)
  *  - Salt Length: length of \<Hash Function\> digests
  */
-class RSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx {
+class RSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx
+{
 public:
     /**
      * @brief Constructor
@@ -359,9 +372,10 @@ public:
      * @param padding PKCS v1.5 Padding parameters to be used
      * @throw MoCOCrWException If key is not an RSA public key
      */
-    RSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
-                             openssl::DigestTypes hashFunction,
-                             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
+    RSASignaturePublicKeyCtx(
+            const AsymmetricPublicKey& key,
+            openssl::DigestTypes hashFunction,
+            std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Constructor
@@ -370,9 +384,10 @@ public:
      * @param padding PSS Padding parameters to be used
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
-    RSASignaturePublicKeyCtx(const X509Certificate& cert,
-                             openssl::DigestTypes hashFunction,
-                             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
+    RSASignaturePublicKeyCtx(
+            const X509Certificate& cert,
+            openssl::DigestTypes hashFunction,
+            std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
@@ -389,11 +404,11 @@ public:
      */
     ~RSASignaturePublicKeyCtx();
 
-    void verifyDigest(const std::vector<uint8_t> &signature,
-                      const std::vector<uint8_t> &digest) override;
+    void verifyDigest(const std::vector<uint8_t>& signature,
+                      const std::vector<uint8_t>& digest) override;
 
-    void verifyMessage(const std::vector<uint8_t> &signature,
-                       const std::vector<uint8_t> &message) override;
+    void verifyMessage(const std::vector<uint8_t>& signature,
+                       const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -412,18 +427,20 @@ private:
  * @brief Serialization formats for ECDSA signatures (with typo)
  */
 enum class ECSDASignatureFormat {
-    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
-    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
-               *   as specified in IEEE 1363 */
+    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI
+                              X9.62 */
+    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key
+               * length as specified in IEEE 1363 */
 };
 
 /**
  * @brief Serialization formats for ECDSA signatures
  */
 enum class ECDSASignatureFormat {
-    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI X9.62 */
-    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key length
-               *   as specified in IEEE 1363 */
+    ASN1_SEQUENCE_OF_INTS, /**< Encoding of (r,s) as ASN.1 sequence of integers as specified in ANSI
+                              X9.62 */
+    IEEE1363, /**< Encoding of (r,s) as raw big endian unsigned integers zero-padded to the key
+               * length as specified in IEEE 1363 */
 };
 
 /**
@@ -432,7 +449,8 @@ enum class ECDSASignatureFormat {
  * This class supports signing messages and digests using ECDSA
  * Default Hash Function: SHA256
  */
-class ECDSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx {
+class ECDSASignaturePrivateKeyCtx : public DigestSignatureCtx, public MessageSignatureCtx
+{
 public:
     /**
      * @brief Constructor
@@ -452,7 +470,8 @@ public:
      * @param sigFormat The format of the generated signature
      * @throw MoCOCrWException If key is not an ECC private key
      */
-    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key, openssl::DigestTypes hashFunction,
+    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
+                                openssl::DigestTypes hashFunction,
                                 ECDSASignatureFormat sigFormat);
 
     /**
@@ -470,9 +489,9 @@ public:
      */
     ~ECDSASignaturePrivateKeyCtx();
 
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) override;
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -493,7 +512,8 @@ private:
  * This class supports the verification of ECDSA signatures of messages and digests
  * Default Hash Function: SHA256
  */
-class ECDSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx {
+class ECDSASignaturePublicKeyCtx : public DigestVerificationCtx, public MessageVerificationCtx
+{
 public:
     /**
      * @brief Constructor
@@ -512,12 +532,16 @@ public:
      * @param hashFunction The hash function to be used
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If key is not an ECC public key
-     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey&, openssl::DigestTypes, ECDSASignatureFormat)
-     *             which expects ECDSASignatureFormat instead of ECSDASignatureFormat
+     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey&,
+     * openssl::DigestTypes, ECDSASignatureFormat) which expects ECDSASignatureFormat instead of
+     * ECSDASignatureFormat
      */
-    [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
-    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
-                               ECSDASignatureFormat sigFormat);
+    [[deprecated(
+            "Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead "
+            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+                                                                    openssl::DigestTypes
+                                                                            hashFunction,
+                                                                    ECSDASignatureFormat sigFormat);
 
     /**
      * @brief Constructor
@@ -527,7 +551,8 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If key is not an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key, openssl::DigestTypes hashFunction,
+    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+                               openssl::DigestTypes hashFunction,
                                ECDSASignatureFormat sigFormat);
 
     /**
@@ -547,12 +572,16 @@ public:
      * @param hashFunction The hash function to be used
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
-     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const X509Certificate&, openssl::DigestTypes, ECDSASignatureFormat)
-     *             which expects ECDSASignatureFormat instead of ECSDASignatureFormat
+     * @deprecated Replaced by ECDSASignaturePublicKeyCtx(const X509Certificate&,
+     * openssl::DigestTypes, ECDSASignatureFormat) which expects ECDSASignatureFormat instead of
+     * ECSDASignatureFormat
      */
-    [[deprecated("Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead of ECSDASignatureFormat")]]
-    ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
-                               ECSDASignatureFormat sigFormat);
+    [[deprecated(
+            "Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead "
+            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+                                                                    openssl::DigestTypes
+                                                                            hashFunction,
+                                                                    ECSDASignatureFormat sigFormat);
 
     /**
      * @brief Constructor
@@ -562,7 +591,8 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const X509Certificate& cert, openssl::DigestTypes hashFunction,
+    ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+                               openssl::DigestTypes hashFunction,
                                ECDSASignatureFormat sigFormat);
 
     /**
@@ -580,11 +610,11 @@ public:
      */
     ~ECDSASignaturePublicKeyCtx();
 
-    void verifyDigest(const std::vector<uint8_t> &signature,
-                      const std::vector<uint8_t> &digest) override;
+    void verifyDigest(const std::vector<uint8_t>& signature,
+                      const std::vector<uint8_t>& digest) override;
 
-    void verifyMessage(const std::vector<uint8_t> &signature,
-                       const std::vector<uint8_t> &message) override;
+    void verifyMessage(const std::vector<uint8_t>& signature,
+                       const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -604,15 +634,15 @@ private:
  *
  * This class supports signing message using EdDSA (PureEdDSA according to RFC8032).
  */
-class EdDSASignaturePrivateKeyCtx : public MessageSignatureCtx {
+class EdDSASignaturePrivateKeyCtx : public MessageSignatureCtx
+{
 public:
-
     /**
      * @brief Constructor
      * @param key The private key to be used
      * @throw MoCOCrWException If key is not an Ed448 or Ed25519 private key
      */
-    EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key);
+    EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key);
 
     /**
      * @brief Destructor
@@ -622,15 +652,14 @@ public:
     /**
      * @brief Copy Constructor
      */
-    EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx &other);
-
+    EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx& other);
 
     /**
      * @brief Copy Assignment
      */
-    EdDSASignaturePrivateKeyCtx& operator=(const EdDSASignaturePrivateKeyCtx &other);
+    EdDSASignaturePrivateKeyCtx& operator=(const EdDSASignaturePrivateKeyCtx& other);
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -650,22 +679,22 @@ private:
  *
  * This class supports verifying EdDSA (PureEdDSA according to RFC8032) signatures.
  */
-class EdDSASignaturePublicKeyCtx : public MessageVerificationCtx {
+class EdDSASignaturePublicKeyCtx : public MessageVerificationCtx
+{
 public:
-
     /**
      * @brief Constructor
      * @param key The public key to be used
      * @throw MoCOCrWException If key is not an Ed448 or Ed25519 public key
      */
-    EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key);
+    EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key);
 
     /**
      * @brief Constructor
      * @param cert The certificate containing the publiy key to be used
      * @throw MoCOCrWException If the certificate does not contain an Ed448 or Ed25519 public key
      */
-    EdDSASignaturePublicKeyCtx(const X509Certificate &cert);
+    EdDSASignaturePublicKeyCtx(const X509Certificate& cert);
 
     /**
      * @brief Destructor
@@ -675,15 +704,15 @@ public:
     /**
      * @brief Copy Constructor
      */
-    EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx &other);
+    EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx& other);
 
     /**
      * @brief Copy Assignment
      */
-    EdDSASignaturePublicKeyCtx& operator=(const EdDSASignaturePublicKeyCtx &other);
+    EdDSASignaturePublicKeyCtx& operator=(const EdDSASignaturePublicKeyCtx& other);
 
-    void verifyMessage(const std::vector<uint8_t> &signature,
-                       const std::vector<uint8_t> &message) override;
+    void verifyMessage(const std::vector<uint8_t>& signature,
+                       const std::vector<uint8_t>& message) override;
 
 private:
     /**
@@ -697,4 +726,4 @@ private:
      */
     std::unique_ptr<Impl> _impl;
 };
-}
+}  // namespace mococrw

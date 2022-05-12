@@ -22,11 +22,10 @@ namespace mococrw
 {
 namespace utility
 {
-
-template<class StackSmartPtrType, class ContainerType>
-auto buildStackFromContainer(const ContainerType &cnt) {
-    auto stack =
-        mococrw::openssl::createManagedOpenSSLObject<StackSmartPtrType>();
+template <class StackSmartPtrType, class ContainerType>
+auto buildStackFromContainer(const ContainerType &cnt)
+{
+    auto stack = mococrw::openssl::createManagedOpenSSLObject<StackSmartPtrType>();
 
     for (const auto &elem : cnt) {
         mococrw::openssl::addObjectToStack(stack.get(), elem.internal());
@@ -34,5 +33,5 @@ auto buildStackFromContainer(const ContainerType &cnt) {
     return stack;
 }
 
-}  //::utility
-}  //::mococrw
+}  // namespace utility
+}  // namespace mococrw

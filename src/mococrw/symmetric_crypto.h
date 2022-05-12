@@ -27,34 +27,20 @@
 
 namespace mococrw
 {
-
 /**
  * SymmetricCipherMode defines symmetric cipher modes supported by the library.
  */
-enum class SymmetricCipherMode
-{
-    GCM,
-    CBC,
-    CTR
-};
+enum class SymmetricCipherMode { GCM, CBC, CTR };
 
 /**
  * Supported key lengths for symmetric cipher
  */
-enum class SymmetricCipherKeySize
-{
-    S_128,
-    S_256
-};
+enum class SymmetricCipherKeySize { S_128, S_256 };
 
 /**
  * Supported padding types for symmetric encryption.
  */
-enum class SymmetricCipherPadding
-{
-    NO,
-    PKCS
-};
+enum class SymmetricCipherPadding { NO, PKCS };
 
 /**
  * @brief Returns the length of the symmetric key in bytes
@@ -82,15 +68,14 @@ size_t getSymmetricCipherKeySize(SymmetricCipherKeySize keySize);
  * Simple example of encryption:
  * @code
  *   // Encryption
- *   auto encryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256, secretKey}.buildEncryptor();
- *   encryptor->update(plaintext);
- *   auto ciphertext = encryptor->finish();
+ *   auto encryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256,
+ * secretKey}.buildEncryptor(); encryptor->update(plaintext); auto ciphertext = encryptor->finish();
  *   auto iv = encryptor->getIV();
  *
  *   // Decryption
- *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
- *   decryptor->update(ciphertext);
- *   auto decryptedText = decryptor->finish();
+ *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256,
+ * secretKey}.setIV(iv).buildDecryptor(); decryptor->update(ciphertext); auto decryptedText =
+ * decryptor->finish();
  * @endcode
  */
 class SymmetricCipherI
@@ -162,15 +147,13 @@ public:
  *
  * @code
  *   // Encryption
- *   auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.buildAuthenticatedEncryptor();
- *   encryptor->update(plaintext);
- *   auto ciphertext = encryptor->finish();
- *   auto iv = encryptor->getIV();
- *   auto tag = encryptor->getAuthTag();
+ *   auto encryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256,
+ * secretKey}.buildAuthenticatedEncryptor(); encryptor->update(plaintext); auto ciphertext =
+ * encryptor->finish(); auto iv = encryptor->getIV(); auto tag = encryptor->getAuthTag();
  *
  *   // Decryption
- *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildAuthenticatedDecryptor();
- *   decryptor->update(ciphertext);
+ *   auto decryptor = AESCipherBuilder{SymmetricCipherMode::GCM, SymmetricCipherKeySize::S_256,
+ * secretKey}.setIV(iv).buildAuthenticatedDecryptor(); decryptor->update(ciphertext);
  *   decryptor->setAuthTag(tag);
  *   std::vector<uint8_t> decryptedText;
  *   try {
@@ -206,10 +189,10 @@ public:
     /**
      * Add associated data.
      *
-     * This function adds the associated data in AEAD modes for authenticating while encrypting or verifying while
-     * decrypting. addAssociatedData() can be called multiple times but it must be called before finalizing decryption
-     * using SymmetricCipherI::finish() and before putting encrypted data to the message
-     * using SymmetricCipherI::update()
+     * This function adds the associated data in AEAD modes for authenticating while encrypting or
+     * verifying while decrypting. addAssociatedData() can be called multiple times but it must be
+     * called before finalizing decryption using SymmetricCipherI::finish() and before putting
+     * encrypted data to the message using SymmetricCipherI::update()
      *
      * @param associatedData chunk of data to associate/verify.
      */
@@ -238,15 +221,14 @@ public:
 protected:
     friend AESCipherBuilder;
 
-    enum class Operation
-    {
-        Encryption,
-        Decryption
-    };
+    enum class Operation { Encryption, Decryption };
 
-    AESCipher(SymmetricCipherMode mode, SymmetricCipherKeySize keySize,
-              SymmetricCipherPadding padding, const std::vector<uint8_t> &secretKey,
-              const std::vector<uint8_t> &iv, Operation operation);
+    AESCipher(SymmetricCipherMode mode,
+              SymmetricCipherKeySize keySize,
+              SymmetricCipherPadding padding,
+              const std::vector<uint8_t> &secretKey,
+              const std::vector<uint8_t> &iv,
+              Operation operation);
 
     class Impl;
 
@@ -270,16 +252,21 @@ public:
 private:
     friend AESCipherBuilder;
 
-    AuthenticatedAESCipher(SymmetricCipherMode mode, SymmetricCipherKeySize keySize, SymmetricCipherPadding padding,
-                           const std::vector<uint8_t> &secretKey, const std::vector<uint8_t> &iv,
-                           size_t authTagLength, AESCipher::Operation operation);
+    AuthenticatedAESCipher(SymmetricCipherMode mode,
+                           SymmetricCipherKeySize keySize,
+                           SymmetricCipherPadding padding,
+                           const std::vector<uint8_t> &secretKey,
+                           const std::vector<uint8_t> &iv,
+                           size_t authTagLength,
+                           AESCipher::Operation operation);
 };
 
 /**
  * Factory for creating AES ciphers.
  *
  * @code
- * auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256, secretKey}.setIV(iv).buildDecryptor();
+ * auto decryptor = AESCipherBuilder{SymmetricCipherMode::CTR, SymmetricCipherKeySize::S_256,
+ * secretKey}.setIV(iv).buildDecryptor();
  * @endcode
  */
 class AESCipherBuilder
@@ -293,7 +280,8 @@ public:
      * @param secretKey secret key. Size of the key must match the created cipher.
      * For AES-256 it must be 32 bytes long.
      */
-    AESCipherBuilder(SymmetricCipherMode mode, SymmetricCipherKeySize keySize,
+    AESCipherBuilder(SymmetricCipherMode mode,
+                     SymmetricCipherKeySize keySize,
                      const std::vector<uint8_t> &secretKey);
 
     /**
@@ -305,7 +293,8 @@ public:
     /**
      * Set padding
      *
-     * Optionally change type of padding of the created cipher. Defaults to SymmetricCipherPadding::PKCS.
+     * Optionally change type of padding of the created cipher. Defaults to
+     * SymmetricCipherPadding::PKCS.
      *
      * @param padding type of padding.
      * @return builder instance
@@ -325,7 +314,8 @@ public:
      * cipher you are building. Also, use cryptographically secure IVs using
      * utility::cryptoRandomBytes().
      *
-     * @param iv the initialization vector. Usually, you get this value together with the ciphertext and password.
+     * @param iv the initialization vector. Usually, you get this value together with the ciphertext
+     * and password.
      * @return builder instance
      */
     AESCipherBuilder &setIV(const std::vector<uint8_t> &iv);
@@ -343,7 +333,8 @@ public:
      * Use this method to change default length of authentication tag which the encryptor will
      * return in getAuthTag(). Default value is 128 bits (16 bytes).
      *
-     * @note Do not use when creating a cipher for decryption. It does not make sense and will throw.
+     * @note Do not use when creating a cipher for decryption. It does not make sense and will
+     * throw.
      *
      * @warning Please note that security of authenticated encryption directly depends on the length
      * of the authentication tag. If you think that you have valid reasons for using tag lengths
@@ -411,4 +402,4 @@ private:
  */
 bool isAuthenticatedCipherMode(SymmetricCipherMode mode);
 
-} // namespace mococrw
+}  // namespace mococrw

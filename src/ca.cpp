@@ -26,27 +26,27 @@
 
 namespace mococrw
 {
-
 using namespace openssl;
 
 CertificateAuthority::CertificateAuthority(CertificateSigningParameters defaultParams,
                                            uint64_t nextSerialNumber,
                                            X509Certificate rootCertificate,
                                            AsymmetricKeypair privateKey)
-    : _defaultSignParams{std::move(defaultParams)},
-      _nextSerialNumber{nextSerialNumber},
-      _rootCert{std::move(rootCertificate)},
-      _privateKey{std::move(privateKey)}
+        : _defaultSignParams{std::move(defaultParams)}
+        , _nextSerialNumber{nextSerialNumber}
+        , _rootCert{std::move(rootCertificate)}
+        , _privateKey{std::move(privateKey)}
 {
     if (_privateKey != _rootCert.getPublicKey()) {
         throw MoCOCrWException{"Tried to initialize CA but private key didn't match certificate"};
     }
 }
 
-X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeypair &privateKey,
-                                          const DistinguishedName &dn,
-                                          uint64_t serialNumber,
-                                          const CertificateSigningParameters &signParams)
+X509Certificate CertificateAuthority::createRootCertificate(
+        const AsymmetricKeypair &privateKey,
+        const DistinguishedName &dn,
+        uint64_t serialNumber,
+        const CertificateSigningParameters &signParams)
 {
     auto basicConstraints = signParams.extension<BasicConstraintsExtension>();
 
@@ -62,7 +62,7 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
     dn.populateX509Name(internalName);
     _X509_set_issuer_name(cert.get(), internalName.get());
     _X509_set_subject_name(cert.get(), internalName.get());
-    _X509_set_pubkey(cert.get(), const_cast<EVP_PKEY*>(privateKey.internal()));
+    _X509_set_pubkey(cert.get(), const_cast<EVP_PKEY *>(privateKey.internal()));
     _X509_set_serialNumber(cert.get(), serialNumber);
 
     X509_set_version(cert.get(), certificateVersion);
@@ -72,7 +72,7 @@ X509Certificate CertificateAuthority::createRootCertificate(const AsymmetricKeyp
 }
 
 X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &csr,
-                            const CertificateSigningParameters &signParams)
+                                               const CertificateSigningParameters &signParams)
 {
     /* OpenSSL internally dups X509_NAMEs when assigning them to a new
      * cert. No special memory management needed.
@@ -101,36 +101,38 @@ X509Certificate CertificateAuthority::_signCSR(const CertificateSigningRequest &
         // CA's notBefore can't be smaller than issued cert's notBefore i.e. CA can't
         // issue a certificate older than CA itself
         if (_rootCert.getNotBeforeAsn1() > cert.getNotBeforeAsn1()) {
-            throw MoCOCrWException("CSR: Issued certificate can not be valid before issuing "
-                                   "certificate (CA's cert)");
+            throw MoCOCrWException(
+                    "CSR: Issued certificate can not be valid before issuing "
+                    "certificate (CA's cert)");
         }
         // CA's notAfter has to be bigger than Cert's notAfter.
         if (_rootCert.getNotAfterAsn1() < cert.getNotAfterAsn1()) {
-            throw MoCOCrWException("CSR: Certificate's validity period should not exceed the "
-                                   "validity bounds of the issuing certificate (CA's cert).");
+            throw MoCOCrWException(
+                    "CSR: Certificate's validity period should not exceed the "
+                    "validity bounds of the issuing certificate (CA's cert).");
         }
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificates({_rootCert})
-            .addIntermediateCertificates({})
-            .setVerificationCheckTime(cert.getNotBeforeAsn1());
+                .addIntermediateCertificates({})
+                .setVerificationCheckTime(cert.getNotBeforeAsn1());
         cert.verify(ctx);
         // OpenSSL wants context verification time strictly earlier than notAfter. See check in
-        // x509_check_cert_time that fails if X509_cmp_time returns -1 (notAfter <= ctx verification time)
+        // x509_check_cert_time that fails if X509_cmp_time returns -1 (notAfter <= ctx verification
+        // time)
         ctx.setVerificationCheckTime(cert.getNotAfterAsn1() - Asn1Time::Seconds(1));
         cert.verify(ctx);
         _nextSerialNumber++;
         return cert;
     } catch (const MoCOCrWException &e) {
         throw MoCOCrWException(
-                std::string("Certificate creation failed: the generated certificate is invalid: ") + e.what()
-                );
+                std::string("Certificate creation failed: the generated certificate is invalid: ") +
+                e.what());
     }
-
 }
 
-void CertificateAuthority::_signCertificate(X509* cert,
-                         const AsymmetricKeypair &privateKey,
-                         const CertificateSigningParameters &signParams)
+void CertificateAuthority::_signCertificate(X509 *cert,
+                                            const AsymmetricKeypair &privateKey,
+                                            const CertificateSigningParameters &signParams)
 {
     auto notBefore = signParams.notBeforeAsn1();
     auto notAfter = notBefore + signParams.certificateValidity();
@@ -146,22 +148,16 @@ void CertificateAuthority::_signCertificate(X509* cert,
         _X509_add_ext(cert, extension.get());
     }
 
-    _X509_sign(cert, const_cast<EVP_PKEY*>(privateKey.internal()), signParams.digestType());
+    _X509_sign(cert, const_cast<EVP_PKEY *>(privateKey.internal()), signParams.digestType());
 }
 
-X509Certificate CertificateAuthority::getRootCertificate() const
-{
-    return _rootCert;
-}
+X509Certificate CertificateAuthority::getRootCertificate() const { return _rootCert; }
 
 CertificateSigningParameters CertificateAuthority::getSignParams() const
 {
     return _defaultSignParams;
 }
 
-uint64_t CertificateAuthority::getNextSerialNumber() const
-{
-    return _nextSerialNumber;
-}
+uint64_t CertificateAuthority::getNextSerialNumber() const { return _nextSerialNumber; }
 
-} //::mococrw
+}  // namespace mococrw

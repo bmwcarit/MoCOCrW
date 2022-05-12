@@ -21,15 +21,13 @@
 #include "mococrw/error.h"
 #include "mococrw/openssl_wrap.h"
 
-#include <boost/format.hpp>
 #include <openssl/crypto.h>
 #include <openssl/hmac.h>
+#include <boost/format.hpp>
 
 namespace mococrw
 {
-
 MessageAuthenticationCode::~MessageAuthenticationCode() = default;
-
 
 /* HMAC */
 
@@ -38,7 +36,7 @@ class HMAC::Impl
 public:
     Impl(openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
     {
-        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(hashFunction);
+        const EVP_MD *digestFn = openssl::_getMDPtrFromDigestType(hashFunction);
 
         if (key.empty()) {
             throw MoCOCrWException("Key for HMAC is empty.");
@@ -50,7 +48,7 @@ public:
 
     ~Impl() = default;
 
-    Impl(Impl&&) = default;
+    Impl(Impl &&) = default;
 
     void update(const std::vector<uint8_t> &message)
     {
@@ -84,8 +82,9 @@ public:
         }
 
         if (CRYPTO_memcmp(hmacValue.data(), _result.data(), hmacValue.size())) {
-            throw MoCOCrWException("HMAC verification failed. Calculated value: " + utility::toHex(_result)
-                                   + ". Received value: " + utility::toHex(hmacValue));
+            throw MoCOCrWException(
+                    "HMAC verification failed. Calculated value: " + utility::toHex(_result) +
+                    ". Received value: " + utility::toHex(hmacValue));
         }
     }
 
@@ -95,7 +94,6 @@ private:
     std::vector<uint8_t> _result;
 };
 
-
 HMAC::HMAC(mococrw::openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
 {
     _impl = std::make_unique<HMAC::Impl>(hashFunction, key);
@@ -103,25 +101,15 @@ HMAC::HMAC(mococrw::openssl::DigestTypes hashFunction, const std::vector<uint8_t
 
 HMAC::~HMAC() = default;
 
-HMAC::HMAC(HMAC&& other) = default;
+HMAC::HMAC(HMAC &&other) = default;
 
-HMAC& HMAC::operator=(HMAC&& other) = default;
+HMAC &HMAC::operator=(HMAC &&other) = default;
 
-void HMAC::update(const std::vector<uint8_t> &message)
-{
-    _impl->update(message);
-}
+void HMAC::update(const std::vector<uint8_t> &message) { _impl->update(message); }
 
-std::vector<uint8_t> HMAC::finish()
-{
-    return _impl->finish();
-}
+std::vector<uint8_t> HMAC::finish() { return _impl->finish(); }
 
-void HMAC::verify(const std::vector<uint8_t> &hmacValue)
-{
-    _impl->verify(hmacValue);
-}
-
+void HMAC::verify(const std::vector<uint8_t> &hmacValue) { _impl->verify(hmacValue); }
 
 /* CMAC */
 
@@ -130,13 +118,14 @@ class CMAC::Impl
 public:
     Impl(openssl::CmacCipherTypes cipherType, const std::vector<uint8_t> &key)
     {
-        const EVP_CIPHER* cipher = openssl::_getCipherPtrFromCmacCipherType(cipherType);
+        const EVP_CIPHER *cipher = openssl::_getCipherPtrFromCmacCipherType(cipherType);
 
         size_t expectedKeySize = openssl::_EVP_CIPHER_key_length(cipher);
         if (key.size() != expectedKeySize) {
             auto cipherName = openssl::_EVP_CIPHER_name(cipher);
-            auto formatter = boost::format("Invalid key size for %s: Expected %d bytes but got key with %d bytes.");
-            formatter % cipherName % expectedKeySize % key.size(); 
+            auto formatter = boost::format(
+                    "Invalid key size for %s: Expected %d bytes but got key with %d bytes.");
+            formatter % cipherName % expectedKeySize % key.size();
             throw MoCOCrWException(formatter.str());
         }
 
@@ -146,7 +135,7 @@ public:
 
     ~Impl() = default;
 
-    Impl(Impl&&) = default;
+    Impl(Impl &&) = default;
 
     void update(const std::vector<uint8_t> &message)
     {
@@ -180,8 +169,9 @@ public:
         }
 
         if (CRYPTO_memcmp(cmacValue.data(), _result.data(), cmacValue.size())) {
-            throw MoCOCrWException("CMAC verification failed. Calculated value: " + utility::toHex(_result)
-                                   + ". Received value: " + utility::toHex(cmacValue));
+            throw MoCOCrWException(
+                    "CMAC verification failed. Calculated value: " + utility::toHex(_result) +
+                    ". Received value: " + utility::toHex(cmacValue));
         }
     }
 
@@ -191,30 +181,21 @@ private:
     std::vector<uint8_t> _result;
 };
 
-
 CMAC::CMAC(mococrw::openssl::CmacCipherTypes cipherType, const std::vector<uint8_t> &key)
-    : _impl(std::make_unique<CMAC::Impl>(cipherType, key))
-{}
+        : _impl(std::make_unique<CMAC::Impl>(cipherType, key))
+{
+}
 
 CMAC::~CMAC() = default;
 
-CMAC::CMAC(CMAC&& other) = default;
+CMAC::CMAC(CMAC &&other) = default;
 
-CMAC& CMAC::operator=(CMAC&& other) = default;
+CMAC &CMAC::operator=(CMAC &&other) = default;
 
-void CMAC::update(const std::vector<uint8_t> &message)
-{
-    _impl->update(message);
-}
+void CMAC::update(const std::vector<uint8_t> &message) { _impl->update(message); }
 
-std::vector<uint8_t> CMAC::finish()
-{
-    return _impl->finish();
-}
+std::vector<uint8_t> CMAC::finish() { return _impl->finish(); }
 
-void CMAC::verify(const std::vector<uint8_t> &cmacValue)
-{
-    _impl->verify(cmacValue);
-}
+void CMAC::verify(const std::vector<uint8_t> &cmacValue) { _impl->verify(cmacValue); }
 
-}
+}  // namespace mococrw

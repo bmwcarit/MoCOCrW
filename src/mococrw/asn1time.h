@@ -22,7 +22,6 @@
 
 namespace mococrw
 {
-
 class Asn1Time
 {
 public:
@@ -66,7 +65,7 @@ public:
      * @return the calculated Asn1Time
      * @throws MoCOCrWException if the resulting time would be outside of the years 1900-9999
      */
-    Asn1Time operator+(const Seconds& d) const;
+    Asn1Time operator+(const Seconds &d) const;
 
     /**
      * @brief Returns a duplicate of this Asn1Time that is decreased by the given duration.
@@ -74,14 +73,14 @@ public:
      * @return the calculated Asn1Time
      * @throws MoCOCrWException if the resulting time would be outside of the years 1900-9999
      */
-    Asn1Time operator-(const Seconds& d) const;
+    Asn1Time operator-(const Seconds &d) const;
 
     /**
      * @brief Returns the difference between this Asn1Time and the given one.
      * @param rhs the other Asn1Time to which the difference is calculated
      * @return a difference that is guaranteed to have rhs + diff = this
      */
-    Seconds operator-(const Asn1Time& rhs) const;
+    Seconds operator-(const Asn1Time &rhs) const;
 
     /**
      * @brief Returns the equivalent of this Asn1Time as a time_point.
@@ -106,8 +105,8 @@ public:
      */
     std::string toString() const;
 
-    const ASN1_TIME* internal() const { return _asn1Time.get(); }
-    ASN1_TIME* internal() { return _asn1Time.get(); }
+    const ASN1_TIME *internal() const { return _asn1Time.get(); }
+    ASN1_TIME *internal() { return _asn1Time.get(); }
 
     bool operator==(const Asn1Time &rhs) const;
     bool operator!=(const Asn1Time &rhs) const;
@@ -118,8 +117,9 @@ public:
 
     explicit Asn1Time(openssl::SSL_ASN1_TIME_Ptr &&ptr);
     explicit Asn1Time(const ASN1_TIME *t);
+
 private:
     openssl::SSL_ASN1_TIME_SharedPtr _asn1Time;
 };
 
-}
+}  // namespace mococrw

@@ -33,21 +33,21 @@
 using namespace mococrw;
 using namespace std::string_literals;
 
-struct rootCertAndCa {
+struct rootCertAndCa
+{
     X509Certificate rootCert;
     CertificateAuthority ca;
 };
 
-struct certKeys {
+struct certKeys
+{
     AsymmetricKeypair rootKey;
     AsymmetricKeypair intermediateKey;
     AsymmetricKeypair userKey;
 };
 
-
-class CATest : public ::testing::Test,
-               public ::testing::WithParamInterface<certKeys>{
-
+class CATest : public ::testing::Test, public ::testing::WithParamInterface<certKeys>
+{
 public:
     void SetUp() override;
 
@@ -55,15 +55,13 @@ public:
                                    const CertificateSigningParameters& caSignParams)
     {
         auto rootCert = CertificateAuthority::createRootCertificate(
-                key,
-                *_rootCertDetails,
-                0,
-                _caSignParams);
+                key, *_rootCertDetails, 0, _caSignParams);
         auto ca = CertificateAuthority(caSignParams, 1, rootCert, key);
         return rootCertAndCa{rootCert, ca};
     };
 
     static std::vector<certKeys> _certKeyList;
+
 protected:
     std::unique_ptr<AsymmetricKeypair> _rootRSAKey;
 
@@ -98,21 +96,14 @@ protected:
     std::unique_ptr<CertificateAuthority> _eccCa;
 
     Asn1Time _rootCertSignPoint = Asn1Time::fromTimeT(0);
-
 };
 
-std::vector<certKeys> CATest::_certKeyList
-{
-    {
-        AsymmetricKeypair::generateRSA(),
-        AsymmetricKeypair::generateRSA(),
-        AsymmetricKeypair::generateRSA()},
-    {
-        AsymmetricKeypair::generateECC(),
-        AsymmetricKeypair::generateECC(),
-        AsymmetricKeypair::generateECC()
-    }
-};
+std::vector<certKeys> CATest::_certKeyList{{AsymmetricKeypair::generateRSA(),
+                                            AsymmetricKeypair::generateRSA(),
+                                            AsymmetricKeypair::generateRSA()},
+                                           {AsymmetricKeypair::generateECC(),
+                                            AsymmetricKeypair::generateECC(),
+                                            AsymmetricKeypair::generateECC()}};
 
 void CATest::SetUp()
 {
@@ -120,88 +111,84 @@ void CATest::SetUp()
 
     _rootEccKey = std::make_unique<AsymmetricKeypair>(AsymmetricKeypair::generateECC());
 
-    _certDetails = std::make_unique<DistinguishedName>(DistinguishedName::Builder{}
-                 .organizationalUnitName("Car IT")
-                 .organizationName("BMW")
-                 .countryName("DE")
-                 .commonName("BMW internal CA Certificate").build());
+    _certDetails =
+            std::make_unique<DistinguishedName>(DistinguishedName::Builder{}
+                                                        .organizationalUnitName("Car IT")
+                                                        .organizationName("BMW")
+                                                        .countryName("DE")
+                                                        .commonName("BMW internal CA Certificate")
+                                                        .build());
 
-    _secondaryCertDetails = std::make_unique<DistinguishedName>(DistinguishedName::Builder{}
-                 .organizationalUnitName("Car IT")
-                 .organizationName("BMW")
-                 .countryName("DE")
-                 .commonName("BMW internal secondary Certificate").build());
+    _secondaryCertDetails = std::make_unique<DistinguishedName>(
+            DistinguishedName::Builder{}
+                    .organizationalUnitName("Car IT")
+                    .organizationName("BMW")
+                    .countryName("DE")
+                    .commonName("BMW internal secondary Certificate")
+                    .build());
 
-    _rootCertDetails = std::make_unique<DistinguishedName>(DistinguishedName::Builder{}
-            .commonName("ImATeapot")
-            .countryName("DE")
-            .organizationName("Linux AG")
-            .organizationalUnitName("Linux Support")
-            .pkcs9EmailAddress("support@example.com")
-            .localityName("oben")
-            .stateOrProvinceName("nebenan")
-            .serialNumber("08E36DD501941432358AFE8256BC6EFD")
-            .build());
+    _rootCertDetails = std::make_unique<DistinguishedName>(
+            DistinguishedName::Builder{}
+                    .commonName("ImATeapot")
+                    .countryName("DE")
+                    .organizationName("Linux AG")
+                    .organizationalUnitName("Linux Support")
+                    .pkcs9EmailAddress("support@example.com")
+                    .localityName("oben")
+                    .stateOrProvinceName("nebenan")
+                    .serialNumber("08E36DD501941432358AFE8256BC6EFD")
+                    .build());
 
     _exampleConstraints = std::make_unique<BasicConstraintsExtension>(false, 0);
-    _exampleUsage = std::make_unique<KeyUsageExtension>(KeyUsageExtension::Builder{}.digitalSignature()
-                                               .keyCertSign().cRLSign().build());
+    _exampleUsage = std::make_unique<KeyUsageExtension>(
+            KeyUsageExtension::Builder{}.digitalSignature().keyCertSign().cRLSign().build());
 
     BasicConstraintsExtension caConstraint{true, 1};
     auto notBeforeTime = Asn1Time::now() - std::chrono::seconds{1};
 
     _signParamsBuilder = CertificateSigningParameters::Builder{}
-        .digestType(openssl::DigestTypes::SHA256)
-        .addExtension(*_exampleConstraints)
-        .addExtension(*_exampleUsage)
-        .certificateValidity(Asn1Time::Seconds(120))
-        .notBeforeAsn1(notBeforeTime);
+                                 .digestType(openssl::DigestTypes::SHA256)
+                                 .addExtension(*_exampleConstraints)
+                                 .addExtension(*_exampleUsage)
+                                 .certificateValidity(Asn1Time::Seconds(120))
+                                 .notBeforeAsn1(notBeforeTime);
 
     _signParams = _signParamsBuilder.build();
 
     _caSignParams = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(caConstraint)
-            .addExtension(*_exampleUsage)
-            .notBeforeAsn1(notBeforeTime)
-            .build();
+                            .certificateValidity(Asn1Time::Seconds(120))
+                            .digestType(openssl::DigestTypes::SHA256)
+                            .addExtension(caConstraint)
+                            .addExtension(*_exampleUsage)
+                            .notBeforeAsn1(notBeforeTime)
+                            .build();
 
-    _caSignParamsOneYearOldOneYearToGo = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 365 * 2))
-            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 365))
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(caConstraint)
-            .addExtension(*_exampleUsage)
-            .build();
+    _caSignParamsOneYearOldOneYearToGo =
+            CertificateSigningParameters::Builder{}
+                    .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 365 * 2))
+                    .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 365))
+                    .digestType(openssl::DigestTypes::SHA256)
+                    .addExtension(caConstraint)
+                    .addExtension(*_exampleUsage)
+                    .build();
 
     _rootRsaCert = std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
-                                                      *_rootRSAKey,
-                                                      *_rootCertDetails,
-                                                      0,
-                                                      _caSignParams));
+            *_rootRSAKey, *_rootCertDetails, 0, _caSignParams));
 
-    _rootRsaCertOneYearOldOneYearToGo = std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
-                                                      *_rootRSAKey,
-                                                      *_rootCertDetails,
-                                                      0,
-                                                      _caSignParamsOneYearOldOneYearToGo));
+    _rootRsaCertOneYearOldOneYearToGo =
+            std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
+                    *_rootRSAKey, *_rootCertDetails, 0, _caSignParamsOneYearOldOneYearToGo));
 
     _rootEccCert = std::make_unique<X509Certificate>(CertificateAuthority::createRootCertificate(
-            *_rootEccKey,
-            *_rootCertDetails,
-            0,
-            _caSignParams));
+            *_rootEccKey, *_rootCertDetails, 0, _caSignParams));
 
     _rootCertSignPoint = Asn1Time::now();
 
     _rsaCa = std::make_unique<CertificateAuthority>(_signParams, 1, *_rootRsaCert, *_rootRSAKey);
     _eccCa = std::make_unique<CertificateAuthority>(_signParams, 1, *_rootEccCert, *_rootEccKey);
-
 }
 
-
-void testValiditySpan(const X509Certificate &cert,
+void testValiditySpan(const X509Certificate& cert,
                       Asn1Time::Seconds validitySpan,
                       Asn1Time certificationTime)
 {
@@ -216,36 +203,37 @@ TEST_F(CATest, testAddExtensionWithSharedPointer)
             std::make_shared<BasicConstraintsExtension>(true, 1);
 
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-                .digestType(openssl::DigestTypes::SHA256)
-                .addExtension(extensionPtr)
-                .build());
+                            .certificateValidity(Asn1Time::Seconds(120))
+                            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
+                            .digestType(openssl::DigestTypes::SHA256)
+                            .addExtension(extensionPtr)
+                            .build());
 }
 
 TEST_F(CATest, testBuildSignParamsWithExtensions)
 {
-    //one extension
+    // one extension
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-                .digestType(openssl::DigestTypes::SHA256)
-                .addExtension(*_exampleConstraints)
-                .build());
+                            .certificateValidity(Asn1Time::Seconds(120))
+                            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
+                            .digestType(openssl::DigestTypes::SHA256)
+                            .addExtension(*_exampleConstraints)
+                            .build());
 
-    //Two extensions
+    // Two extensions
     EXPECT_NO_THROW(CertificateSigningParameters::Builder{}
-                .certificateValidity(Asn1Time::Seconds(120))
-                .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-                .digestType(openssl::DigestTypes::SHA256)
-                .addExtension(*_exampleConstraints)
-                .addExtension(*_exampleUsage)
-                .build());
+                            .certificateValidity(Asn1Time::Seconds(120))
+                            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
+                            .digestType(openssl::DigestTypes::SHA256)
+                            .addExtension(*_exampleConstraints)
+                            .addExtension(*_exampleUsage)
+                            .build());
 }
 
 TEST_F(CATest, testRequestNotExistingExtension)
 {
-    CertificateSigningParameters cert = CertificateSigningParameters::Builder{}
+    CertificateSigningParameters cert =
+            CertificateSigningParameters::Builder{}
                     .certificateValidity(Asn1Time::Seconds(120))
                     .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
                     .digestType(openssl::DigestTypes::SHA256)
@@ -258,30 +246,30 @@ TEST_F(CATest, testRequestNotExistingExtension)
 TEST_F(CATest, testBuildSignParamsOneExtensionTwice)
 {
     BasicConstraintsExtension constraint{true, 1};
-    //an existing extension is overwritten and not added twice
-    CertificateSigningParameters params = CertificateSigningParameters::Builder{}
-            .certificateValidity(Asn1Time::Seconds(120))
-            .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
-            .digestType(openssl::DigestTypes::SHA256)
-            .addExtension(*_exampleConstraints)
-            .addExtension(*_exampleUsage)
-            .addExtension(constraint)
-            .build();
+    // an existing extension is overwritten and not added twice
+    CertificateSigningParameters params =
+            CertificateSigningParameters::Builder{}
+                    .certificateValidity(Asn1Time::Seconds(120))
+                    .notBeforeAsn1(Asn1Time::now() - std::chrono::seconds{1})
+                    .digestType(openssl::DigestTypes::SHA256)
+                    .addExtension(*_exampleConstraints)
+                    .addExtension(*_exampleUsage)
+                    .addExtension(constraint)
+                    .build();
 
     EXPECT_EQ(params.extensionMap().size(), 2);
     auto basicConstraints = params.extension<BasicConstraintsExtension>();
     EXPECT_EQ(constraint.getConfigurationString(), basicConstraints->getConfigurationString());
-
 }
 
 TEST_F(CATest, testIterateOnExtensionMap)
 {
     std::map<openssl::X509Extension_NID, std::string> compareStringMap{
-        {openssl::X509Extension_NID::BasicConstraints,
-                    _exampleConstraints->getConfigurationString()},
-        {openssl::X509Extension_NID::KeyUsage, _exampleUsage->getConfigurationString()}};
+            {openssl::X509Extension_NID::BasicConstraints,
+             _exampleConstraints->getConfigurationString()},
+            {openssl::X509Extension_NID::KeyUsage, _exampleUsage->getConfigurationString()}};
 
-    for (auto &it : _signParams.extensionMap()) {
+    for (auto& it : _signParams.extensionMap()) {
         EXPECT_EQ(it.second.get()->getConfigurationString(), compareStringMap[it.first]);
     }
 
@@ -320,7 +308,6 @@ TEST_P(CATest, testSignedCSRHasCorrectFields)
     EXPECT_EQ(*_certDetails, cert.getSubjectDistinguishedName());
     EXPECT_EQ(data.rootCert.getSubjectDistinguishedName(), cert.getIssuerDistinguishedName());
     EXPECT_NO_THROW(cert.verify({data.rootCert}, {}));
-
 }
 
 TEST_P(CATest, testCanSignCACertificates)
@@ -351,17 +338,18 @@ TEST_P(CATest, testSignedNoCACertificatesCantSignOtherCertificates)
     ASSERT_THROW(newCA.signCSR(csr), MoCOCrWException);
 }
 
-INSTANTIATE_TEST_CASE_P(CATest, CATest,
-                        testing::ValuesIn(CATest::_certKeyList));
+INSTANTIATE_TEST_CASE_P(CATest, CATest, testing::ValuesIn(CATest::_certKeyList));
 
 TEST_F(CATest, testInitializeCAWithNonMatchingKey)
 {
     /* RSA */
-    EXPECT_THROW(CertificateAuthority(_signParams, 0, *_rootRsaCert, AsymmetricKeypair::generateRSA()),
-                 MoCOCrWException);
+    EXPECT_THROW(
+            CertificateAuthority(_signParams, 0, *_rootRsaCert, AsymmetricKeypair::generateRSA()),
+            MoCOCrWException);
     /* ECC */
-    EXPECT_THROW(CertificateAuthority(_signParams, 0, *_rootEccCert, AsymmetricKeypair::generateECC()),
-                 MoCOCrWException);
+    EXPECT_THROW(
+            CertificateAuthority(_signParams, 0, *_rootEccCert, AsymmetricKeypair::generateECC()),
+            MoCOCrWException);
 }
 
 TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
@@ -381,11 +369,13 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutput)
     std::string output = exec(opensslCommandline.c_str());
     std::remove(tmpfile.c_str());
 
-    EXPECT_NE(output.find("Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux Support"),
-                          std::string::npos);
+    EXPECT_NE(output.find(
+                      "Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux Support"),
+              std::string::npos);
 
-    EXPECT_NE(output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
-                          std::string::npos);
+    EXPECT_NE(
+            output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
+            std::string::npos);
 
     EXPECT_NE(output.find("X509v3 Key Usage: critical"), std::string::npos);
     EXPECT_NE(output.find("Digital Signature, Certificate Sign, CRL Sign"), std::string::npos);
@@ -412,20 +402,19 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutputECC)
     std::string output = exec(opensslCommandline.c_str());
     std::remove(tmpfile.c_str());
 
-    EXPECT_NE(output.find("Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux Support, O = Linux AG"),
+    EXPECT_NE(output.find("Issuer: CN = ImATeapot, C = DE, L = oben, ST = nebenan, OU = Linux "
+                          "Support, O = Linux AG"),
               std::string::npos);
 
-    EXPECT_NE(output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
-              std::string::npos);
+    EXPECT_NE(
+            output.find("Subject: CN = BMW internal CA Certificate, C = DE, OU = Car IT, O = BMW"),
+            std::string::npos);
 
-    EXPECT_NE(output.find("ASN1 OID: prime256v1"),
-              std::string::npos);
+    EXPECT_NE(output.find("ASN1 OID: prime256v1"), std::string::npos);
 
-    EXPECT_NE(output.find("Public Key Algorithm: id-ecPublicKey"),
-              std::string::npos);
+    EXPECT_NE(output.find("Public Key Algorithm: id-ecPublicKey"), std::string::npos);
 
-    EXPECT_NE(output.find("NIST CURVE: P-256"),
-              std::string::npos);
+    EXPECT_NE(output.find("NIST CURVE: P-256"), std::string::npos);
 
     EXPECT_NE(output.find("X509v3 Key Usage: critical"), std::string::npos);
     EXPECT_NE(output.find("Digital Signature, Certificate Sign, CRL Sign"), std::string::npos);
@@ -437,7 +426,8 @@ TEST_F(CATest, testVerifyCAAgainstPureOpenSslOutputECC)
 
 TEST_F(CATest, testGetNextSerialNumber)
 {
-    auto eccCa = std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootEccCert, *_rootEccKey);
+    auto eccCa =
+            std::make_unique<CertificateAuthority>(_caSignParams, 0, *_rootEccCert, *_rootEccKey);
     auto keypair = AsymmetricKeypair::generateECC();
     auto nextSerial = eccCa->getNextSerialNumber();
 
@@ -454,82 +444,83 @@ TEST_F(CATest, testGetNextSerialNumber)
 TEST_F(CATest, testSigningWithCustomOrderCA)
 {
     auto orderedSubject = DistinguishedName::CustomOrderBuilder{}
-            .localityName("TestTown")
-            .countryName("DE")
-            .organizationName("MyOrg")
-            .commonName("TestingCA")
-            .build();
+                                  .localityName("TestTown")
+                                  .countryName("DE")
+                                  .organizationName("MyOrg")
+                                  .commonName("TestingCA")
+                                  .build();
 
     auto speciallyOrderedRoot = CertificateAuthority::createRootCertificate(
-                                    *_rootRSAKey,
-                                    orderedSubject,
-                                    0,
-                                    _caSignParams);
+            *_rootRSAKey, orderedSubject, 0, _caSignParams);
     auto ca = CertificateAuthority{_signParams, 1, speciallyOrderedRoot, *_rootRSAKey};
 
     auto keypair = AsymmetricKeypair::generateRSA();
     CertificateSigningRequest csr{*_certDetails, keypair};
-    ASSERT_NO_THROW({
-        auto newCaCert = ca.signCSR(csr);
-    });
+    ASSERT_NO_THROW({ auto newCaCert = ca.signCSR(csr); });
 }
 
 TEST_F(CATest, testIssueCertificateInFuture)
 {
-    auto signParams = _signParamsBuilder
-            .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
-            .certificateValidity(Asn1Time::Seconds(120))
-            .build();
+    auto signParams =
+            _signParamsBuilder
+                    .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
+                    .certificateValidity(Asn1Time::Seconds(120))
+                    .build();
 
-    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+    auto rsaCa = std::make_unique<CertificateAuthority>(
+            signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
 
-    X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
-                                                    AsymmetricKeypair::generateRSA()});
+    X509Certificate cert = rsaCa->signCSR(
+            CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()});
 
     testValiditySpan(cert, signParams.certificateValidity(), signParams.notBeforeAsn1());
 }
 
 TEST_F(CATest, testIssueCertificateInPast)
 {
-    auto signParams = _signParamsBuilder
-            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 364))
-            .certificateValidity(Asn1Time::Seconds(120))
-            .build();
+    auto signParams =
+            _signParamsBuilder
+                    .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 364))
+                    .certificateValidity(Asn1Time::Seconds(120))
+                    .build();
 
-    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+    auto rsaCa = std::make_unique<CertificateAuthority>(
+            signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
 
-    X509Certificate cert = rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
-                                                    AsymmetricKeypair::generateRSA()});
+    X509Certificate cert = rsaCa->signCSR(
+            CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()});
 
     testValiditySpan(cert, signParams.certificateValidity(), signParams.notBeforeAsn1());
 }
 
 TEST_F(CATest, testCantIssueCertificateInFutureThatExpiresAfterRoot)
 {
-    auto signParams = _signParamsBuilder
-            .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
-            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
-            .build();
+    auto signParams =
+            _signParamsBuilder
+                    .notBeforeAsn1(Asn1Time::now() + Asn1Time::Seconds(60 * 60 * 24 * 364))
+                    .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
+                    .build();
 
-    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+    auto rsaCa = std::make_unique<CertificateAuthority>(
+            signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
 
-    EXPECT_THROW(
-        rsaCa->signCSR(CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()}),
-        MoCOCrWException
-    );
+    EXPECT_THROW(rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
+                                                          AsymmetricKeypair::generateRSA()}),
+                 MoCOCrWException);
 }
 
 TEST_F(CATest, testCantIssueCertificateInPastThatIsValidBeforeRoot)
 {
-    auto signParams = _signParamsBuilder
-            .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 366))
-            .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
-            .build();
+    auto signParams =
+            _signParamsBuilder
+                    .notBeforeAsn1(Asn1Time::now() - Asn1Time::Seconds(60 * 60 * 24 * 366))
+                    .certificateValidity(Asn1Time::Seconds(60 * 60 * 24 * 2))
+                    .build();
 
-    auto rsaCa = std::make_unique<CertificateAuthority>(signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
+    auto rsaCa = std::make_unique<CertificateAuthority>(
+            signParams, 0, *_rootRsaCertOneYearOldOneYearToGo, *_rootRSAKey);
 
-    EXPECT_THROW(
-        rsaCa->signCSR(CertificateSigningRequest{*_certDetails, AsymmetricKeypair::generateRSA()}),
-        MoCOCrWException
-    );
+    EXPECT_THROW(rsaCa->signCSR(CertificateSigningRequest{*_certDetails,
+                                                          AsymmetricKeypair::generateRSA()}),
+                 MoCOCrWException);
 }

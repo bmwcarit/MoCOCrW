@@ -23,7 +23,6 @@
 
 namespace mococrw
 {
-
 /**
  * This extension specifies the allowed usages for a key.
  */
@@ -38,87 +37,63 @@ public:
      * @return true if the key may be used for encrypting data in a key exchange.
      * Requires keyAgreement to be set.
      */
-    bool decipherOnly() const
-    {
-        return _decipherOnly;
-    }
+    bool decipherOnly() const { return _decipherOnly; }
 
     /**
      * @return true if the key may be used for decrypting data in a key exchange.
      * Requires keyAgreement to be set.
      */
-    bool encipherOnly() const
-    {
-        return _encipherOnly;
-    }
+    bool encipherOnly() const { return _encipherOnly; }
 
     /**
      * @return true if the key can be used for verifying CRLs.
      */
-    bool cRLSign() const
-    {
-        return _cRLSign;
-    }
+    bool cRLSign() const { return _cRLSign; }
 
     /**
      * @return true if the key can be used for verifying certificates.
      */
-    bool keyCertSign() const
-    {
-        return _keyCertSign;
-    }
+    bool keyCertSign() const { return _keyCertSign; }
 
     /**
      * @return true if the key can be used for a key exchange.
      */
-    bool keyAgreement() const
-    {
-        return _keyAgreement;
-    }
+    bool keyAgreement() const { return _keyAgreement; }
 
     /**
      * @return true if the key may be used for encrypting normal data (excluding keys).
      */
-    bool dataEncipherment() const
-    {
-        return _dataEncipherment;
-    }
+    bool dataEncipherment() const { return _dataEncipherment; }
 
     /**
      * @return true if the key may be used for encrypting keys.
      */
-    bool keyEncipherment() const
-    {
-        return _keyEncipherment;
-    }
+    bool keyEncipherment() const { return _keyEncipherment; }
 
     /**
      * @return true if the certificate owner may not repudiate certificate actions later on.
      */
-    bool nonRepudiation() const
-    {
-        return _nonRepudiation;
-    }
+    bool nonRepudiation() const { return _nonRepudiation; }
 
     /**
      * @return true if the key may be used for validating signatures.
      */
-    bool digitalSignature() const
-    {
-        return _digitalSignature;
-    }
+    bool digitalSignature() const { return _digitalSignature; }
 
-    openssl::X509Extension_NID getNid() const override
-    {
-        return NID;
-    }
+    openssl::X509Extension_NID getNid() const override { return NID; }
 
 private:
     auto _makeTuple() const
     {
-        return std::tie(_decipherOnly, _encipherOnly, _cRLSign, _keyCertSign, _keyAgreement,
-                               _dataEncipherment, _keyEncipherment, _nonRepudiation,
-                               _digitalSignature);
+        return std::tie(_decipherOnly,
+                        _encipherOnly,
+                        _cRLSign,
+                        _keyCertSign,
+                        _keyAgreement,
+                        _dataEncipherment,
+                        _keyEncipherment,
+                        _nonRepudiation,
+                        _digitalSignature);
     }
 
 public:
@@ -127,10 +102,7 @@ public:
         return _makeTuple() == other._makeTuple();
     }
 
-    bool operator!=(const KeyUsageExtension& other) const
-    {
-        return !operator ==(other);
-    }
+    bool operator!=(const KeyUsageExtension& other) const { return !operator==(other); }
 
     std::string getConfigurationString() const override
     {
@@ -234,13 +206,10 @@ public:
         return *this;
     }
 
-    inline KeyUsageExtension build()
-    {
-        return _ku;
-    }
+    inline KeyUsageExtension build() { return _ku; }
 
 private:
     KeyUsageExtension _ku;
 };
 
-} //::mococrw
+}  // namespace mococrw

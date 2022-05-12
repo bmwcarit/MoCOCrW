@@ -19,21 +19,23 @@
 #include "mococrw/kdf.h"
 #include "mococrw/openssl_wrap.h"
 
-namespace mococrw {
-
+namespace mococrw
+{
 KeyDerivationFunction::~KeyDerivationFunction() = default;
 
 class PBKDF2::Impl
 {
 public:
-    Impl(openssl::DigestTypes hashFunction, uint32_t iterations):
-        _hashFunction(hashFunction), _iterations(iterations) {}
+    Impl(openssl::DigestTypes hashFunction, uint32_t iterations)
+            : _hashFunction(hashFunction), _iterations(iterations)
+    {
+    }
 
     ~Impl() = default;
 
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t>& password,
                                    const size_t outputLength,
-                                   const std::vector<uint8_t> &salt)
+                                   const std::vector<uint8_t>& salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
         const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
@@ -54,30 +56,28 @@ PBKDF2::PBKDF2(openssl::DigestTypes hashFunction, uint32_t iterations)
 
 PBKDF2::~PBKDF2() = default;
 
-std::vector<uint8_t> PBKDF2::deriveKey(const std::vector<uint8_t> &password,
+std::vector<uint8_t> PBKDF2::deriveKey(const std::vector<uint8_t>& password,
                                        const size_t outputLength,
-                                       const std::vector<uint8_t> &salt)
+                                       const std::vector<uint8_t>& salt)
 {
     return _impl->deriveKey(password, outputLength, salt);
 }
 
 PBKDF2::PBKDF2(PBKDF2&& other) = default;
 
-PBKDF2& PBKDF2::operator=(PBKDF2&& other) {
+PBKDF2& PBKDF2::operator=(PBKDF2&& other)
+{
     this->_impl = std::move(other._impl);
     return *this;
 }
 
-PBKDF2::PBKDF2(const PBKDF2& other)
-    : _impl(std::make_unique<PBKDF2::Impl>(*other._impl)) {}
+PBKDF2::PBKDF2(const PBKDF2& other) : _impl(std::make_unique<PBKDF2::Impl>(*other._impl)) {}
 
-PBKDF2& PBKDF2::operator=(const PBKDF2& other) {
+PBKDF2& PBKDF2::operator=(const PBKDF2& other)
+{
     this->_impl = std::make_unique<PBKDF2::Impl>(*other._impl);
     return *this;
 }
-
-
-
 
 class X963KDF::Impl
 {
@@ -86,9 +86,9 @@ public:
 
     ~Impl() = default;
 
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t>& password,
                                    const size_t outputLength,
-                                   const std::vector<uint8_t> &salt)
+                                   const std::vector<uint8_t>& salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
         const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
@@ -107,16 +107,16 @@ X963KDF::X963KDF(openssl::DigestTypes hashFunction)
 
 X963KDF::~X963KDF() = default;
 
-std::vector<uint8_t> X963KDF::deriveKey(const std::vector<uint8_t> &password, const size_t outputLength,
-                                        const std::vector<uint8_t> &salt)
+std::vector<uint8_t> X963KDF::deriveKey(const std::vector<uint8_t>& password,
+                                        const size_t outputLength,
+                                        const std::vector<uint8_t>& salt)
 {
     return _impl->deriveKey(password, outputLength, salt);
 }
 
 X963KDF::X963KDF(X963KDF&& other) = default;
 
-X963KDF::X963KDF(const X963KDF &other)
-    : _impl(std::make_unique<X963KDF::Impl>(*other._impl)) {}
+X963KDF::X963KDF(const X963KDF& other) : _impl(std::make_unique<X963KDF::Impl>(*other._impl)) {}
 
 X963KDF& X963KDF::operator=(X963KDF&& other)
 {
@@ -124,10 +124,10 @@ X963KDF& X963KDF::operator=(X963KDF&& other)
     return *this;
 }
 
-X963KDF& X963KDF::operator=(const X963KDF &other)
+X963KDF& X963KDF::operator=(const X963KDF& other)
 {
     this->_impl = std::make_unique<X963KDF::Impl>(*other._impl);
     return *this;
 }
 
-}
+}  // namespace mococrw

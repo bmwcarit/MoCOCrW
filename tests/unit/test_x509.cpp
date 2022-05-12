@@ -16,8 +16,8 @@
  * limitations under the License.
  * #L%
  */
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -45,6 +45,7 @@ class X509Test : public ::testing::Test
 {
 public:
     void SetUp() override;
+
 protected:
     static const std::string _pemString;
     static const std::string _shortSerialPemString;
@@ -110,15 +111,15 @@ void X509Test::SetUp()
     _root1_pubkey = std::make_unique<AsymmetricPublicKey>(loadPubkeyFromFile("root1.pubkey.pem"));
 
     _pemChainNoNewlines = _pemChainOfThree;
-    _pemChainNoNewlines.erase(
-        std::remove_if(_pemChainNoNewlines.begin(), _pemChainNoNewlines.end(),
-                       [] (auto c) { return c == '\n'; }),
-        _pemChainNoNewlines.end());
+    _pemChainNoNewlines.erase(std::remove_if(_pemChainNoNewlines.begin(),
+                                             _pemChainNoNewlines.end(),
+                                             [](auto c) { return c == '\n'; }),
+                              _pemChainNoNewlines.end());
 
     _eccRoot = std::make_unique<X509Certificate>(loadCertFromFile("eccRootCertificate.pem"));
-    _eccIntermediate = std::make_unique<X509Certificate>(loadCertFromFile("eccIntermediateCertificate.pem"));
+    _eccIntermediate =
+            std::make_unique<X509Certificate>(loadCertFromFile("eccIntermediateCertificate.pem"));
     _eccUser = std::make_unique<X509Certificate>(loadCertFromFile("eccUserCertificate.pem"));
-
 }
 
 const std::string X509Test::_pemString{R"(-----BEGIN CERTIFICATE-----
@@ -146,11 +147,10 @@ a+nduZ+dBBL7f+jPnCV6y0uRJVQZ3IinoZGeZyFazfq4tWraIotE7STkQpoiM8TG
 4vj2kM+h9miQEbYAyg6z4uwoiK4eqOvwJdqTxjHufDbRK1WmdrieU8psr6lebWP+
 KuAcbGt8ba8eeJrDJoBKRB6y4K/LM7Z/Ajq4548PduDyFuKqC2qlw0LAWUbQprPX
 2EI7Tw==
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_shortSerialPemString{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIICOTCCAeOgAwIBAgIBDDANBgkqhkiG9w0BAQsFADB8MQswCQYDVQQGEwJERTEb
 MBkGA1UECAwSQmFkZW4tV3VlcnR0ZW1iZXJnMQwwCgYDVQQHDANVbG0xGDAWBgNV
 BAoMD0JNVyBDYXIgSVQgR21iSDENMAsGA1UECwwESkMtNzEZMBcGA1UEAwwQVGVz
@@ -166,7 +166,7 @@ cS0ri/kzH2BN2lM1Jt+NdPeMTGnkIiLwPoIaPSFeTZjz5Ka0mpq2wClzk2Ci
 -----END CERTIFICATE-----)"};
 
 const std::string X509Test::_negativeSerialPemString{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIICQzCCAe2gAwIBAgIB1jANBgkqhkiG9w0BAQsFADCBgDELMAkGA1UEBhMCREUx
 GzAZBgNVBAgMEkJhZGVuLVd1ZXJ0dGVtYmVyZzEMMAoGA1UEBwwDVWxtMRgwFgYD
 VQQKDA9CTVcgQ2FyIElUIEdtYkgxDTALBgNVBAsMBEpDLTcxHTAbBgNVBAMMFE5l
@@ -180,13 +180,12 @@ BBRu6KAISE1V4jhYuiyb3iEZTf2ijDAfBgNVHSMEGDAWgBRu6KAISE1V4jhYuiyb
 3iEZTf2ijDAMBgNVHRMEBTADAQH/MA0GCSqGSIb3DQEBCwUAA0EAENPsu/If+1Ir
 YMjWHTmu7K7pwJxYg8QBdfhVbnc5qHK+sZk1zHh+ng7bW1QZIvitKhW8hnUiwz3O
 wvM4cGGE+Q==
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 // This is root1, root1.int1, root1.int1.cert1
 
 const std::string X509Test::_pemChainOfThree{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIIFrDCCA5SgAwIBAgIJALlSpthVgAJEMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNV
 BAYTAkRFMRAwDgYDVQQIDAdCYXZhcmlhMQ8wDQYDVQQHDAZNdW5pY2gxDDAKBgNV
 BAoMA0JNVzEPMA0GA1UECwwGQ2FyIElUMRIwEAYDVQQDDAlSb290IENBIDEwHhcN
@@ -269,11 +268,10 @@ qzdsUzZtraSqwvoTmOrmvhzzaNBglZpFhScGqVQsZYbMEKbSkNWbGj+E/0GoAjPp
 FM8GVeGdLPfBfpDybV6RlgAFmuRt6SKdJ1eZvyp6bJfLN8RaoKMXh7ZTkCyOrUhO
 3qCuAUn21XS9k7vu6kJZRP8p7gBZb9nLnj/PIlP4ZrrgLfpZr0WkKDDCOZKeId/4
 i1WWJ4xDbDzyjalWgQI=
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_pemChainInvalid{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIIFrDCCA5SgAwIBAgIJALlSpthVgAJEMA0GCSqGSIb3DQEBCwUAMGMxCzAJBgNV
 BAYTAkRFMRAwDgYDVQQIDAdCYXZhcmlhMQ8wDQYDVQQHDAZNdW5pY2gxDDAKBgNV
 BAoMA0JNVzEPMA0GA1UECwwGQ2FyIElUMRIwEAYDVQQDDAlSb290IENBIDEwHhcN
@@ -332,11 +330,10 @@ WI/ur6MJMEtfZGruLfU7XL970mcWMdwUh/MqSc7ffEA2Pj6aLnffmvqxdMEhuhTu
 TMgis07hulAnaaBCrb1xiGFYC/tGcJ+558nycS4XiFjU0Nsh1zzubTum51ry+fSz
 E6sliUj/gfWDpEur75FEoG9gYhRl3rI3Rj34al2DP5no7J2KCrq59lK3WI+vByYM
 uRZLQUBt1w+r1qEakvSIoinjrmS616qfkOBPHJEkvQ==
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_certWithGivenName{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIIC6TCCAo+gAwIBAgIJAN6EkERSsPfKMAoGCCqGSM49BAMCMIHOMQswCQYDVQQG
 EwJERTEQMA4GA1UECAwHbmViZW5hbjENMAsGA1UEBwwEb2JlbjEQMA4GA1UECgwH
 TGludXhBRzEVMBMGA1UECwwMTGludXhTdXBwb3J0MSIwIAYJKoZIhvcNAQkBFhNz
@@ -353,11 +350,10 @@ xJGjUzBRMB0GA1UdDgQWBBSvUgPk/0OgqCjq51t0uFte9/uUvzAfBgNVHSMEGDAW
 gBSvUgPk/0OgqCjq51t0uFte9/uUvzAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49
 BAMCA0gAMEUCIFMm751uiLYek33gkcLHyCMdXntcwXUdgoEtOuq04Yr7AiEAk62k
 0Ct1NJmoJM1Hb88ID7WRHzwrkn5YLsc57UOKMYo=
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_certWithUserId{
-R"(-----BEGIN CERTIFICATE-----
+        R"(-----BEGIN CERTIFICATE-----
 MIIC5jCCAoygAwIBAgIJAIWjYAy0QBslMAoGCCqGSM49BAMCMIHNMQ0wCwYDVQQD
 DARteUNOMQswCQYDVQQGEwJQVDEMMAoGA1UEBwwDbXlMMQ0wCwYDVQQIDARteVNU
 MQ0wCwYDVQQLDARteU9VMQwwCgYDVQQKDANteU8xJDAiBgkqhkiG9w0BCQEWFW15
@@ -374,11 +370,10 @@ UzBRMB0GA1UdDgQWBBSh/Vplw4bR3M8aJPGWMQhD2pgIaDAfBgNVHSMEGDAWgBSh
 /Vplw4bR3M8aJPGWMQhD2pgIaDAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49BAMC
 A0gAMEUCIFPU7qNvf2C6keNmNE1AMbAzZ/VzLehz7VHgXqeniwgNAiEA/zU5zrxZ
 eZEogJJjDSB3R083oH3+sDPr8hQxD+xET2I=
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_eccRootKeyPem{
-R"(-----BEGIN EC PARAMETERS-----
+        R"(-----BEGIN EC PARAMETERS-----
 BgUrgQQAIg==
 -----END EC PARAMETERS-----
 -----BEGIN EC PRIVATE KEY-----
@@ -386,11 +381,10 @@ MIGkAgEBBDAL1YRbQRaOXaoPF1Ehw4SHH6odaD9HcPKnS9wn7plcBZOa24gwhcWL
 l3Mg0aGsp8agBwYFK4EEACKhZANiAAQotf5jbwroxojyt2jPu6cZIYWdqAzFH+lS
 WtiaQiw/axxlfcOSXqg5bOxej6peRQX++8X2HpS3jJE39dzxCvTdKaLX4K1CbtqQ
 yKUaYobgWkeQg/6xPQipKKhnl1c8e4Q=
------END EC PRIVATE KEY-----)"
-};
+-----END EC PRIVATE KEY-----)"};
 
 const std::string X509Test::_eccIntermediateKeyPem{
-R"(-----BEGIN EC PARAMETERS-----
+        R"(-----BEGIN EC PARAMETERS-----
 BgUrgQQAIg==
 -----END EC PARAMETERS-----
 -----BEGIN EC PRIVATE KEY-----
@@ -398,11 +392,10 @@ MIGkAgEBBDA4MH0YHX2zg4gx9wH3VryBvcFc7NSOf9DWVsfOLDVR1v2Y4arnSlWE
 3wEAGQfsONCgBwYFK4EEACKhZANiAARgRlJ3z+gHqWjwp63LmSHy46A9KGyHyKYB
 kA3l7p8SgzBiNAqPn5CnpUAZRqIdec8s5Xfebb65KOZdhKikCHeTaCl3H2M09e1i
 pjHbMS06So6vJNEKdkfwSA84Z/mzE7s=
------END EC PRIVATE KEY-----)"
-};
+-----END EC PRIVATE KEY-----)"};
 
 const std::string X509Test::_eccUserKeyPem{
-R"(-----BEGIN EC PARAMETERS-----
+        R"(-----BEGIN EC PARAMETERS-----
 BgUrgQQAIg==
 -----END EC PARAMETERS-----
 -----BEGIN EC PRIVATE KEY-----
@@ -410,11 +403,10 @@ MIGkAgEBBDDGm1Z6fICCsvQFXh0g0nOLFFHwIF9YUT3cX5DBZjYbgiVZdQDH8+x6
 rjp9v6uwEAygBwYFK4EEACKhZANiAAQB+W5/DjPshrITxj1DYwQ1Zav7OxWatWj2
 z6T0FMtVT8q466oO0l6hddIMWCZHuHT+nZgdyVY6MHRZk4v5tC11aS2relUwbTVp
 Z3q89nAhYh6kOXKNXB3SQBsFIljBdBg=
------END EC PRIVATE KEY-----)"
-};
+-----END EC PRIVATE KEY-----)"};
 
 const std::string X509Test::_pemChainEcc{
-R"(
+        R"(
 -----BEGIN CERTIFICATE-----
 MIICqjCCAjCgAwIBAgIUU8WF+mZiVo2uTtVQfa+knutq4W8wCgYIKoZIzj0EAwIw
 gYsxCzAJBgNVBAYTAkRFMRswGQYDVQQIDBJCYWRlbi1XdWVydHRlbWJlcmcxDDAK
@@ -462,8 +454,7 @@ XqF10gxYJke4dP6dmB3JVjowdFmTi/m0LXVpLat6VTBtNWlnerz2cCFiHqQ5co1c
 HdJAGwUiWMF0GDAKBggqhkjOPQQDAgNpADBmAjEAzqILGFgIbB4YU6dBHz2BFISd
 Q4VilPqys0+hcHyXBBOA4tKJqxKSyc/3xcP28DliAjEAq5hXU5Lq5c9s42BNu3et
 qMPf1Hy8OpsL8cvcxO25/kdpwrhasp7BNZgCOFlbQopy
------END CERTIFICATE-----)"
-};
+-----END CERTIFICATE-----)"};
 
 const std::string X509Test::_pemOpenSSLPEMParseBug = R"(-----BEGIN CERTIFICATE-----
 MIIEcjCCAyegAwIBAgIUPLgYY73GEwkikNCKRJrcbCR+TbQwDQYJKoZIhvcNAQELBQAwgZUxCzAJBgNVBAYTAkFVMWMwYQYDVQQIDFpUaGUgR3JlYXQgU3RhdGUgb2YgTG9uZy1XaW5kZWQgQ2VydGlmaWNhdGUgRmllbGQgTmFtZXMgV2hlcmVieSB0byBJbmNyZWFzZSB0aGUgT3V0cHV0IFNpemUxITAfBgNVBAoMGEludGVybmV0IFdpZGdpdHMgUHR5IEx0ZDAeFw0yMDA0MDcwMDAwNDJaFw0zMDA0MDUwMDAwNDJaMIGVMQswCQYDVQQGEwJBVTFjMGEGA1UECAxaVGhlIEdyZWF0IFN0YXRlIG9mIExvbmctV2luZGVkIENlcnRpZmljYXRlIEZpZWxkIE5hbWVzIFdoZXJlYnkgdG8gSW5jcmVhc2UgdGhlIE91dHB1dCBTaXplMSEwHwYDVQQKDBhJbnRlcm5ldCBXaWRnaXRzIFB0eSBMdGQwggFUMA0GCSqGSIb3DQEBAQUAA4IBQQAwggE8AoIBMwLfmipKB41NPXrbp/T5eu+fndvZq72N/Tq0vZp2dRoz89NEFC3jYVBjp4pmVwCS9F/fGX1tnVfhb9k/4fqiI/y9lBVzxaHyMG/pt0D2nTS8iaMTM7uBeRvB5rUZlEbU8uvv4GXu3CeP/NnVceXruGbPb4IpjfoUbGLvn5oK35h8a+LNY5f7QRBlAXtUwYrdxVzT+CqQ4wIAuqoIVXgRIweveS1ArbS8hOtsVnu1bUAQVKqORHx8gtbOyiA4heTCEOkwh45YV6KW+uLI1wTeE4E9erlI4RwZ7umbBnQai/hYL//AUfQKQhpGbgfyJrS0UYY7WEP/mcFQh0U2EBTXtAy/e4XPiftViR3+pd+G2TJ/JFofDDzJRrceeo9tUnMr0pKtU7oB77lSKgsruKKkhn6lLH8CAwEAAaNTMFEwHQYDVR0OBBYEFIkawSiFUdL6G3jw8qg1WQI8Xi4rMB8GA1UdIwQYMBaAFIkawSiFUdL6G3jw8qg1WQI8Xi4rMA8GA1UdEwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggE0AAHe/+71vykcq9BQ5h2X7MpnkE5n0Yn0Xi24uuCpv59JjABmOdaeT6XBQ5UJN8WfidawgzbJ6WiWgjflaMfRfjsdCJRgvdw0gfXXXrsseJMeMYnw1hQTGuB83BKjXBdL6zb45qGf2Fgjm3aNW2NUVM+Q2QfMjoKx13hTyDh9l5nOhMv/Rkygcx1Row2WbkvrhxvCLxY0VhL7RuPV8K0ogKicv8VJgQriOUVTTkqBP1xUimKSTaNaZ8KAnC7thxxZHxsNa45a6AouPSzyAOPZQgCJW83OIFxvWsdYU1KvP1wmoi1XC9giSQ/5sLPu/eAYTzmY+Xd6Sq8dF8uyodeI2gFu3AzC28PVKeUriIGfxaqEUn+aXx5W+r8JTE6fQ9mBo9YxJBXG+OTIFgHR27q2dJwqK9c=
@@ -699,14 +690,12 @@ TEST_F(X509Test, testLoadX509Chain)
         EXPECT_EQ(pemChain.size(), 3);
 
         // check that the correct certificates are loaded in the correctorder
-        EXPECT_EQ(pemChain[0].getSubjectDistinguishedName(),
-                  _root1->getSubjectDistinguishedName());
+        EXPECT_EQ(pemChain[0].getSubjectDistinguishedName(), _root1->getSubjectDistinguishedName());
         EXPECT_EQ(pemChain[1].getSubjectDistinguishedName(),
                   _root1_int1->getSubjectDistinguishedName());
         EXPECT_EQ(pemChain[2].getSubjectDistinguishedName(),
                   _root1_int1_cert1->getSubjectDistinguishedName());
     });
-
 
     EXPECT_NO_THROW({
         auto pemChain = util::loadPEMChain(_pemChainEcc);
@@ -731,8 +720,7 @@ TEST_F(X509Test, testLoadX509ChainNoNewlines)
         EXPECT_EQ(pemChain.size(), 3);
 
         // check that the correct certificates are loaded in the correctorder
-        EXPECT_EQ(pemChain[0].getSubjectDistinguishedName(),
-                  _root1->getSubjectDistinguishedName());
+        EXPECT_EQ(pemChain[0].getSubjectDistinguishedName(), _root1->getSubjectDistinguishedName());
         EXPECT_EQ(pemChain[1].getSubjectDistinguishedName(),
                   _root1_int1->getSubjectDistinguishedName());
         EXPECT_EQ(pemChain[2].getSubjectDistinguishedName(),
@@ -742,9 +730,7 @@ TEST_F(X509Test, testLoadX509ChainNoNewlines)
 
 TEST_F(X509Test, testIfChainWithInvalidCharsFailsToLoad)
 {
-    EXPECT_THROW({
-        auto pemChain = util::loadPEMChain(_pemChainInvalid);
-    }, MoCOCrWException);
+    EXPECT_THROW({ auto pemChain = util::loadPEMChain(_pemChainInvalid); }, MoCOCrWException);
 }
 
 TEST_F(X509Test, testLoadEmptyChain)
@@ -764,29 +750,26 @@ TEST_F(X509Test, testLoadSingleCertAsChainWorks)
 TEST_F(X509Test, testChainLoadFailsWithMissingCertEndMarker)
 {
     auto cert = _pemString;
-    cert.erase(cert.size()-3);
-    EXPECT_THROW({
-        auto pemChain = util::loadPEMChain(cert);
-    }, MoCOCrWException);
+    cert.erase(cert.size() - 3);
+    EXPECT_THROW({ auto pemChain = util::loadPEMChain(cert); }, MoCOCrWException);
 }
 
 TEST_F(X509Test, testChainLoadFailsWithEmptyCert)
 {
     auto cert = "-----BEGIN CERTIFICATE-----\n   \n-----END CERTIFICATE-----"s;
-    EXPECT_THROW({
-        auto pemChain = util::loadPEMChain(cert);
-    }, MoCOCrWException);
+    EXPECT_THROW({ auto pemChain = util::loadPEMChain(cert); }, MoCOCrWException);
 }
 
 TEST_F(X509Test, testGetSerialNumber)
 {
     EXPECT_THROW(_cert.getSerialNumber(), OpenSSLException)
-        << "X509Certificate::getSerialNumber() should have thrown for serial numbers > sizeof(long)";
+            << "X509Certificate::getSerialNumber() should have thrown for serial numbers > "
+               "sizeof(long)";
     EXPECT_EQ("17096587725777913388", _cert.getSerialNumberDecimal())
-        << "X509Certificate::getSerialNumberDecimal() did not return expected value";
+            << "X509Certificate::getSerialNumberDecimal() did not return expected value";
     EXPECT_EQ((std::vector<uint8_t>{0xed, 0x43, 0x47, 0xf4, 0x7a, 0x4b, 0xc6, 0x2c}),
               _cert.getSerialNumberBinary())
-        << "X509Certificate::getSerialNumberBinary() did not return expected value";
+            << "X509Certificate::getSerialNumberBinary() did not return expected value";
 
     auto shortSerialCert = X509Certificate::fromPEM(_shortSerialPemString);
     EXPECT_EQ(12, shortSerialCert.getSerialNumber());
@@ -795,22 +778,18 @@ TEST_F(X509Test, testGetSerialNumber)
 
     auto negativeSerialCert = X509Certificate::fromPEM(_negativeSerialPemString);
     EXPECT_THROW(negativeSerialCert.getSerialNumber(), OpenSSLException)
-        << "X509Certificate::getSerialNumber() should have thrown for serial numbers < 0";
+            << "X509Certificate::getSerialNumber() should have thrown for serial numbers < 0";
     EXPECT_EQ("-42", negativeSerialCert.getSerialNumberDecimal());
     EXPECT_EQ(std::vector<uint8_t>{0x2a}, negativeSerialCert.getSerialNumberBinary());
 }
 
 TEST_F(X509Test, testRootCertificateIsCA)
 {
-    EXPECT_TRUE(_root1->isCA())
-        << "X509Certificate::isCA(): Root1 certificate is a CA";
+    EXPECT_TRUE(_root1->isCA()) << "X509Certificate::isCA(): Root1 certificate is a CA";
 
-    EXPECT_TRUE(_root2->isCA())
-        << "X509Certificate::isCA(): Root2 certificate is a CA";
+    EXPECT_TRUE(_root2->isCA()) << "X509Certificate::isCA(): Root2 certificate is a CA";
 
-    EXPECT_TRUE(_eccRoot->isCA())
-        << "X509Certificate::isCA(): EccRoot certificate is a CA";
-
+    EXPECT_TRUE(_eccRoot->isCA()) << "X509Certificate::isCA(): EccRoot certificate is a CA";
 }
 
 TEST_F(X509Test, testIntermediateCertificateIsCA)
@@ -819,13 +798,13 @@ TEST_F(X509Test, testIntermediateCertificateIsCA)
             std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.pem"));
 
     EXPECT_TRUE(_root1_int1->isCA())
-        << "X509Certificate::isCA(): Root1 Intermediate Certificate is a CA";
+            << "X509Certificate::isCA(): Root1 Intermediate Certificate is a CA";
 
     EXPECT_TRUE(_root2_int1->isCA())
-        << "X509Certificate::isCA(): Root2 Intermediate Certificate is a CA";
+            << "X509Certificate::isCA(): Root2 Intermediate Certificate is a CA";
 
     EXPECT_TRUE(_eccIntermediate->isCA())
-        << "X509Certificate::isCA(): eccIntermediate Intermediate Certificate is a CA";
+            << "X509Certificate::isCA(): eccIntermediate Intermediate Certificate is a CA";
 }
 
 TEST_F(X509Test, testClientCertificateIsNotCA)
@@ -834,13 +813,13 @@ TEST_F(X509Test, testClientCertificateIsNotCA)
             std::make_unique<X509Certificate>(loadCertFromFile("root2.int1.cert1.pem"));
 
     EXPECT_FALSE(_root1_int1_cert1->isCA())
-        << "X509Certificate::isCA(): Root1 Client Certificate is not a CA";
+            << "X509Certificate::isCA(): Root1 Client Certificate is not a CA";
 
     EXPECT_FALSE(_root2_int1_cert1->isCA())
-        << "X509Certificate::isCA(): Root2 Client Certificate is not a CA";
+            << "X509Certificate::isCA(): Root2 Client Certificate is not a CA";
 
     EXPECT_FALSE(_eccUser->isCA())
-        << "X509Certificate::isCA(): eccUser Client Certificate is not a CA";
+            << "X509Certificate::isCA(): eccUser Client Certificate is not a CA";
 }
 
 TEST_F(X509Test, testExpiredCertificateIsNotCA)
@@ -848,11 +827,9 @@ TEST_F(X509Test, testExpiredCertificateIsNotCA)
     std::unique_ptr<X509Certificate> expiredCAcert =
             std::make_unique<X509Certificate>(loadCertFromFile("expiredCA.pem"));
     /*Check an expired CA certificate*/
-    EXPECT_TRUE(expiredCAcert->isCA())
-        << "X509Certificate::isCA(): Certificate is a CA";
+    EXPECT_TRUE(expiredCAcert->isCA()) << "X509Certificate::isCA(): Certificate is a CA";
     /*Check an expired non CA certificate*/
-    EXPECT_FALSE(_root1_expired->isCA())
-        << "X509Certificate::isCA(): Certificate is not a CA";
+    EXPECT_FALSE(_root1_expired->isCA()) << "X509Certificate::isCA(): Certificate is not a CA";
 }
 
 TEST_F(X509Test, testGivenNameGetter)
@@ -873,7 +850,7 @@ TEST_F(X509Test, testGivenNameGetter)
     ASSERT_THAT(subject.givenName(), Eq("GivenName"));
 }
 
-TEST_F(X509Test,  testGivenUserId)
+TEST_F(X509Test, testGivenUserId)
 {
     auto _given_name_cert = X509Certificate::fromPEM(_certWithUserId);
 
@@ -907,4 +884,3 @@ TEST_F(X509Test, testCertificateReformatWorkaround)
 {
     EXPECT_NO_THROW(X509Certificate::fromPEM(X509Test::_pemCheckCertifiacteReformatWorkaround));
 }
-

@@ -56,8 +56,8 @@ void CertificateRevocationList::verify(const X509Certificate &signer) const
 
     auto publicKey = signer.getPublicKey();
     try {
-        _X509_CRL_verify(const_cast<X509_CRL*>(internal()), publicKey.internal());
-    } catch (const openssl::OpenSSLException& e) {
+        _X509_CRL_verify(const_cast<X509_CRL *>(internal()), publicKey.internal());
+    } catch (const openssl::OpenSSLException &e) {
         using namespace std::string_literals;
         throw MoCOCrWException("Error while verifying CRL signature: "s + e.what());
     }
@@ -66,7 +66,7 @@ void CertificateRevocationList::verify(const X509Certificate &signer) const
 std::string CertificateRevocationList::toPEM() const
 {
     BioObject bio{BioObject::Types::MEM};
-    _PEM_write_bio_X509_CRL(bio.internal(), const_cast<X509_CRL*>(internal()));
+    _PEM_write_bio_X509_CRL(bio.internal(), const_cast<X509_CRL *>(internal()));
     return bio.flushToString();
 }
 
@@ -100,18 +100,12 @@ CertificateRevocationList CertificateRevocationList::fromPEMFile(const std::stri
     return CertificateRevocationList{std::move(cert)};
 }
 
-X509_CRL* CertificateRevocationList::internal()
+X509_CRL *CertificateRevocationList::internal() { return _crl.get(); }
+
+const X509_CRL *CertificateRevocationList::internal() const { return _crl.get(); }
+
+namespace util
 {
-    return _crl.get();
-}
-
-const X509_CRL* CertificateRevocationList::internal() const
-{
-    return _crl.get();
-}
-
-namespace util {
-
 std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string &pemChain)
 {
     const auto beginMarker = "-----BEGIN X509 CRL-----"s;
@@ -120,12 +114,14 @@ std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string &pemCha
     auto pemList = splitPEMChain(pemChain, beginMarker, endMarker);
 
     std::vector<CertificateRevocationList> crlChain;
-    std::transform(pemList.begin(), pemList.end(), std::back_inserter(crlChain),
+    std::transform(pemList.begin(),
+                   pemList.end(),
+                   std::back_inserter(crlChain),
                    CertificateRevocationList::fromPEM);
 
     return crlChain;
 }
 
-}
+}  // namespace util
 
-}
+}  // namespace mococrw

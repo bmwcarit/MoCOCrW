@@ -29,20 +29,21 @@ int main()
     X509Certificate intermediateCA_1 = X509Certificate::fromPEMFile("root3.int1.int11.pem");
 
     CertificateRevocationList rootCRL = CertificateRevocationList::fromPEMFile("root3.crl.pem");
-    CertificateRevocationList intermediateCRL = CertificateRevocationList::fromPEMFile("root3.int1.crl_otherentry.pem");
+    CertificateRevocationList intermediateCRL =
+            CertificateRevocationList::fromPEMFile("root3.int1.crl_otherentry.pem");
 
     X509Certificate cert = X509Certificate::fromPEMFile("root3.int1.cert.pem");
     X509Certificate cert_from_other_chain = X509Certificate::fromPEMFile("root1.cert1.pem");
 
-   /* Certificate chain is constructed as follows:
-    *    _______           _______           ______
-    *   |       |  signs  |       |  signs  |      |
-    *   |root CA|-------->|int CA |-------->| cert |
-    *   |_______|         |_______|         |______|
-    *
-    *  These artifacts are taken from `tests` folder in the repo
-    *  for demonstration purposes.
-    */
+    /* Certificate chain is constructed as follows:
+     *    _______           _______           ______
+     *   |       |  signs  |       |  signs  |      |
+     *   |root CA|-------->|int CA |-------->| cert |
+     *   |_______|         |_______|         |______|
+     *
+     *  These artifacts are taken from `tests` folder in the repo
+     *  for demonstration purposes.
+     */
 
     /*
      *   Basic certificate validation using X509Certificate::verify() against
@@ -86,7 +87,8 @@ int main()
      *   If validation fails, MoCOCrW exception is thrown that contains error
      *   message from the underlying openssl library.
      */
-    std::cout << "\n*** Certificate validation examples using VerificationContext ***\n" << std::endl;
+    std::cout << "\n*** Certificate validation examples using VerificationContext ***\n"
+              << std::endl;
     {
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificate(intermediateCA);
@@ -106,8 +108,7 @@ int main()
      */
     {
         X509Certificate::VerificationContext ctx;
-        ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA);
+        ctx.addTrustedCertificate(rootCA).addIntermediateCertificate(intermediateCA);
         std::cout << "Validating certificate against certificate chain" << std::endl;
         try {
             cert.verify(ctx);
@@ -115,7 +116,8 @@ int main()
             std::cerr << "Failed to validate certificate. OpenSSL error: " << e.what() << std::endl;
             exit(EXIT_FAILURE);
         }
-        std::cout << "Certificate inside certificate chain successfully validated\n---" << std::endl;
+        std::cout << "Certificate inside certificate chain successfully validated\n---"
+                  << std::endl;
     }
 
     /*
@@ -123,8 +125,7 @@ int main()
      */
     {
         X509Certificate::VerificationContext ctx;
-        ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA);
+        ctx.addTrustedCertificate(rootCA).addIntermediateCertificate(intermediateCA);
         std::cout << "Verifying certificate that is issued from other CAs" << std::endl;
         try {
             cert_from_other_chain.verify(ctx);
@@ -144,13 +145,14 @@ int main()
     {
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA)
-           .enforceSelfSignedRootCertificate();
+                .addIntermediateCertificate(intermediateCA)
+                .enforceSelfSignedRootCertificate();
         std::cout << "Checking if root certificate is self signed" << std::endl;
         try {
             cert.verify(ctx);
         } catch (const MoCOCrWException &e) {
-            std::cerr << "Root certificate probably not self signed. OpenSSL error: " << e.what() << std::endl;
+            std::cerr << "Root certificate probably not self signed. OpenSSL error: " << e.what()
+                      << std::endl;
             exit(EXIT_FAILURE);
         }
         std::cout << "Root certificate is self signed\n---" << std::endl;
@@ -163,8 +165,7 @@ int main()
      */
     {
         X509Certificate::VerificationContext ctx;
-        ctx.addTrustedCertificate(intermediateCA)
-           .enforceSelfSignedRootCertificate();
+        ctx.addTrustedCertificate(intermediateCA).enforceSelfSignedRootCertificate();
         std::cout << "Checking if intermediate certificate is self signed" << std::endl;
         try {
             rootCA.verify(ctx);
@@ -186,8 +187,8 @@ int main()
     {
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA)
-           .addCertificateRevocationList(intermediateCRL);
+                .addIntermediateCertificate(intermediateCA)
+                .addCertificateRevocationList(intermediateCRL);
         std::cout << "Checking if certificate is revoked" << std::endl;
         try {
             cert.verify(ctx);
@@ -206,10 +207,10 @@ int main()
     {
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA)
-           .addCertificateRevocationList(rootCRL)
-           .enforceCrlsForAllCAs()
-           .enforceSelfSignedRootCertificate();
+                .addIntermediateCertificate(intermediateCA)
+                .addCertificateRevocationList(rootCRL)
+                .enforceCrlsForAllCAs()
+                .enforceSelfSignedRootCertificate();
         std::cout << "Checking enforcement of CRLs" << std::endl;
         try {
             cert.verify(ctx);
@@ -229,12 +230,12 @@ int main()
     {
         X509Certificate::VerificationContext ctx;
         ctx.addTrustedCertificate(rootCA)
-           .addIntermediateCertificate(intermediateCA)
-           .addCertificateRevocationList(rootCRL)
-           .addCertificateRevocationList(intermediateCRL)
-           .enforceCrlsForAllCAs()
-           .enforceSelfSignedRootCertificate()
-           .setVerificationCheckTime(Asn1Time::max());
+                .addIntermediateCertificate(intermediateCA)
+                .addCertificateRevocationList(rootCRL)
+                .addCertificateRevocationList(intermediateCRL)
+                .enforceCrlsForAllCAs()
+                .enforceSelfSignedRootCertificate()
+                .setVerificationCheckTime(Asn1Time::max());
         std::cout << "Validating certificate in future when stuff is expired" << std::endl;
         try {
             cert.verify(ctx);

@@ -16,9 +16,9 @@
  * limitations under the License.
  * #L%
  */
-#include <iostream>
 #include <mococrw/asymmetric_crypto_ctx.h>
 #include <mococrw/padding_mode.h>
+#include <iostream>
 
 using namespace mococrw;
 
@@ -48,9 +48,11 @@ std::vector<uint8_t> encrypt_rsa(const AsymmetricPublicKey &pubKey,
 
 std::vector<uint8_t> decrypt_rsa(const AsymmetricPrivateKey &privKey,
                                  const std::shared_ptr<RSAEncryptionPadding> &padding,
-                                 const std::vector<uint8_t> &ciphertext) {
+                                 const std::vector<uint8_t> &ciphertext)
+{
     std::vector<uint8_t> plaintext;
-    /* Padding is optional. Default is OAEP with SHA256 and MGF1(SHA256) as mask generation function */
+    /* Padding is optional. Default is OAEP with SHA256 and MGF1(SHA256) as mask generation function
+     */
     RSAEncryptionPrivateKeyCtx rsaPrivCtx(privKey, padding);
     try {
         plaintext = rsaPrivCtx.decrypt(ciphertext);
@@ -63,7 +65,7 @@ std::vector<uint8_t> decrypt_rsa(const AsymmetricPrivateKey &privKey,
         exit(EXIT_FAILURE);
     }
 
-   return plaintext;
+    return plaintext;
 }
 
 int main(void)
@@ -79,11 +81,12 @@ int main(void)
 
     /* no argument to OAEPPadding is mandatory:
      * - default hashFunction = SHA256
-     * - default maskGenerationFunction = MGF1 with with the hash function specified in parameter hashFunction
+     * - default maskGenerationFunction = MGF1 with with the hash function specified in parameter
+     * hashFunction
      * - default label = "" (empty string)
      */
-    auto padding = std::make_shared<OAEPPadding>(OAEPPadding(oaepDigestType, maskGenerationFunction,
-                                                             oaepLabel));
+    auto padding = std::make_shared<OAEPPadding>(
+            OAEPPadding(oaepDigestType, maskGenerationFunction, oaepLabel));
     auto ciphertext = encrypt_rsa(keyPair, padding, data);
     auto plaintext = decrypt_rsa(keyPair, padding, ciphertext);
 

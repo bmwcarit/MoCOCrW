@@ -27,15 +27,12 @@ using namespace mococrw;
 
 using testing::Eq;
 
-
 TEST(CheckConstructor, FailsForInvalidKey)
 {
     std::vector<uint8_t> invalidKey{1, 2, 3};
     auto someCipher = openssl::CmacCipherTypes::AES_CBC_256;
 
-    EXPECT_THROW(
-            CMAC(someCipher, invalidKey),
-            MoCOCrWException);
+    EXPECT_THROW(CMAC(someCipher, invalidKey), MoCOCrWException);
 }
 
 TEST(CheckConstructor, WorksWithValidCipherAndMatchingKey)
@@ -45,7 +42,6 @@ TEST(CheckConstructor, WorksWithValidCipherAndMatchingKey)
 
     CMAC(someCipher, someKey);
 }
-
 
 struct Testdata
 {
@@ -57,85 +53,84 @@ struct Testdata
 
 static std::vector<Testdata> prepareTestdataForCmacTests()
 {
-    std::vector<Testdata> testdata {
-        {
+    std::vector<Testdata> testdata{{
             // Test data for AES-128 is taken from https://tools.ietf.org/html/rfc4493.
             {
-                openssl::CmacCipherTypes::AES_CBC_128,
-                "2b7e151628aed2a6abf7158809cf4f3c",
-                "",
-                "bb1d6929e95937287fa37d129b756746",
+                    openssl::CmacCipherTypes::AES_CBC_128,
+                    "2b7e151628aed2a6abf7158809cf4f3c",
+                    "",
+                    "bb1d6929e95937287fa37d129b756746",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_128,
-                "2b7e151628aed2a6abf7158809cf4f3c",
-                "6bc1bee22e409f96e93d7e117393172a",
-                "070a16b46b4d4144f79bdd9dd04a287c",
+                    openssl::CmacCipherTypes::AES_CBC_128,
+                    "2b7e151628aed2a6abf7158809cf4f3c",
+                    "6bc1bee22e409f96e93d7e117393172a",
+                    "070a16b46b4d4144f79bdd9dd04a287c",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_128,
-                "2b7e151628aed2a6abf7158809cf4f3c",
-                "6bc1bee22e409f96e93d7e117393172a"
+                    openssl::CmacCipherTypes::AES_CBC_128,
+                    "2b7e151628aed2a6abf7158809cf4f3c",
+                    "6bc1bee22e409f96e93d7e117393172a"
                     "ae2d8a571e03ac9c9eb76fac45af8e51"
                     "30c81c46a35ce411",
-                "dfa66747de9ae63030ca32611497c827",
+                    "dfa66747de9ae63030ca32611497c827",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_128,
-                "2b7e151628aed2a6abf7158809cf4f3c",
-                "6bc1bee22e409f96e93d7e117393172a"
+                    openssl::CmacCipherTypes::AES_CBC_128,
+                    "2b7e151628aed2a6abf7158809cf4f3c",
+                    "6bc1bee22e409f96e93d7e117393172a"
                     "ae2d8a571e03ac9c9eb76fac45af8e51"
                     "30c81c46a35ce411e5fbc1191a0a52ef"
                     "f69f2445df4f9b17ad2b417be66c3710",
-                "51f0bebf7e3b9d92fc49741779363cfe",
+                    "51f0bebf7e3b9d92fc49741779363cfe",
             },
 
             // Test data for AES-256.
             {
-                openssl::CmacCipherTypes::AES_CBC_256,
-                "2b7e151628aed2a6abf7158809cf4f3c"
+                    openssl::CmacCipherTypes::AES_CBC_256,
+                    "2b7e151628aed2a6abf7158809cf4f3c"
                     "deadbeef38317deafbeef3831700cafe",
-                "",
-                "9922123e226ee972e5fd501e45cae51d",
+                    "",
+                    "9922123e226ee972e5fd501e45cae51d",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_256,
-                "2b7e151628aed2a6abf7158809cf4f3c"
+                    openssl::CmacCipherTypes::AES_CBC_256,
+                    "2b7e151628aed2a6abf7158809cf4f3c"
                     "deadbeef38317deafbeef3831700cafe",
-                "6bc1bee22e409f96e93d7e117393172a",
-                "9414636aa65c795a59e8813e2fbb588a",
+                    "6bc1bee22e409f96e93d7e117393172a",
+                    "9414636aa65c795a59e8813e2fbb588a",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_256,
-                "2b7e151628aed2a6abf7158809cf4f3c"
+                    openssl::CmacCipherTypes::AES_CBC_256,
+                    "2b7e151628aed2a6abf7158809cf4f3c"
                     "deadbeef38317deafbeef3831700cafe",
-                "6bc1bee22e409f96e93d7e117393172a"
+                    "6bc1bee22e409f96e93d7e117393172a"
                     "ae2d8a571e03ac9c9eb76fac45af8e51"
                     "30c81c46a35ce411",
-                "bf20027ad24e648f88d7cf0d2eb03f93",
+                    "bf20027ad24e648f88d7cf0d2eb03f93",
             },
             {
-                openssl::CmacCipherTypes::AES_CBC_256,
-                "2b7e151628aed2a6abf7158809cf4f3c"
+                    openssl::CmacCipherTypes::AES_CBC_256,
+                    "2b7e151628aed2a6abf7158809cf4f3c"
                     "deadbeef38317deafbeef3831700cafe",
-                "6bc1bee22e409f96e93d7e117393172a"
+                    "6bc1bee22e409f96e93d7e117393172a"
                     "ae2d8a571e03ac9c9eb76fac45af8e51"
                     "30c81c46a35ce411e5fbc1191a0a52ef"
                     "f69f2445df4f9b17ad2b417be66c3710",
-                "3598968688288d17a2f5544cef0651ea",
+                    "3598968688288d17a2f5544cef0651ea",
             },
-        }
-    };
+    }};
 
     return testdata;
 }
 
-class CalculateCmacValues : public testing::TestWithParam<Testdata> {};
+class CalculateCmacValues : public testing::TestWithParam<Testdata>
+{
+};
 
-INSTANTIATE_TEST_CASE_P(
-        cmac,
-        CalculateCmacValues,
-        testing::ValuesIn(prepareTestdataForCmacTests()));
+INSTANTIATE_TEST_CASE_P(cmac,
+                        CalculateCmacValues,
+                        testing::ValuesIn(prepareTestdataForCmacTests()));
 
 TEST_P(CalculateCmacValues, returnsCorrectCmac)
 {
@@ -173,7 +168,6 @@ TEST_P(CalculateCmacValues, verifyFailsForIncorrectCmac)
     EXPECT_THROW(cmacCalculator.verify(incorrectCmac), MoCOCrWException);
 }
 
-
 TEST(CheckControlFlow, UpdateCanBeInvokedMultipleTimes)
 {
     auto testdata = prepareTestdataForCmacTests().at(0);
@@ -192,7 +186,6 @@ TEST(CheckControlFlow, VerifyCanBeInvokedMultipleTimes)
 
     cmacCalculator.verify(utility::fromHex(testdata.expectedCmac));
 }
-
 
 TEST(CheckControlFlow, VerifyInvokesFinishImplicitly)
 {
@@ -214,7 +207,6 @@ TEST(CheckControlFlow, UpdateFailesAfterFinish)
     ASSERT_THROW(cmacCalculator.update(utility::fromHex(testdata.message)), MoCOCrWException);
 }
 
-
 class VerifyCmac : public testing::Test
 {
 protected:
@@ -229,7 +221,8 @@ protected:
     Testdata testdata = prepareTestdataForCmacTests().at(0);
 };
 
-TEST_F(VerifyCmac, FailsForTooShortCmac) {
+TEST_F(VerifyCmac, FailsForTooShortCmac)
+{
     auto cmacCalculator = getCmacCalculator();
     auto tooShortCmac = utility::fromHex(testdata.expectedCmac);
     tooShortCmac.resize(tooShortCmac.size() - 2);

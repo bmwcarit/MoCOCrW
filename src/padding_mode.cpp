@@ -23,11 +23,11 @@
 
 #include <tuple>
 
-#include "mococrw/padding_mode.h"
 #include "mococrw/hash.h"
+#include "mococrw/padding_mode.h"
 
-namespace mococrw {
-
+namespace mococrw
+{
 using namespace openssl;
 
 using SSL_RSA_OAEP_LABEL_Ptr = std::unique_ptr<uint8_t, SSLFree<uint8_t>>;
@@ -43,25 +43,26 @@ RSASignaturePadding::~RSASignaturePadding() = default;
  * NoPadding
  */
 
-bool NoPadding::checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const
+bool NoPadding::checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const
 {
     size_t keySizeInBit = key.getKeySize();
-    return messageSize*8 == keySizeInBit;
+    return messageSize * 8 == keySizeInBit;
 }
 
 void NoPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const
 {
-    openssl::_EVP_PKEY_CTX_set_rsa_padding(ctx.get(), static_cast<int>(openssl::RSAPaddingMode::NONE));
+    openssl::_EVP_PKEY_CTX_set_rsa_padding(ctx.get(),
+                                           static_cast<int>(openssl::RSAPaddingMode::NONE));
 }
 
 /*
  * PKCSPadding
  */
 
-bool PKCSPadding::checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const
+bool PKCSPadding::checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const
 {
-    int remainingSize = key.getKeySize() - PKCS_MAX_SIZE_OVERHEAD*8;
-    return remainingSize > 0 && messageSize*8 <= static_cast<size_t>(remainingSize);
+    int remainingSize = key.getKeySize() - PKCS_MAX_SIZE_OVERHEAD * 8;
+    return remainingSize > 0 && messageSize * 8 <= static_cast<size_t>(remainingSize);
 }
 
 void PKCSPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const
@@ -70,7 +71,7 @@ void PKCSPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) cons
 }
 
 void PKCSPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
-                                                 openssl::DigestTypes hashFunction) const
+                                        openssl::DigestTypes hashFunction) const
 {
     _EVP_PKEY_CTX_set_rsa_padding(ctx.get(), static_cast<int>(openssl::RSAPaddingMode::PKCS1));
     _EVP_PKEY_CTX_set_signature_md(ctx.get(), _getMDPtrFromDigestType(hashFunction));
@@ -82,9 +83,9 @@ void PKCSPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
 
 MGF1::MGF1(openssl::DigestTypes hashFunction) : _hashFunction(hashFunction) {}
 
-void MGF1::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const {
-    _EVP_PKEY_CTX_set_rsa_mgf1_md(ctx.get(),
-                                  _getMDPtrFromDigestType(_hashFunction));
+void MGF1::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const
+{
+    _EVP_PKEY_CTX_set_rsa_mgf1_md(ctx.get(), _getMDPtrFromDigestType(_hashFunction));
 }
 
 MGF1::~MGF1() = default;
@@ -93,13 +94,19 @@ MGF1::~MGF1() = default;
  * PSSPadding
  */
 
-class PSSPadding::Impl {
+class PSSPadding::Impl
+{
 public:
-    Impl(std::shared_ptr<MaskGenerationFunction> maskGenerationFunction, boost::optional<int> saltLength)
-        : maskGenerationFunction(std::move(maskGenerationFunction)), saltLength(std::move(saltLength)) {}
+    Impl(std::shared_ptr<MaskGenerationFunction> maskGenerationFunction,
+         boost::optional<int> saltLength)
+            : maskGenerationFunction(std::move(maskGenerationFunction))
+            , saltLength(std::move(saltLength))
+    {
+    }
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx, openssl::DigestTypes hashFunction) const {
-
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+                               openssl::DigestTypes hashFunction) const
+    {
         _EVP_PKEY_CTX_set_rsa_padding(ctx.get(), static_cast<int>(openssl::RSAPaddingMode::PSS));
         _EVP_PKEY_CTX_set_signature_md(ctx.get(), _getMDPtrFromDigestType(hashFunction));
 
@@ -125,13 +132,17 @@ public:
 
 PSSPadding::PSSPadding(std::shared_ptr<MaskGenerationFunction> maskGenerationFunction,
                        boost::optional<int> saltLength)
-    : _impl(std::make_unique<PSSPadding::Impl>(maskGenerationFunction, std::move(saltLength)))
-{}
+        : _impl(std::make_unique<PSSPadding::Impl>(maskGenerationFunction, std::move(saltLength)))
+{
+}
 
 PSSPadding::PSSPadding(const PSSPadding& other)
-    : _impl(std::make_unique<PSSPadding::Impl>(*(other._impl))) {}
+        : _impl(std::make_unique<PSSPadding::Impl>(*(other._impl)))
+{
+}
 
-PSSPadding& PSSPadding::operator=(const PSSPadding& other) {
+PSSPadding& PSSPadding::operator=(const PSSPadding& other)
+{
     _impl = std::make_unique<PSSPadding::Impl>(*(other._impl));
     return *this;
 }
@@ -148,10 +159,14 @@ void PSSPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
  * OAEPPadding
  */
 
-class OAEPPadding::Impl {
+class OAEPPadding::Impl
+{
 public:
-    Impl(openssl::DigestTypes hashFunction, std::shared_ptr<MaskGenerationFunction> maskGenerationFunction, const std::string& label)
-        : hashFunction(hashFunction), label(label) {
+    Impl(openssl::DigestTypes hashFunction,
+         std::shared_ptr<MaskGenerationFunction> maskGenerationFunction,
+         const std::string& label)
+            : hashFunction(hashFunction), label(label)
+    {
         if (maskGenerationFunction != nullptr) {
             this->maskGenerationFunction = maskGenerationFunction;
         } else {
@@ -164,23 +179,32 @@ public:
     std::shared_ptr<MaskGenerationFunction> maskGenerationFunction;
 };
 
-OAEPPadding::OAEPPadding(openssl::DigestTypes hashFunction, std::shared_ptr<MaskGenerationFunction> maskGenerationFunction, const std::string& label)
-    : _impl(std::make_unique<OAEPPadding::Impl>(hashFunction, maskGenerationFunction, label)) {}
+OAEPPadding::OAEPPadding(openssl::DigestTypes hashFunction,
+                         std::shared_ptr<MaskGenerationFunction> maskGenerationFunction,
+                         const std::string& label)
+        : _impl(std::make_unique<OAEPPadding::Impl>(hashFunction, maskGenerationFunction, label))
+{
+}
 
-OAEPPadding::OAEPPadding(const OAEPPadding& other) : _impl(std::make_unique<OAEPPadding::Impl>(*(other._impl))) {}
+OAEPPadding::OAEPPadding(const OAEPPadding& other)
+        : _impl(std::make_unique<OAEPPadding::Impl>(*(other._impl)))
+{
+}
 
-OAEPPadding& OAEPPadding::operator=(const OAEPPadding& other) {
+OAEPPadding& OAEPPadding::operator=(const OAEPPadding& other)
+{
     _impl = std::make_unique<OAEPPadding::Impl>(*(other._impl));
     return *this;
 }
 
 OAEPPadding::~OAEPPadding() = default;
 
-bool OAEPPadding::checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const
+bool OAEPPadding::checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const
 {
-    int remainingSize = key.getKeySize() -
-            (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_impl->hashFunction)))*8 - 2*8;
-    return remainingSize > 0 && messageSize*8 <= static_cast<size_t>(remainingSize);
+    int remainingSize =
+            key.getKeySize() -
+            (2 * openssl::_EVP_MD_size(_getMDPtrFromDigestType(_impl->hashFunction))) * 8 - 2 * 8;
+    return remainingSize > 0 && messageSize * 8 <= static_cast<size_t>(remainingSize);
 }
 
 void OAEPPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const
@@ -190,32 +214,27 @@ void OAEPPadding::prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) cons
     try {
         _EVP_PKEY_CTX_set_rsa_padding(ctx.get(), static_cast<int>(openssl::RSAPaddingMode::OAEP));
 
-        _EVP_PKEY_CTX_set_rsa_oaep_md(ctx.get(),
-                                      _getMDPtrFromDigestType(_impl->hashFunction));
+        _EVP_PKEY_CTX_set_rsa_oaep_md(ctx.get(), _getMDPtrFromDigestType(_impl->hashFunction));
 
         _impl->maskGenerationFunction->prepareOpenSSLContext(ctx);
 
         if (!_impl->label.empty()) {
-
             /* Make a copy of the label, since the context takes ownership of it when calling
              * '_EVP_PKEY_CTX_set_rsa_oaep_label()' function */
-            label_copy.reset(static_cast<uint8_t *>(
-                                     _OPENSSL_malloc(_impl->label.size())));
-            memcpy(label_copy.get(),
-                   _impl->label.data(), _impl->label.size());
+            label_copy.reset(static_cast<uint8_t*>(_OPENSSL_malloc(_impl->label.size())));
+            memcpy(label_copy.get(), _impl->label.data(), _impl->label.size());
 
             _EVP_PKEY_CTX_set_rsa_oaep_label(ctx.get(),
-                                             static_cast<unsigned char *>(label_copy.get()),
+                                             static_cast<unsigned char*>(label_copy.get()),
                                              static_cast<int>(_impl->label.size()));
 
             /* Release ownership from the unique_ptr since the function above takes ownership of
              * the label pointer unless it throws an exception*/
             std::ignore = label_copy.release();
         }
-    } catch (const OpenSSLException &e) {
+    } catch (const OpenSSLException& e) {
         throw MoCOCrWException(e.what());
     }
 }
 
-}
-
+}  // namespace mococrw

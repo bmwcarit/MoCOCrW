@@ -7,6 +7,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-rec
         clang-format \
         cmake \
         g++ \
+        git \
         googletest \
         libboost-all-dev \
         libssl-dev \

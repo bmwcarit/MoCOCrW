@@ -29,18 +29,12 @@ namespace mococrw
 class SubjectKeyIdentifierExtension final : public ExtensionBase
 {
 public:
-    static constexpr openssl::X509Extension_NID NID
-            = openssl::X509Extension_NID::SubjectKeyIdentifier;
+    static constexpr openssl::X509Extension_NID NID =
+            openssl::X509Extension_NID::SubjectKeyIdentifier;
 
-    std::string getConfigurationString() const override
-    {
-        return "hash";
-    }
+    std::string getConfigurationString() const override { return "hash"; }
 
-    openssl::X509Extension_NID getNid() const override
-    {
-        return NID;
-    }
+    openssl::X509Extension_NID getNid() const override { return NID; }
 };
 
-} //::mococrw
+}  // namespace mococrw

@@ -18,13 +18,12 @@
  */
 #pragma once
 
-#include "sign_params.h"
 #include "csr.h"
+#include "sign_params.h"
 #include "x509.h"
 
 namespace mococrw
 {
-
 /**
  * This class represents a Certificate Authority. A CA consists of a certificate,
  * the corresponding private key, and some default values on how to sign certificates.
@@ -88,7 +87,6 @@ public:
     uint64_t getNextSerialNumber() const;
 
 private:
-
     /**
      * Creates a new Certificate that matches the given CSR and signs it.
      * @param request the CSR on which the new certificate should be based.
@@ -97,12 +95,12 @@ private:
      *         CA's root certificate.
      */
     X509Certificate _signCSR(const CertificateSigningRequest &request,
-                            const CertificateSigningParameters &signParams);
+                             const CertificateSigningParameters &signParams);
 
     /// Signs a certificate with a private key using the given signing parameters.
-    static void _signCertificate(X509* certificate,
-                                const AsymmetricKeypair &privateKey,
-                                const CertificateSigningParameters &signParams);
+    static void _signCertificate(X509 *certificate,
+                                 const AsymmetricKeypair &privateKey,
+                                 const CertificateSigningParameters &signParams);
 
     /// The default signing parameters.
     CertificateSigningParameters _defaultSignParams;
@@ -121,4 +119,4 @@ private:
     static constexpr int certificateVersion = 2;
 };
 
-} //::mococrw
+}  // namespace mococrw

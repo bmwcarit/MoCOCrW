@@ -20,8 +20,8 @@
 
 #include <gmock/gmock.h>
 
-#include "openssl_lib_mock.h"
 #include "mococrw/openssl_wrap.h"
+#include "openssl_lib_mock.h"
 
 namespace mococrw
 {
@@ -96,12 +96,12 @@ X509_NAME* OpenSSLLib::SSL_X509_REQ_get_subject_name(const X509_REQ* req) noexce
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_get_subject_name(req);
 }
 
-EVP_PKEY* OpenSSLLib::SSL_X509_REQ_get_pubkey(X509_REQ *req) noexcept
+EVP_PKEY* OpenSSLLib::SSL_X509_REQ_get_pubkey(X509_REQ* req) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_get_pubkey(req);
 }
 
-int OpenSSLLib::SSL_X509_REQ_verify(X509_REQ *a, EVP_PKEY *r) noexcept
+int OpenSSLLib::SSL_X509_REQ_verify(X509_REQ* a, EVP_PKEY* r) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_REQ_verify(a, r);
 }
@@ -131,7 +131,7 @@ int OpenSSLLib::SSL_EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_keygen_init(ctx);
 }
 
-EVP_PKEY_CTX* OpenSSLLib::SSL_EVP_PKEY_CTX_new(EVP_PKEY *pkey, ENGINE* engine) noexcept
+EVP_PKEY_CTX* OpenSSLLib::SSL_EVP_PKEY_CTX_new(EVP_PKEY* pkey, ENGINE* engine) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_new(pkey, engine);
 }
@@ -152,43 +152,44 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbit
                                                                                           mbits);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_cmp(const EVP_PKEY* a, const EVP_PKEY* b) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_cmp(a,b);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_cmp(a, b);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_paramgen_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_paramgen_init(ctx);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx, EVP_PKEY **ppkey) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_paramgen(EVP_PKEY_CTX* ctx, EVP_PKEY** ppkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_paramgen(ctx, ppkey);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX* ctx, int nid) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid(ctx,
-                                                                                                nid);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_ec_paramgen_curve_nid(
+            ctx, nid);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX* ctx, int param_enc) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_ec_param_enc(ctx, param_enc);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_ec_param_enc(ctx,
+                                                                                       param_enc);
 }
 
-const EC_GROUP* OpenSSLLib::SSL_EC_KEY_get0_group(const EC_KEY *key) noexcept
+const EC_GROUP* OpenSSLLib::SSL_EC_KEY_get0_group(const EC_KEY* key) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_get0_group(key);
 }
 
-int OpenSSLLib::SSL_EC_GROUP_get_degree(const EC_GROUP *group) noexcept
+int OpenSSLLib::SSL_EC_GROUP_get_degree(const EC_GROUP* group) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_GROUP_get_degree(group);
 }
 
-int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP *group) noexcept
+int OpenSSLLib::SSL_EC_GROUP_get_curve_name(const EC_GROUP* group) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_GROUP_get_curve_name(group);
 }
@@ -198,16 +199,15 @@ int OpenSSLLib::SSL_EVP_PKEY_type(int type) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_type(type);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_id(const EVP_PKEY *pkey) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_id(const EVP_PKEY* pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_id(pkey);
 }
 
-int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY* pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_size(pkey);
 }
-
 
 char* OpenSSLLib::SSL_ERR_error_string(unsigned long error, char* buf) noexcept
 {
@@ -261,10 +261,10 @@ int OpenSSLLib::SSL_PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_write_bio_X509_REQ(bio, req);
 }
 
-X509_REQ* OpenSSLLib::SSL_PEM_read_bio_X509_REQ(BIO *bp,
-                                         X509_REQ **x,
-                                         pem_password_cb *cb,
-                                         void *u) noexcept
+X509_REQ* OpenSSLLib::SSL_PEM_read_bio_X509_REQ(BIO* bp,
+                                                X509_REQ** x,
+                                                pem_password_cb* cb,
+                                                void* u) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_X509_REQ(bp, x, cb, u);
 }
@@ -386,7 +386,7 @@ EVP_PKEY* OpenSSLLib::SSL_PEM_read_bio_PrivateKey(BIO* bio,
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_PrivateKey(bio, pkey, cb, u);
 }
 
-X509 *OpenSSLLib::SSL_d2i_X509_bio(BIO* bp, X509** x509) noexcept
+X509* OpenSSLLib::SSL_d2i_X509_bio(BIO* bp, X509** x509) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_d2i_X509_bio(bp, x509);
 }
@@ -406,27 +406,27 @@ int OpenSSLLib::SSL_X509_set_pubkey(X509* ptr, EVP_PKEY* pkey) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_pubkey(ptr, pkey);
 }
 
-int OpenSSLLib::SSL_X509_set_issuer_name(X509 *x, X509_NAME *name) noexcept
+int OpenSSLLib::SSL_X509_set_issuer_name(X509* x, X509_NAME* name) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_issuer_name(x, name);
 }
 
-int OpenSSLLib::SSL_X509_set_subject_name(X509 *x, X509_NAME *name) noexcept
+int OpenSSLLib::SSL_X509_set_subject_name(X509* x, X509_NAME* name) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_subject_name(x, name);
 }
 
-int OpenSSLLib::SSL_X509_set_notBefore(X509 *x, const ASN1_TIME* t) noexcept
+int OpenSSLLib::SSL_X509_set_notBefore(X509* x, const ASN1_TIME* t) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notBefore(x, t);
 }
 
-int OpenSSLLib::SSL_X509_set_notAfter(X509 *x, const ASN1_TIME* t) noexcept
+int OpenSSLLib::SSL_X509_set_notAfter(X509* x, const ASN1_TIME* t) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_set_notAfter(x, t);
 }
 
-int OpenSSLLib::SSL_X509_sign(X509 *x, EVP_PKEY *pkey, const EVP_MD *md) noexcept
+int OpenSSLLib::SSL_X509_sign(X509* x, EVP_PKEY* pkey, const EVP_MD* md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_sign(x, pkey, md);
 }
@@ -441,39 +441,41 @@ X509* OpenSSLLib::SSL_PEM_read_bio_X509(BIO* bio, X509** x, pem_password_cb* cb,
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_X509(bio, x, cb, pwd);
 }
 
-int OpenSSLLib::SSL_PEM_write_bio_X509(BIO *bp, X509 *x) noexcept
+int OpenSSLLib::SSL_PEM_write_bio_X509(BIO* bp, X509* x) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_write_bio_X509(bp, x);
 }
 
-void OpenSSLLib::SSL_ASN1_TIME_free(ASN1_TIME *x) noexcept
+void OpenSSLLib::SSL_ASN1_TIME_free(ASN1_TIME* x) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_free(x);
 }
 
-int OpenSSLLib::SSL_ASN1_TIME_diff(int *pday, int *psec,
-                              const ASN1_TIME *from, const ASN1_TIME *to) noexcept
+int OpenSSLLib::SSL_ASN1_TIME_diff(int* pday,
+                                   int* psec,
+                                   const ASN1_TIME* from,
+                                   const ASN1_TIME* to) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_diff(pday, psec, from, to);
 }
 
-ASN1_TIME *OpenSSLLib::SSL_ASN1_TIME_set(ASN1_TIME *s, time_t t) noexcept
+ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_set(ASN1_TIME* s, time_t t) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_set(s,t);
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_set(s, t);
 }
 
 /* X509 */
-X509_NAME* OpenSSLLib::SSL_X509_get_subject_name(X509 *ptr) noexcept
+X509_NAME* OpenSSLLib::SSL_X509_get_subject_name(X509* ptr) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_get_subject_name(ptr);
 }
 
-X509_NAME* OpenSSLLib::SSL_X509_get_issuer_name(X509 *ptr) noexcept
+X509_NAME* OpenSSLLib::SSL_X509_get_issuer_name(X509* ptr) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_get_issuer_name(ptr);
 }
 
-EVP_PKEY* OpenSSLLib::SSL_X509_get_pubkey(X509 *x) noexcept
+EVP_PKEY* OpenSSLLib::SSL_X509_get_pubkey(X509* x) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_get_pubkey(x);
 }
@@ -489,13 +491,19 @@ ASN1_TIME* OpenSSLLib::SSL_X509_get_notAfter(X509* x) noexcept
 }
 
 /* X509 Certificate validation */
-X509_STORE* OpenSSLLib::SSL_X509_STORE_new() noexcept { return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_new(); }
-
-void OpenSSLLib::SSL_X509_STORE_free(X509_STORE *v) noexcept { OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_free(v); }
-
-int OpenSSLLib::SSL_X509_STORE_add_cert(X509_STORE *ctx, X509 *x) noexcept
+X509_STORE* OpenSSLLib::SSL_X509_STORE_new() noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_add_cert(ctx,x);
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_new();
+}
+
+void OpenSSLLib::SSL_X509_STORE_free(X509_STORE* v) noexcept
+{
+    OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_free(v);
+}
+
+int OpenSSLLib::SSL_X509_STORE_add_cert(X509_STORE* ctx, X509* x) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_add_cert(ctx, x);
 }
 
 X509_STORE_CTX* OpenSSLLib::SSL_X509_STORE_CTX_new() noexcept
@@ -503,63 +511,69 @@ X509_STORE_CTX* OpenSSLLib::SSL_X509_STORE_CTX_new() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_new();
 }
 
-void OpenSSLLib::SSL_X509_STORE_CTX_free(X509_STORE_CTX *ctx) noexcept
+void OpenSSLLib::SSL_X509_STORE_CTX_free(X509_STORE_CTX* ctx) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_free(ctx);
 }
-int OpenSSLLib::SSL_X509_STORE_CTX_init(X509_STORE_CTX *ctx, X509_STORE *store, X509 *x509,
-                                        STACK_OF(X509) *chain) noexcept
+int OpenSSLLib::SSL_X509_STORE_CTX_init(X509_STORE_CTX* ctx,
+                                        X509_STORE* store,
+                                        X509* x509,
+                                        STACK_OF(X509) * chain) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_init(ctx,store,x509,chain);
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_init(
+            ctx, store, x509, chain);
 }
 
-X509_VERIFY_PARAM* OpenSSLLib::SSL_X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx) noexcept
+X509_VERIFY_PARAM* OpenSSLLib::SSL_X509_STORE_CTX_get0_param(X509_STORE_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_get0_param(ctx);
 }
 
-int OpenSSLLib::SSL_X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param, unsigned long flags) noexcept
+int OpenSSLLib::SSL_X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM* param,
+                                                unsigned long flags) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_VERIFY_PARAM_set_flags(param, flags);
 }
 
-
-int OpenSSLLib::SSL_X509_verify_cert(X509_STORE_CTX *ctx) noexcept {
+int OpenSSLLib::SSL_X509_verify_cert(X509_STORE_CTX* ctx) noexcept
+{
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_verify_cert(ctx);
 }
 
-const char* OpenSSLLib::SSL_X509_verify_cert_error_string(long n) noexcept {
+const char* OpenSSLLib::SSL_X509_verify_cert_error_string(long n) noexcept
+{
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_verify_cert_error_string(n);
 }
 
-int OpenSSLLib::SSL_X509_STORE_CTX_get_error(X509_STORE_CTX *ctx) noexcept {
+int OpenSSLLib::SSL_X509_STORE_CTX_get_error(X509_STORE_CTX* ctx) noexcept
+{
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_get_error(ctx);
 }
 
-int OpenSSLLib::SSL_X509_check_ca(X509 *cert) noexcept {
+int OpenSSLLib::SSL_X509_check_ca(X509* cert) noexcept
+{
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_check_ca(cert);
 }
 
 /* stack of X509 */
-STACK_OF(X509)* OpenSSLLib::SSL_sk_X509_new_null() noexcept
+STACK_OF(X509) * OpenSSLLib::SSL_sk_X509_new_null() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_new_null();
 }
 
-int OpenSSLLib::SSL_sk_X509_push(STACK_OF(X509)* stack, const X509 *crt)  noexcept
+int OpenSSLLib::SSL_sk_X509_push(STACK_OF(X509) * stack, const X509* crt) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_push(stack, crt);
 }
-void OpenSSLLib::SSL_sk_X509_free(STACK_OF(X509)* stack) noexcept
+void OpenSSLLib::SSL_sk_X509_free(STACK_OF(X509) * stack) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_free(stack);
 }
 
-int OpenSSLLib::SSL_X509_NAME_get_index_by_NID(X509_NAME* name,
-                                                        int nid,
-                                                        int lastpos) noexcept
+int OpenSSLLib::SSL_X509_NAME_get_index_by_NID(X509_NAME* name, int nid, int lastpos) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_X509_NAME_get_index_by_NID(name, nid, lastpos);
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_NAME_get_index_by_NID(
+            name, nid, lastpos);
 }
 
 X509_NAME_ENTRY* OpenSSLLib::SSL_X509_NAME_get_entry(X509_NAME* name, int loc) noexcept
@@ -567,12 +581,12 @@ X509_NAME_ENTRY* OpenSSLLib::SSL_X509_NAME_get_entry(X509_NAME* name, int loc) n
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_NAME_get_entry(name, loc);
 }
 
-ASN1_STRING * OpenSSLLib::SSL_X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *ne) noexcept
+ASN1_STRING* OpenSSLLib::SSL_X509_NAME_ENTRY_get_data(X509_NAME_ENTRY* ne) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_NAME_ENTRY_get_data(ne);
 }
 
-int OpenSSLLib::SSL_ASN1_STRING_print_ex(BIO *out, ASN1_STRING *str, unsigned long flags) noexcept
+int OpenSSLLib::SSL_ASN1_STRING_print_ex(BIO* out, ASN1_STRING* str, unsigned long flags) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_STRING_print_ex(out, str, flags);
 }
@@ -602,10 +616,8 @@ X509_EXTENSION* OpenSSLLib::SSL_X509V3_EXT_conf_nid(lhash_st_CONF_VALUE* conf,
                                                     int ext_nid,
                                                     char* value) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_X509V3_EXT_conf_nid(conf,
-                                                                             ctx,
-                                                                             ext_nid,
-                                                                             value);
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509V3_EXT_conf_nid(
+            conf, ctx, ext_nid, value);
 }
 int OpenSSLLib::SSL_X509_add_ext(X509* x, X509_EXTENSION* ex, int loc) noexcept
 {
@@ -619,9 +631,15 @@ void OpenSSLLib::SSL_X509V3_set_ctx_nodb(X509V3_CTX* ctx) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509V3_set_ctx_nodb(ctx);
 }
-void OpenSSLLib::SSL_X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject, X509_REQ* req, X509_CRL* crl, int flags) noexcept
+void OpenSSLLib::SSL_X509V3_set_ctx(X509V3_CTX* ctx,
+                                    X509* issuer,
+                                    X509* subject,
+                                    X509_REQ* req,
+                                    X509_CRL* crl,
+                                    int flags) noexcept
 {
-    OpenSSLLibMockManager::getMockInterface().SSL_X509V3_set_ctx(ctx, issuer, subject, req, crl, flags);
+    OpenSSLLibMockManager::getMockInterface().SSL_X509V3_set_ctx(
+            ctx, issuer, subject, req, crl, flags);
 }
 int OpenSSLLib::SSL_X509_set_serialNumber(X509* x, ASN1_INTEGER* serial) noexcept
 {
@@ -707,7 +725,10 @@ const ASN1_TIME* OpenSSLLib::SSL_X509_CRL_get_lastUpdate(const X509_CRL* x) noex
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_CRL_get_lastUpdate(x);
 }
-X509_CRL* OpenSSLLib::SSL_PEM_read_bio_X509_CRL(BIO* bp, X509_CRL** x, pem_password_cb* cb, void* u) noexcept
+X509_CRL* OpenSSLLib::SSL_PEM_read_bio_X509_CRL(BIO* bp,
+                                                X509_CRL** x,
+                                                pem_password_cb* cb,
+                                                void* u) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_PEM_read_bio_X509_CRL(bp, x, cb, u);
 }
@@ -727,27 +748,34 @@ X509_CRL* OpenSSLLib::SSL_X509_CRL_new() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_CRL_new();
 }
-void OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL)* crls) noexcept
+void OpenSSLLib::SSL_X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx,
+                                              STACK_OF(X509_CRL) * crls) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_set0_crls(ctx, crls);
 }
-void OpenSSLLib::SSL_sk_X509_CRL_free(STACK_OF(X509_CRL)* stack) noexcept
+void OpenSSLLib::SSL_sk_X509_CRL_free(STACK_OF(X509_CRL) * stack) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_CRL_free(stack);
 }
-STACK_OF(X509_CRL)* OpenSSLLib::SSL_sk_X509_CRL_new_null() noexcept
+STACK_OF(X509_CRL) * OpenSSLLib::SSL_sk_X509_CRL_new_null() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_CRL_new_null();
 }
-int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL)* stack, const X509_CRL* crl) noexcept
+int OpenSSLLib::SSL_sk_X509_CRL_push(STACK_OF(X509_CRL) * stack, const X509_CRL* crl) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_sk_X509_CRL_push(stack, crl);
 }
-ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_adj(ASN1_TIME* s, time_t t, int offset_day, long offset_sec) noexcept
+ASN1_TIME* OpenSSLLib::SSL_ASN1_TIME_adj(ASN1_TIME* s,
+                                         time_t t,
+                                         int offset_day,
+                                         long offset_sec) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_adj(s, t, offset_day, offset_sec);
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_TIME_adj(
+            s, t, offset_day, offset_sec);
 }
-void OpenSSLLib::SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, unsigned long flags, time_t t) noexcept
+void OpenSSLLib::SSL_X509_STORE_CTX_set_time(X509_STORE_CTX* ctx,
+                                             unsigned long flags,
+                                             time_t t) noexcept
 {
     OpenSSLLibMockManager::getMockInterface().SSL_X509_STORE_CTX_set_time(ctx, flags, t);
 }
@@ -771,81 +799,94 @@ int OpenSSLLib::SSL_EVP_MD_CTX_reset(EVP_MD_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_CTX_reset(ctx);
 }
-int OpenSSLLib::SSL_EVP_PKEY_sign(EVP_PKEY_CTX *ctx, unsigned char *sig, size_t *siglen, const unsigned char *tbs, size_t tbslen) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_sign(EVP_PKEY_CTX* ctx,
+                                  unsigned char* sig,
+                                  size_t* siglen,
+                                  const unsigned char* tbs,
+                                  size_t tbslen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_sign(ctx, sig, siglen, tbs, tbslen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_sign(
+            ctx, sig, siglen, tbs, tbslen);
 }
-int OpenSSLLib::SSL_EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_sign_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_sign_init(ctx);
 }
-int OpenSSLLib::SSL_EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_verify_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_verify_init(ctx);
 }
-int OpenSSLLib::SSL_EVP_PKEY_verify(EVP_PKEY_CTX *ctx, const unsigned char *sig, size_t siglen, const unsigned char *tbs, size_t tbslen) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_verify(EVP_PKEY_CTX* ctx,
+                                    const unsigned char* sig,
+                                    size_t siglen,
+                                    const unsigned char* tbs,
+                                    size_t tbslen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_verify(ctx, sig, siglen, tbs, tbslen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_verify(
+            ctx, sig, siglen, tbs, tbslen);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX* ctx, int pad) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_padding(ctx, pad);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD* md) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX* ctx, const EVP_MD* md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_signature_md(ctx, md);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX* ctx, int len) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_pss_saltlen(ctx, len);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX* ctx, const EVP_MD* md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
 }
-int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_encrypt_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt_init(ctx);
 }
-int OpenSSLLib::SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
-                               unsigned char *out, size_t *outlen,
-                               const unsigned char *in, size_t inlen) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_encrypt(EVP_PKEY_CTX* ctx,
+                                     unsigned char* out,
+                                     size_t* outlen,
+                                     const unsigned char* in,
+                                     size_t inlen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt(ctx,
-                                                                          out, outlen,
-                                                                          in, inlen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_encrypt(
+            ctx, out, outlen, in, inlen);
 }
-int OpenSSLLib::SSL_EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_decrypt_init(EVP_PKEY_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt_init(ctx);
 }
-int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
-                               unsigned char *out, size_t *outlen,
-                               const unsigned char *in, size_t inlen) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_decrypt(EVP_PKEY_CTX* ctx,
+                                     unsigned char* out,
+                                     size_t* outlen,
+                                     const unsigned char* in,
+                                     size_t inlen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt(ctx,
-                                                                          out, outlen,
-                                                                          in, inlen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_decrypt(
+            ctx, out, outlen, in, inlen);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX* ctx, const EVP_MD* md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_oaep_md(ctx, md);
 }
-int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l,
-                                                int llen) noexcept
+int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX* ctx,
+                                                    unsigned char* l,
+                                                    int llen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_oaep_label(ctx,
-                                                                                         l, llen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_CTX_set_rsa_oaep_label(
+            ctx, l, llen);
 }
-int OpenSSLLib::SSL_RSA_size(const RSA *r) noexcept
+int OpenSSLLib::SSL_RSA_size(const RSA* r) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_RSA_size(r);
 }
-int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD *md) noexcept
+int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD* md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_size(md);
 }
-EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
+EC_KEY* OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY* pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_get0_EC_KEY(pkey);
 }
@@ -855,15 +896,17 @@ int OpenSSLLib::SSL_EVP_DigestSign(EVP_MD_CTX* ctx,
                                    const unsigned char* tbs,
                                    size_t tbslen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestSign(ctx, sigret, siglen, tbs, tbslen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestSign(
+            ctx, sigret, siglen, tbs, tbslen);
 }
 int OpenSSLLib::SSL_EVP_DigestVerifyInit(EVP_MD_CTX* ctx,
                                          EVP_PKEY_CTX** pctx,
-                                         const EVP_MD * type,
+                                         const EVP_MD* type,
                                          ENGINE* e,
                                          EVP_PKEY* pkey) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerifyInit(ctx, pctx, type, e, pkey);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerifyInit(
+            ctx, pctx, type, e, pkey);
 }
 int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
                                      const unsigned char* sigret,
@@ -871,7 +914,8 @@ int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX* ctx,
                                      const unsigned char* tbs,
                                      size_t tbslen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerify(ctx, sigret, siglen, tbs, tbslen);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_DigestVerify(
+            ctx, sigret, siglen, tbs, tbslen);
 }
 X509_REQ* OpenSSLLib::SSL_d2i_X509_REQ_bio(BIO* bp, X509_REQ** req) noexcept
 {
@@ -881,7 +925,11 @@ int OpenSSLLib::SSL_i2d_X509_REQ_bio(BIO* bp, X509_REQ* req) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_i2d_X509_REQ_bio(bp, req);
 }
-int OpenSSLLib::SSL_EVP_CipherUpdate(EVP_CIPHER_CTX * ctx, unsigned char * out, int * outl, const unsigned char * in, int inl) noexcept
+int OpenSSLLib::SSL_EVP_CipherUpdate(EVP_CIPHER_CTX* ctx,
+                                     unsigned char* out,
+                                     int* outl,
+                                     const unsigned char* in,
+                                     int inl) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CipherUpdate(ctx, out, outl, in, inl);
 }
@@ -889,11 +937,17 @@ int OpenSSLLib::SSL_EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm,
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CipherFinal_ex(ctx, outm, outl);
 }
-int OpenSSLLib::SSL_EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx, const EVP_CIPHER* cipher, ENGINE* impl, const unsigned char* key, const unsigned char* iv, int enc) noexcept
+int OpenSSLLib::SSL_EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx,
+                                      const EVP_CIPHER* cipher,
+                                      ENGINE* impl,
+                                      const unsigned char* key,
+                                      const unsigned char* iv,
+                                      int enc) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CipherInit_ex(ctx, cipher, impl, key, iv, enc);
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CipherInit_ex(
+            ctx, cipher, impl, key, iv, enc);
 }
-EVP_CIPHER_CTX * OpenSSLLib::SSL_EVP_CIPHER_CTX_new() noexcept
+EVP_CIPHER_CTX* OpenSSLLib::SSL_EVP_CIPHER_CTX_new() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_CTX_new();
 }
@@ -913,32 +967,45 @@ int OpenSSLLib::SSL_EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_CTX_iv_length(ctx);
 }
-int OpenSSLLib::SSL_RAND_bytes(unsigned char * buf, int num) noexcept
+int OpenSSLLib::SSL_RAND_bytes(unsigned char* buf, int num) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_RAND_bytes(buf, num);
 }
-int OpenSSLLib::SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX * c) noexcept
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX* c) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_CTX_reset(c);
 }
-int OpenSSLLib::SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX * c, int pad) noexcept
+int OpenSSLLib::SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX* c, int pad) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_CTX_set_padding(c, pad);
 }
 
-int OpenSSLLib::SSL_PKCS5_PBKDF2_HMAC(const char *pass, int passlen, const unsigned char *salt, int saltlen,
-                                      int iter,const EVP_MD *digest, int keylen, unsigned char *out) noexcept
+int OpenSSLLib::SSL_PKCS5_PBKDF2_HMAC(const char* pass,
+                                      int passlen,
+                                      const unsigned char* salt,
+                                      int saltlen,
+                                      int iter,
+                                      const EVP_MD* digest,
+                                      int keylen,
+                                      unsigned char* out) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_PKCS5_PBKDF2_HMAC(pass, passlen, salt, saltlen, iter, digest,
-                                                                           keylen, out);
+    return OpenSSLLibMockManager::getMockInterface().SSL_PKCS5_PBKDF2_HMAC(
+            pass, passlen, salt, saltlen, iter, digest, keylen, out);
 }
 
-int OpenSSLLib::SSL_ECDH_KDF_X9_63(unsigned char *out, size_t outlen, const unsigned char *Z, size_t Zlen,
-                                   const unsigned char *sinfo, size_t sinfolen, const EVP_MD *md) noexcept
+int OpenSSLLib::SSL_ECDH_KDF_X9_63(unsigned char* out,
+                                   size_t outlen,
+                                   const unsigned char* Z,
+                                   size_t Zlen,
+                                   const unsigned char* sinfo,
+                                   size_t sinfolen,
+                                   const EVP_MD* md) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_ECDH_KDF_X9_63(out, outlen, Z, Zlen, sinfo, sinfolen, md);
+    return OpenSSLLibMockManager::getMockInterface().SSL_ECDH_KDF_X9_63(
+            out, outlen, Z, Zlen, sinfo, sinfolen, md);
 }
-int OpenSSLLib::SSL_HMAC_Init_ex(HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept
+int OpenSSLLib::SSL_HMAC_Init_ex(
+        HMAC_CTX* ctx, const void* key, int key_len, const EVP_MD* md, ENGINE* impl) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_HMAC_Init_ex(ctx, key, key_len, md, impl);
 }
@@ -978,7 +1045,10 @@ int OpenSSLLib::SSL_EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_set1_EC_KEY(pkey, key);
 }
-size_t OpenSSLLib::SSL_EC_KEY_key2buf(const EC_KEY* eckey, point_conversion_form_t form, unsigned char** pbuf, BN_CTX* ctx) noexcept
+size_t OpenSSLLib::SSL_EC_KEY_key2buf(const EC_KEY* eckey,
+                                      point_conversion_form_t form,
+                                      unsigned char** pbuf,
+                                      BN_CTX* ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_key2buf(eckey, form, pbuf, ctx);
 }
@@ -994,7 +1064,7 @@ int OpenSSLLib::SSL_EVP_PKEY_derive(EVP_PKEY_CTX* ctx, unsigned char* key, size_
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_derive(ctx, key, keylen);
 }
-BIGNUM* OpenSSLLib::SSL_BN_bin2bn(const unsigned char* s, int len, BIGNUM*  ret) noexcept
+BIGNUM* OpenSSLLib::SSL_BN_bin2bn(const unsigned char* s, int len, BIGNUM* ret) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_BN_bin2bn(s, len, ret);
 }
@@ -1010,11 +1080,13 @@ int OpenSSLLib::SSL_ECDSA_SIG_set0(ECDSA_SIG* sig, BIGNUM* r, BIGNUM* s) noexcep
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ECDSA_SIG_set0(sig, r, s);
 }
-int OpenSSLLib::SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char ** pp) noexcept
+int OpenSSLLib::SSL_i2d_ECDSA_SIG(const ECDSA_SIG* sig, unsigned char** pp) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_i2d_ECDSA_SIG(sig, pp);
 }
-ECDSA_SIG* OpenSSLLib::SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig, const unsigned char** pp, long len) noexcept
+ECDSA_SIG* OpenSSLLib::SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig,
+                                         const unsigned char** pp,
+                                         long len) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_d2i_ECDSA_SIG(sig, pp, len);
 }
@@ -1052,7 +1124,11 @@ int OpenSSLLib::SSL_CMAC_CTX_copy(CMAC_CTX* out, const CMAC_CTX* in) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_CMAC_CTX_copy(out, in);
 }
-int OpenSSLLib::SSL_CMAC_Init(CMAC_CTX* ctx, const void* key, size_t keylen, const EVP_CIPHER* cipher, ENGINE* impl) noexcept
+int OpenSSLLib::SSL_CMAC_Init(CMAC_CTX* ctx,
+                              const void* key,
+                              size_t keylen,
+                              const EVP_CIPHER* cipher,
+                              ENGINE* impl) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_CMAC_Init(ctx, key, keylen, cipher, impl);
 }
@@ -1077,6 +1153,6 @@ const char* OpenSSLLib::SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_name(cipher);
 }
-}  //::lib
-}  //::openssl
-}  //::mococrw
+}  // namespace lib
+}  // namespace openssl
+}  // namespace mococrw

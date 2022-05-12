@@ -32,7 +32,8 @@ const BIO *BioObject::internal() const { return _bio.get(); }
 
 void BioObject::write(const std::string &buf) { _BIO_puts(_bio.get(), buf); }
 
-void BioObject::write(const std::vector<uint8_t> &buf) {
+void BioObject::write(const std::vector<uint8_t> &buf)
+{
     int written = _BIO_write(_bio.get(), buf);
 
     if (written < 0 || static_cast<std::size_t>(written) < buf.size()) {
@@ -40,7 +41,8 @@ void BioObject::write(const std::vector<uint8_t> &buf) {
                 boost::format{
                         "Could not write all data. Reason unknown (OpenSSL reported a count "
                         "of "
-                        "%d)"} % written;
+                        "%d)"} %
+                written;
         throw std::runtime_error(formattedErrorMsg.str());
     }
 }
@@ -69,7 +71,8 @@ std::string BioObject::flushToString()
                 boost::format{
                         "Could not read the string. Reason unknown (OpenSSL reported a count "
                         "of "
-                        "%d)"} % count;
+                        "%d)"} %
+                count;
         throw std::runtime_error(formattedErrorMsg.str());
     }
     return ostream.str();
@@ -92,13 +95,12 @@ std::vector<uint8_t> BioObject::flushToVector()
         }
         outputBuffer.insert(outputBuffer.end(), tmpBuffer.begin(), tmpBuffer.end());
     } while (count > 0);
-    // it seems that _BIO_read returns -1 when the buffer is empty. So no special error handling here
+    // it seems that _BIO_read returns -1 when the buffer is empty. So no special error handling
+    // here
     return outputBuffer;
-
 }
 
-FileBio::FileBio(const std::string &filename, FileMode mode, FileType type)
-    : BioObject()
+FileBio::FileBio(const std::string &filename, FileMode mode, FileType type) : BioObject()
 {
     std::string modeStr;
     if (mode == FileMode::READ) {
@@ -123,4 +125,4 @@ const BIO_METHOD *BioObject::_bioMethodFromType(Types type)
             throw std::runtime_error(format.str());
     }
 }
-}  // ::mococrw
+}  // namespace mococrw

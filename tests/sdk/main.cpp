@@ -24,9 +24,9 @@
 
 #include <iostream>
 
+#include <mococrw/csr.h>
 #include <mococrw/key.h>
 #include <mococrw/x509.h>
-#include <mococrw/csr.h>
 
 using namespace mococrw;
 
@@ -55,7 +55,6 @@ const std::string certPemString{
 
 int main(int, char **)
 {
-
     // Smoke test 1: Generate a CSR
     auto dn = DistinguishedName::Builder()
                       .commonName("ImATeapot")
@@ -71,8 +70,7 @@ int main(int, char **)
     CertificateSigningRequest csr{dn, keypair};
     auto pemString = csr.toPem();
     auto publicKey = csr.getPublicKey();
-    if (pemString.size() == 0 || publicKey.publicKeyToPem().size() == 0)
-    {
+    if (pemString.size() == 0 || publicKey.publicKeyToPem().size() == 0) {
         std::cerr << "CSR generation seemed to have failed" << std::endl;
         std::cerr << "CSR output is\n--->\n" << pemString << "\n<---" << std::endl;
         return -1;

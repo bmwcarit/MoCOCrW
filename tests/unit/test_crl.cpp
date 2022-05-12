@@ -16,15 +16,15 @@
  * limitations under the License.
  * #L%
  */
-#include <fstream>
 #include <algorithm>
+#include <fstream>
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "mococrw/crl.h"
-#include "mococrw/ca.h"
 #include "mococrw/basic_constraints.h"
+#include "mococrw/ca.h"
+#include "mococrw/crl.h"
 #include "mococrw/key_usage.h"
 #include "mococrw/private/IOUtils.h"
 
@@ -73,7 +73,6 @@ xMXkycw4+LeLOPhYtS5visTc/zvJ70Wr26KnCbt8RrifqDtKckAyUrIzwrkUrv8E
 KwI7L3ne8waohqAL6l7lOVsHdohLGd610g==
 -----BLA X509 CRL-----)"};
 
-
 const std::string CRLTest::crlPemChain{R"(-----BEGIN X509 CRL-----
 MIIB0jCBuwIBATANBgkqhkiG9w0BAQsFADB3MQswCQYDVQQGEwJQVDEOMAwGA1UE
 CAwFUG9ydG8xDjAMBgNVBAcMBVBvcnRvMRkwFwYDVQQKDBBUZXN0T3JnYW5pemF0
@@ -104,8 +103,8 @@ void CRLTest::SetUp()
     rootCert = std::make_unique<X509Certificate>(loadCertFromFile("root3.pem"));
     subCACert = std::make_unique<X509Certificate>(loadCertFromFile("root3.int1.pem"));
     rootCrl = std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl.pem"));
-    rootCrlWithInvalidSignature =
-            std::make_unique<CertificateRevocationList>(loadCrlFromFile("root3.crl_invalidsignature.pem"));
+    rootCrlWithInvalidSignature = std::make_unique<CertificateRevocationList>(
+            loadCrlFromFile("root3.crl_invalidsignature.pem"));
 }
 
 TEST_F(CRLTest, testHasCorrectValues)
@@ -113,10 +112,10 @@ TEST_F(CRLTest, testHasCorrectValues)
     EXPECT_EQ(rootCert->getSubjectDistinguishedName(), rootCrl->getIssuerName());
 
     // Last Update: Jan 17 16:48:47 2020 GMT
-    EXPECT_EQ(rootCrl->getLastUpdateAsn1(),  Asn1Time::fromString("20200117164847Z"));
+    EXPECT_EQ(rootCrl->getLastUpdateAsn1(), Asn1Time::fromString("20200117164847Z"));
 
     // Next Update: Dec 24 16:48:47 2119 GMT
-    EXPECT_EQ(rootCrl->getNextUpdateAsn1(),  Asn1Time::fromString("21191224164847Z"));
+    EXPECT_EQ(rootCrl->getNextUpdateAsn1(), Asn1Time::fromString("21191224164847Z"));
 }
 
 TEST_F(CRLTest, testThatParsingInvalidPEMFails)
@@ -129,20 +128,14 @@ TEST_F(CRLTest, testLoadingPEMDirectlyFromFile)
     EXPECT_NO_THROW(CertificateRevocationList::fromPEMFile("root3.crl.pem"));
 }
 
-TEST_F(CRLTest, testLoadingDER)
-{
-    EXPECT_NO_THROW(loadCrlFromDERFile("root3.crl.der"));
-}
+TEST_F(CRLTest, testLoadingDER) { EXPECT_NO_THROW(loadCrlFromDERFile("root3.crl.der")); }
 
 TEST_F(CRLTest, testLoadingDERDirectlyFromFile)
 {
     EXPECT_NO_THROW(CertificateRevocationList::fromDERFile("root3.crl.der"));
 }
 
-TEST_F(CRLTest, testVerifyingGoodSignatureSucceeds)
-{
-    EXPECT_NO_THROW(rootCrl->verify(*rootCert));
-}
+TEST_F(CRLTest, testVerifyingGoodSignatureSucceeds) { EXPECT_NO_THROW(rootCrl->verify(*rootCert)); }
 
 TEST_F(CRLTest, testVerifyingChangedSignatureFails)
 {
@@ -163,8 +156,8 @@ TEST_F(CRLTest, testLoadCrlPemChain)
 {
     auto crlList = mococrw::util::loadCrlPEMChain(crlPemChain);
 
-    //Issuer:C = PT,ST = Porto,L = Porto,O = TestOrganization,OU = TestOrgName,CN = TestCommonName
-    auto issuerName =crlList.at(0).getIssuerName();
+    // Issuer:C = PT,ST = Porto,L = Porto,O = TestOrganization,OU = TestOrgName,CN = TestCommonName
+    auto issuerName = crlList.at(0).getIssuerName();
     EXPECT_EQ("TestCommonName", issuerName.commonName());
     EXPECT_EQ("PT", issuerName.countryName());
     EXPECT_EQ("Porto", issuerName.localityName());
@@ -172,13 +165,12 @@ TEST_F(CRLTest, testLoadCrlPemChain)
     EXPECT_EQ("TestOrganization", issuerName.organizationName());
     EXPECT_EQ("TestOrgName", issuerName.organizationalUnitName());
 
-    //Issuer: C = PT, ST = Lisbon, L = Lisbon, O = TestOrg2, OU = OrgUnit2, CN = aCommonName2
-    issuerName =crlList.at(1).getIssuerName();
+    // Issuer: C = PT, ST = Lisbon, L = Lisbon, O = TestOrg2, OU = OrgUnit2, CN = aCommonName2
+    issuerName = crlList.at(1).getIssuerName();
     EXPECT_EQ("PT", issuerName.countryName());
     EXPECT_EQ("TestOrg2", issuerName.organizationName());
     EXPECT_EQ("OrgUnit2", issuerName.organizationalUnitName());
     EXPECT_EQ("Lisbon", issuerName.localityName());
     EXPECT_EQ("Lisbon", issuerName.stateOrProvinceName());
     EXPECT_EQ("aCommonName2", issuerName.commonName());
-
 }

@@ -17,9 +17,9 @@
  * #L%
  */
 
-#include <iostream>
 #include <mococrw/asymmetric_crypto_ctx.h>
 #include <mococrw/hash.h>
+#include <iostream>
 
 using namespace mococrw;
 
@@ -33,8 +33,7 @@ std::vector<uint8_t> rsaSign(const AsymmetricPrivateKey &privKey,
     try {
         /* Padding is optional. Default: PSSPadding with MGF1 as mask generation function.
          * DigestType is used as hash function for the padding schemes and for MGF1 (if used) */
-        signCtx = std::make_shared<RSASignaturePrivateKeyCtx>(privKey, digestType,
-                                                          padding);
+        signCtx = std::make_shared<RSASignaturePrivateKeyCtx>(privKey, digestType, padding);
     } catch (const MoCOCrWException &e) {
         std::cerr << "Please check your RSA key. Failure creating context." << std::endl;
         std::cerr << e.what();
@@ -92,7 +91,6 @@ std::vector<uint8_t> ecdsaSign(const AsymmetricPrivateKey &privKey,
                                const ECDSASignatureFormat sigFormat,
                                const std::vector<uint8_t> &message)
 {
-
     std::shared_ptr<MessageSignatureCtx> signCtx;
     try {
         /* The argument hashFunction is optional. Default is SHA256
@@ -202,13 +200,14 @@ void edDsaVerify(const AsymmetricPublicKey &pubKey,
     }
 }
 
-int main(void) {
-
+int main(void)
+{
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
 
     /************** RSA signature **************/
     auto rsaPrivKey = AsymmetricPrivateKey::generateRSA();
-    /* If the default MGF function is used, the digest type for MGF and for PSS-Padding is the same */
+    /* If the default MGF function is used, the digest type for MGF and for PSS-Padding is the same
+     */
     auto mgf1DigestType = DigestTypes::SHA256;
     auto rsaSignatureDigestType = DigestTypes::SHA512;
     auto mgf1 = std::make_shared<MGF1>(MGF1(mgf1DigestType));
@@ -226,7 +225,6 @@ int main(void) {
     rsaVerify(rsaPrivKey, padding, rsaSignatureDigestType, signature, message);
     /*******************************************/
 
-
     /************** ECDSA signature **************/
     auto ecdsaDigestType = DigestTypes::SHA512;
     auto eccPrivKey = AsymmetricPrivateKey::generateECC();
@@ -242,7 +240,6 @@ int main(void) {
      */
     ecdsaVerify(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, signature, message);
     /*********************************************/
-
 
     /************** EdDSA signature **************/
     auto edPrivKey = AsymmetricPrivateKey::generateEd25519();

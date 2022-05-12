@@ -27,12 +27,8 @@ jobs:
 
       - name: "Check code format"
         run: |
-          clang-format --version
-          find . -iname *.h -o -iname *.cpp | xargs clang-format -i
-          if ! git diff --quiet; then
-            git diff 
-            exit 1
-          fi
+          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src buildenv bash -c \
+            './scripts/check_format.sh'
 
       - name: "Build MoCOCrW"
         run: |

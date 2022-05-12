@@ -16,15 +16,14 @@
  * limitations under the License.
  * #L%
  */
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
 
 #include "key.cpp"
 #include "util.cpp"
 
 using namespace mococrw;
 using namespace ::testing;
-
 
 class KeyHandlingTests : public ::testing::Test
 {
@@ -35,6 +34,7 @@ public:
     static std::string _pemEccPubKeySect409k1;
     static std::string _pemEccPrivKeyEd25519;
     static std::string _pemEccPubKeyEd25519;
+
 protected:
     mococrw::AsymmetricKeypair _rsaKeyPair = AsymmetricKeypair::generateRSA();
     mococrw::AsymmetricKeypair _rsaKeyPair2 = AsymmetricKeypair::generateRSA();
@@ -46,24 +46,29 @@ protected:
     mococrw::AsymmetricKeypair _Ed448KeyPair_2 = AsymmetricKeypair::generateECC();
     mococrw::AsymmetricKeypair _Ed25519KeyPair = AsymmetricKeypair::generateECC();
     mococrw::AsymmetricKeypair _Ed25519KeyPair_2 = AsymmetricKeypair::generateECC();
-
 };
 
-void KeyHandlingTests::SetUp() {
+void KeyHandlingTests::SetUp()
+{
     _rsaKeyPair = AsymmetricKeypair::generateRSA();
     _rsaKeyPair2 = AsymmetricKeypair::generateRSA();
 
     _eccKeyPairDefault = AsymmetricKeypair::generateECC();
     _eccKeyPairDefault2 = AsymmetricKeypair::generateECC();
 
-    _eccKeyPairSect571r1 = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECT_571r1});
-    _eccKeyPairSecp521r1 = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECP_521r1});
+    _eccKeyPairSect571r1 =
+            AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECT_571r1});
+    _eccKeyPairSecp521r1 =
+            AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::SECP_521r1});
 
     _Ed448KeyPair = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed448});
-    _Ed448KeyPair_2 = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed448});
+    _Ed448KeyPair_2 =
+            AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed448});
 
-    _Ed25519KeyPair = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed25519});
-    _Ed25519KeyPair_2 = AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed25519});
+    _Ed25519KeyPair =
+            AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed25519});
+    _Ed25519KeyPair_2 =
+            AsymmetricKeypair::generate(mococrw::ECCSpec{openssl::ellipticCurveNid::Ed25519});
 }
 
 std::string KeyHandlingTests::_pemEccPrivKeySect409k1{R"(-----BEGIN PRIVATE KEY-----
@@ -87,7 +92,6 @@ MC4CAQAwBQYDK2VwBCIEIHP1o8LJ4jNkuTyDT6uNtqLankRkQeAyAIflqvnjutC2
 std::string KeyHandlingTests::_pemEccPubKeyEd25519{R"(-----BEGIN PUBLIC KEY-----
 MCowBQYDK2VwAyEAlY+GiXLleFpEvVAOS/GJJTTpCA+fjRrCzjBpeLI73TY=
 -----END PUBLIC KEY-----)"};
-
 
 TEST_F(KeyHandlingTests, testGeneratedKeyIsNotNull)
 {
@@ -148,16 +152,15 @@ TEST_F(KeyHandlingTests, testPubKeyFromSavedPemIsSameAsOriginalInOpenSSLObject)
     ASSERT_EQ(_Ed448KeyPair, Ed448ParsedKey);
     ASSERT_EQ(_Ed25519KeyPair, Ed25519ParsedKey);
     ASSERT_NE(_eccKeyPairSecp521r1, _rsaKeyPair);
-
 }
 
 TEST_F(KeyHandlingTests, testReadExternalEccPEMKey)
 {
     /*Read private and public key from pem string*/
     auto eccPrivKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(
-                                                  KeyHandlingTests::_pemEccPrivKeySect409k1, "");
+            KeyHandlingTests::_pemEccPrivKeySect409k1, "");
     auto eccPubKey = mococrw::AsymmetricPublicKey::readPublicKeyFromPEM(
-                                                   KeyHandlingTests::_pemEccPubKeySect409k1);
+            KeyHandlingTests::_pemEccPubKeySect409k1);
 
     /*Check key type and curve*/
     EXPECT_EQ(eccPrivKey.getType(), AsymmetricKey::KeyTypes::ECC);
@@ -165,8 +168,10 @@ TEST_F(KeyHandlingTests, testReadExternalEccPEMKey)
 
     auto privSpec = eccPrivKey.getKeySpec();
     auto pubSpec = eccPubKey.getKeySpec();
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(privSpec.get())->curve(), openssl::ellipticCurveNid::SECT_409k1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(pubSpec.get())->curve(), openssl::ellipticCurveNid::SECT_409k1);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(privSpec.get())->curve(),
+              openssl::ellipticCurveNid::SECT_409k1);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(pubSpec.get())->curve(),
+              openssl::ellipticCurveNid::SECT_409k1);
 
     /*Write key to a new pem file and read back to compare with original*/
     /*Public key*/
@@ -183,9 +188,9 @@ TEST_F(KeyHandlingTests, testReadExternalEd25519PEMKey)
 {
     /*Read private and public key from pem string*/
     auto eccPrivKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(
-                                                  KeyHandlingTests::_pemEccPrivKeyEd25519, "");
+            KeyHandlingTests::_pemEccPrivKeyEd25519, "");
     auto eccPubKey = mococrw::AsymmetricPublicKey::readPublicKeyFromPEM(
-                                                   KeyHandlingTests::_pemEccPubKeyEd25519);
+            KeyHandlingTests::_pemEccPubKeyEd25519);
 
     /*Check key type and curve*/
     EXPECT_EQ(eccPrivKey.getType(), AsymmetricKey::KeyTypes::ECC_ED);
@@ -239,25 +244,29 @@ TEST_F(KeyHandlingTests, testPrivKeyFromSavedPemIsSameAsOriginal)
     const auto pemOfEccPubKey = _eccKeyPairDefault.publicKeyToPem();
     const auto pemOfEccPrivateKey = _eccKeyPairDefault.privateKeyToPem("password");
 
-    auto retrievedEccKeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(pemOfEccPrivateKey, "password");
+    auto retrievedEccKeyPair =
+            AsymmetricKeypair::readPrivateKeyFromPEM(pemOfEccPrivateKey, "password");
     ASSERT_EQ(pemOfEccPubKey, retrievedEccKeyPair.publicKeyToPem());
 
     const auto pemOfSectEccPubKey = _eccKeyPairSect571r1.publicKeyToPem();
     const auto pemOfSectEccPrivateKey = _eccKeyPairSect571r1.privateKeyToPem("santa");
 
-    auto retrievedSectEccKeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEccPrivateKey, "santa");
+    auto retrievedSectEccKeyPair =
+            AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEccPrivateKey, "santa");
     ASSERT_EQ(pemOfSectEccPubKey, retrievedSectEccKeyPair.publicKeyToPem());
 
     const auto pemOfSectEd448PubKey = _Ed448KeyPair.publicKeyToPem();
     const auto pemOfSectEd448PrivateKey = _Ed448KeyPair.privateKeyToPem("f00");
 
-    auto retrievedEd448KeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEd448PrivateKey, "f00");
+    auto retrievedEd448KeyPair =
+            AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEd448PrivateKey, "f00");
     ASSERT_EQ(pemOfSectEd448PubKey, retrievedEd448KeyPair.publicKeyToPem());
 
     const auto pemOfSectEd25519PubKey = _Ed25519KeyPair.publicKeyToPem();
     const auto pemOfSectEd25519PrivateKey = _Ed25519KeyPair.privateKeyToPem("bar");
 
-    auto retrievedEd25519KeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEd25519PrivateKey, "bar");
+    auto retrievedEd25519KeyPair =
+            AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEd25519PrivateKey, "bar");
     ASSERT_EQ(pemOfSectEd25519PubKey, retrievedEd25519KeyPair.publicKeyToPem());
 }
 
@@ -307,19 +316,24 @@ TEST_F(KeyHandlingTests, testKeyTypeChecking)
 
 TEST_F(KeyHandlingTests, testGetKeySpec)
 {
-    auto defaultSpec =_eccKeyPairDefault.getKeySpec();
+    auto defaultSpec = _eccKeyPairDefault.getKeySpec();
     auto Sect571r1Spec = _eccKeyPairSect571r1.getKeySpec();
     auto Secp521Spec = _eccKeyPairSecp521r1.getKeySpec();
     auto Ed448Spec = _Ed448KeyPair.getKeySpec();
     auto Ed25519Spec = _Ed25519KeyPair.getKeySpec();
 
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(defaultSpec.get())->curve(), openssl::ellipticCurveNid::PRIME_256v1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Sect571r1Spec.get())->curve(), openssl::ellipticCurveNid::SECT_571r1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Secp521Spec.get())->curve(), openssl::ellipticCurveNid::SECP_521r1);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(defaultSpec.get())->curve(),
+              openssl::ellipticCurveNid::PRIME_256v1);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(Sect571r1Spec.get())->curve(),
+              openssl::ellipticCurveNid::SECT_571r1);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(Secp521Spec.get())->curve(),
+              openssl::ellipticCurveNid::SECP_521r1);
     EXPECT_EQ(dynamic_cast<ECCSpec*>(Ed448Spec.get())->curve(), openssl::ellipticCurveNid::Ed448);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Ed25519Spec.get())->curve(), openssl::ellipticCurveNid::Ed25519);
+    EXPECT_EQ(dynamic_cast<ECCSpec*>(Ed25519Spec.get())->curve(),
+              openssl::ellipticCurveNid::Ed25519);
 
-    std::unique_ptr<RSASpec> defaultRSASpec (dynamic_cast<RSASpec*>(_rsaKeyPair.getKeySpec().release()));
+    std::unique_ptr<RSASpec> defaultRSASpec(
+            dynamic_cast<RSASpec*>(_rsaKeyPair.getKeySpec().release()));
     EXPECT_EQ(defaultRSASpec->numberOfBits(), 2048);
 }
 
@@ -370,7 +384,8 @@ TEST(KeySpecTest, testThatDefaultParametersAreSane)
 
 static std::vector<openssl::ellipticCurveNid> getEllipticCurveNids()
 {
-    /* Test the EC public key -> EC point -> EC public key transformation for all supported curves/groups */
+    /* Test the EC public key -> EC point -> EC public key transformation for all supported
+     * curves/groups */
     std::vector<openssl::ellipticCurveNid> testData{
             openssl::ellipticCurveNid::PRIME_192v1,
             openssl::ellipticCurveNid::PRIME_256v1,
@@ -388,19 +403,21 @@ static std::vector<openssl::ellipticCurveNid> getEllipticCurveNids()
             openssl::ellipticCurveNid::Ed25519
              * Failures:
              * unknown file: Failure
-             * C++ exception with description "error:23077074:PKCS12 routines:PKCS12_pbe_crypt:pkcs12 cipherfinal
+             * C++ exception with description "error:23077074:PKCS12
+            routines:PKCS12_pbe_crypt:pkcs12 cipherfinal
              * error: 587690100" thrown in the test body.
              * [  FAILED  ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/11,
              * where GetParam() = 4-byte object <40-04 00-00> (86112 ms)
              * [ RUN      ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/12
              * unknown file: Failure
-             * C++ exception with description "error:2306A075:PKCS12 routines:PKCS12_item_decrypt_d2i:pkcs12 pbe
+             * C++ exception with description "error:2306A075:PKCS12
+            routines:PKCS12_item_decrypt_d2i:pkcs12 pbe
              * crypt error: 587636853" thrown in the test body.
              * [  FAILED  ] keyGenFromPointTest/KeyGenerationFromPointTests.tests/12,
              * where GetParam() = 4-byte object <3F-04 00-00> (10410 ms)
              */
 
-        };
+    };
     return testData;
 }
 
@@ -412,7 +429,8 @@ void testKeyTransformation(openssl::ellipticCurveNid nid, EllipticCurvePointConv
     AsymmetricPublicKey pubKeyOrig = AsymmetricPublicKey(key.internal());
     std::vector<uint8_t> point = pubKeyOrig.toECPoint(form);
     ASSERT_EQ(pubKeyOrig.getECOctetLength(form), point.size());
-    AsymmetricPublicKey pubKey = AsymmetricPublicKey::fromECPoint(std::make_unique<ECCSpec>(nid), point);
+    AsymmetricPublicKey pubKey =
+            AsymmetricPublicKey::fromECPoint(std::make_unique<ECCSpec>(nid), point);
 
     ASSERT_THAT(pubKey == pubKeyOrig, true);
 }
@@ -424,13 +442,11 @@ void testKeyTransformation(openssl::ellipticCurveNid nid)
     testKeyTransformation(nid, EllipticCurvePointConversionForm::hybrid);
 }
 
-class KeyGenerationFromPointTests : public testing::TestWithParam<openssl::ellipticCurveNid> {};
+class KeyGenerationFromPointTests : public testing::TestWithParam<openssl::ellipticCurveNid>
+{
+};
 INSTANTIATE_TEST_CASE_P(keyGenFromPointTest,
                         KeyGenerationFromPointTests,
                         testing::ValuesIn(getEllipticCurveNids()));
 
-TEST_P(KeyGenerationFromPointTests, tests)
-{
-    testKeyTransformation(GetParam());
-}
-
+TEST_P(KeyGenerationFromPointTests, tests) { testKeyTransformation(GetParam()); }

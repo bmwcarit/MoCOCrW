@@ -20,6 +20,5 @@
 
 namespace mococrw
 {
-    constexpr openssl::X509Extension_NID BasicConstraintsExtension::NID;
-} //::mococrw
-
+constexpr openssl::X509Extension_NID BasicConstraintsExtension::NID;
+}  // namespace mococrw
