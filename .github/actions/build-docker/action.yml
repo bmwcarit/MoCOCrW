@@ -1,0 +1,21 @@
+name: "Build Docker Image"
+description: "Loads and builds docker image."
+inputs:
+  docker_tag:
+    description: 'Tag of Docker image'
+    required: true
+  docker_file_path:
+    description: 'Path to docker file'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Load Docker cache"
+      uses: satackey/action-docker-layer-caching@v0.0.11
+
+    - name: "Build Docker image"
+      shell: bash
+      run: |
+        docker build -t ${{ inputs.docker_tag }} - < ${{ inputs.docker_file_path }}
+
