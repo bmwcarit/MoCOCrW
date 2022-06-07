@@ -48,7 +48,7 @@ jobs:
       - name: "Build MoCOCrW"
         run: |
           mkdir build
-          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c \
+          docker run --rm -e SOFTHSM2_CONF='/usr/share/softhsm/softhsm2.conf' -u "$UID":softhsm -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c \
             'cmake \
               -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -59,4 +59,4 @@ jobs:
 
       - name: "Run tests"
         run: |
-          docker run --rm -u "$UID" -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c 'ctest -j $(nproc)'
+          docker run --rm -e SOFTHSM2_CONF='/usr/share/softhsm/softhsm2.conf' -u "$UID":softhsm -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c 'ctest -j $(nproc)'
