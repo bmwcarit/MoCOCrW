@@ -68,6 +68,10 @@ set(LIBRARY_PUBLIC_HEADERS
 add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_link_libraries(${LIBRARY_NAME} PUBLIC OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+if(HSM)
+  target_link_libraries(${LIBRARY_NAME} PUBLIC LibP11::P11)
+  target_compile_definitions(${LIBRARY_NAME} PUBLIC HSM)
+endif()
 
 target_include_directories(${LIBRARY_NAME} INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>

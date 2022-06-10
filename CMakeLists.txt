@@ -28,6 +28,9 @@ set(SECURITY_COMPILER_FLAGS
     -fstack-protector-strong
 )
 
+# By default, we do not build MoCOCrW with LibP11.
+option(HSM "Enable HSM features" OFF)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Note that '-pie' needs to be specified as a linker flag to every executable
@@ -93,6 +96,13 @@ endif()
 find_package(OpenSSL REQUIRED)
 if(OPENSSL_FOUND)
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
+endif()
+
+if(HSM)
+  message(STATUS "HSM features are enabled. Building with LibP11")
+  find_package(LibP11 REQUIRED)
+else()
+  message(WARNING "HSM features are disabled. Not building with LibP11")
 endif()
 
 find_package(Boost REQUIRED)
