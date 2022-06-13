@@ -35,7 +35,7 @@ jobs:
       matrix:
         compiler: ["g++", "clang++"]
         build_type: ["", "ASAN"]
-        hsm_flag: ["HSM=ON", "HSM=OFF"]
+        hsm_flag: ["HSM_ENABLED=ON", "HSM_ENABLED=OFF"]
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
