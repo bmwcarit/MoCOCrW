@@ -68,9 +68,9 @@ set(LIBRARY_PUBLIC_HEADERS
 add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_link_libraries(${LIBRARY_NAME} PUBLIC OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-if(HSM)
+if(HSM_ENABLED)
   target_link_libraries(${LIBRARY_NAME} PUBLIC LibP11::P11)
-  target_compile_definitions(${LIBRARY_NAME} PUBLIC HSM)
+  target_compile_definitions(${LIBRARY_NAME} PUBLIC HSM_ENABLED)
 endif()
 
 target_include_directories(${LIBRARY_NAME} INTERFACE

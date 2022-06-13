@@ -29,7 +29,7 @@ set(SECURITY_COMPILER_FLAGS
 )
 
 # By default, we do not build MoCOCrW with LibP11.
-option(HSM "Enable HSM features" OFF)
+option(HSM_ENABLED "Enable HSM features" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -98,7 +98,7 @@ if(OPENSSL_FOUND)
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
-if(HSM)
+if(HSM_ENABLED)
   message(STATUS "HSM features are enabled. Building with LibP11")
   find_package(LibP11 REQUIRED)
 else()
