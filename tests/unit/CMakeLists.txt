@@ -275,6 +275,27 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	COMMAND eciestests
     )
 
+    if(HSM_ENABLED)
+        message(STATUS "HSM features are enabled. Building hsm-related tests")
+
+        set(HSM_LIB_SOURCES "${SRC_DIR}/p11_wrap.cpp" ${REAL_SOURCES})
+        set(HSM_MOCK_SOURCES "p11_lib_mock.cpp" ${HSM_LIB_SOURCES})
+        set(HSM_REAL_SOURCES "${SRC_DIR}/p11_lib.cpp" ${HSM_LIB_SOURCES})
+
+        add_executable(p11test test_p11wrapper.cpp ${HSM_MOCK_SOURCES})
+
+        target_link_libraries(p11test ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}
+            OpenSSL::Crypto OpenSSL::SSL LibP11::P11 Boost::boost)
+        target_include_directories(p11test PUBLIC ${LIBP11_INCLUDE_DIR})
+
+        add_test(
+            NAME P11Test
+            COMMAND p11test
+        )
+    else()
+        message(WARNING "HSM features are disabled. Not building HSM-related tests")
+    endif()
+
     # Configure valgrind
     find_program(MEMORYCHECK_COMMAND NAMES valgrind)
     set(_ARGS "--leak-check=full --track-origins=yes")

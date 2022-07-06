@@ -42,6 +42,8 @@ if(HSM_ENABLED)
   set(LIBRARY_SOURCES
       ${LIBRARY_SOURCES}
       hsm.cpp
+      p11_lib.cpp
+      p11_wrap.cpp
   )
 endif()
 
@@ -77,6 +79,8 @@ if(HSM_ENABLED)
   set(LIBRARY_PUBLIC_HEADERS
       ${LIBRARY_PUBLIC_HEADERS}
       mococrw/hsm.h
+      mococrw/p11_lib.h
+      mococrw/p11_wrap.h
   )
 endif()
 
