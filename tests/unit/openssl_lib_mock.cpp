@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1152,6 +1152,46 @@ int OpenSSLLib::SSL_EVP_CIPHER_key_length(const EVP_CIPHER* cipher) noexcept
 const char* OpenSSLLib::SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_CIPHER_name(cipher);
+}
+EVP_PKEY* OpenSSLLib::SSL_ENGINE_load_private_key(ENGINE* e,
+                                                  const char* key_id,
+                                                  UI_METHOD* ui_method,
+                                                  void* callback_data) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_load_private_key(
+            e, key_id, ui_method, callback_data);
+}
+EVP_PKEY* OpenSSLLib::SSL_ENGINE_load_public_key(ENGINE* e,
+                                                 const char* key_id,
+                                                 UI_METHOD* ui_method,
+                                                 void* callback_data) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_load_public_key(
+            e, key_id, ui_method, callback_data);
+}
+int OpenSSLLib::SSL_ENGINE_ctrl_cmd_string(ENGINE* e,
+                                           const char* cmd_name,
+                                           const char* cmd_arg,
+                                           int cmd_optional) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_ctrl_cmd_string(
+            e, cmd_name, cmd_arg, cmd_optional);
+}
+int OpenSSLLib::SSL_ENGINE_init(ENGINE* e) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_init(e);
+}
+ENGINE* OpenSSLLib::SSL_ENGINE_by_id(const char* id) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_by_id(id);
+}
+int OpenSSLLib::SSL_ENGINE_finish(ENGINE* e) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_finish(e);
+}
+int OpenSSLLib::SSL_ENGINE_free(ENGINE* e) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_free(e);
 }
 }  // namespace lib
 }  // namespace openssl

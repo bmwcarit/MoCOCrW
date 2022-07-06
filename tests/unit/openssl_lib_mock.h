@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,22 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_ENGINE_free(ENGINE* e) = 0;
+    virtual int SSL_ENGINE_finish(ENGINE* e) = 0;
+    virtual ENGINE* SSL_ENGINE_by_id(const char* id) = 0;
+    virtual int SSL_ENGINE_init(ENGINE* e) = 0;
+    virtual int SSL_ENGINE_ctrl_cmd_string(ENGINE* e,
+                                           const char* cmd_name,
+                                           const char* cmd_arg,
+                                           int cmd_optional) = 0;
+    virtual EVP_PKEY* SSL_ENGINE_load_public_key(ENGINE* e,
+                                                 const char* key_id,
+                                                 UI_METHOD* ui_method,
+                                                 void* callback_data) = 0;
+    virtual EVP_PKEY* SSL_ENGINE_load_private_key(ENGINE* e,
+                                                  const char* key_id,
+                                                  UI_METHOD* ui_method,
+                                                  void* callback_data) = 0;
     virtual const char* SSL_EVP_CIPHER_name(const EVP_CIPHER* cipher) = 0;
     virtual int SSL_EVP_CIPHER_key_length(const EVP_CIPHER* cipher) = 0;
     virtual int SSL_BN_bn2binpad(const BIGNUM* a, unsigned char* to, int tolen) = 0;
@@ -397,6 +413,13 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD1(SSL_ENGINE_free, int(ENGINE*));
+    MOCK_METHOD1(SSL_ENGINE_finish, int(ENGINE*));
+    MOCK_METHOD1(SSL_ENGINE_by_id, ENGINE*(const char*));
+    MOCK_METHOD1(SSL_ENGINE_init, int(ENGINE*));
+    MOCK_METHOD4(SSL_ENGINE_ctrl_cmd_string, int(ENGINE*, const char*, const char*, int));
+    MOCK_METHOD4(SSL_ENGINE_load_public_key, EVP_PKEY*(ENGINE*, const char*, UI_METHOD*, void*));
+    MOCK_METHOD4(SSL_ENGINE_load_private_key, EVP_PKEY*(ENGINE*, const char*, UI_METHOD*, void*));
     MOCK_METHOD1(SSL_EVP_CIPHER_name, const char*(const EVP_CIPHER*));
     MOCK_METHOD1(SSL_EVP_CIPHER_key_length, int(const EVP_CIPHER*));
     MOCK_METHOD3(SSL_BN_bn2binpad, int(const BIGNUM*, unsigned char*, int));

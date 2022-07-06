@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,6 +65,25 @@ using CmacCipherTypes = mococrw::CmacCipherTypes;
  */
 template <class P, void(Func)(P*)>
 struct SSLDeleter
+{
+    template <class T>
+    void operator()(T* ptr) const noexcept
+    {
+        if (ptr) {
+            Func(ptr);
+        }
+    }
+};
+
+/**
+ * Like SSLDeleter, but takes into account the return type
+ * in the definitions of the "_free" functions.
+ *
+ * We could have modified SSLDeleter to take arbitrary return
+ * types, but this might result in an unwanted ABI change.
+ */
+template <class R, class P, R(Func)(P*)>
+struct SSLRetDeleter
 {
     template <class T>
     void operator()(T* ptr) const noexcept
@@ -208,6 +227,12 @@ using SSL_ECDSA_SIG_Ptr =
 using SSL_ECDSA_SIG_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ECDSA_SIG_Ptr>;
 
 using time_point = std::chrono::system_clock::time_point;
+
+// Note: ENGINE_free() always returns 1. Therefore, SSLRetDeleter is suitable as it ignores return
+// value.
+using SSL_ENGINE_Ptr =
+        std::unique_ptr<ENGINE, SSLRetDeleter<int, ENGINE, lib::OpenSSLLib::SSL_ENGINE_free>>;
+using SSL_ENGINE_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ENGINE_Ptr>;
 
 /* Below are is the "wrapped" OpenSSL library. By convetion, all functions start with an
  * underscore to visually distinguish them from the methods of the class OpenSSLLib and
@@ -1494,6 +1519,46 @@ SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen);
  * @throw OpenSSLException if tolen bytes cannot hold bignum
  */
 std::vector<uint8_t> _BN_bn2binpad(const BIGNUM* bignum, int tolen);
+
+/* Engine related */
+
+/**
+ * Loads an engine based on the passed ID \p engineId.
+ */
+SSL_ENGINE_Ptr _ENGINE_by_id(const std::string& engineId);
+
+/**
+ * Initialises engine \p e.
+ */
+void _ENGINE_init(ENGINE* e);
+
+/**
+ * Issues a command \p cmdName to the engine \p e. Takes a string \p cmdArg as input data.
+ */
+void _ENGINE_ctrl_cmd_string(ENGINE* e, const std::string& cmdName, const std::string& cmdArg);
+
+/**
+ * Load private key via Engine \p e. Mainly used with HSMs which are modelled as
+ * OpenSSL engines.
+ *
+ * @param e The engine for loading the private key.
+ * @param keyId The ID of the key.
+ */
+SSL_EVP_PKEY_Ptr _ENGINE_load_private_key(ENGINE* e, const std::string& keyId);
+
+/**
+ * Load private key via Engine \p e. Mainly used with HSMs which are modelled as
+ * OpenSSL engines.
+ *
+ * @param e The engine for loading the private key.
+ * @param keyId The ID of the key.
+ */
+SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE* e, const std::string& keyId);
+
+/**
+ * Clear engine's functional reference.
+ */
+void _ENGINE_finish(ENGINE* e);
 
 }  // namespace openssl
 }  // namespace mococrw

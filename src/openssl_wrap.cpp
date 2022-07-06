@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -1555,6 +1555,46 @@ std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *ke
             lib::OpenSSLLib::SSL_EVP_PKEY_derive, ctx.get(), result.data(), &secret_len);
 
     return result;
+}
+
+SSL_ENGINE_Ptr _ENGINE_by_id(const std::string &engineId)
+{
+    return SSL_ENGINE_Ptr{
+            OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_ENGINE_by_id, engineId.c_str())};
+}
+
+void _ENGINE_init(ENGINE *e) { OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ENGINE_init, e); }
+
+void _ENGINE_ctrl_cmd_string(ENGINE *e, const std::string &cmdName, const std::string &cmdArg)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ENGINE_ctrl_cmd_string,
+                                  e,
+                                  cmdName.c_str(),
+                                  cmdArg.c_str(),
+                                  0 /*non-optional cmd */);
+}
+
+SSL_EVP_PKEY_Ptr _ENGINE_load_private_key(ENGINE *e, const std::string &keyId)
+{
+    /* For now, we do not support the passing of user-interface methods and callback_data.
+     * Instead, nullptr is provided for these parameters.
+     */
+    return SSL_EVP_PKEY_Ptr{OpensslCallPtr::callChecked(
+            lib::OpenSSLLib::SSL_ENGINE_load_private_key, e, keyId.c_str(), nullptr, nullptr)};
+}
+
+SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE *e, const std::string &keyId)
+{
+    /* For now, we do not support the passing of user-interface methods and callback_data.
+     * Instead, nullptr is provided for these parameters.
+     */
+    return SSL_EVP_PKEY_Ptr{OpensslCallPtr::callChecked(
+            lib::OpenSSLLib::SSL_ENGINE_load_public_key, e, keyId.c_str(), nullptr, nullptr)};
+}
+
+void _ENGINE_finish(ENGINE *e)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ENGINE_finish, e);
 }
 
 }  // namespace openssl
