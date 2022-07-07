@@ -10,6 +10,9 @@ env:
   DOCKER_TAG: buildenv
   DOCKER_FILE_PATH: ./docker-build-env/Dockerfile
 
+  DOCKER_WITH_HSM_TAG: buildenv_with_hsm
+  DOCKER_WITH_HSM_FILE_PATH: ./docker-build-env/Dockerfile-With-HSM
+
 jobs:
   check-format:
     runs-on: ubuntu-latest
@@ -36,6 +39,18 @@ jobs:
         compiler: ["g++", "clang++"]
         build_type: ["", "ASAN"]
         hsm_flag: ["HSM_ENABLED=ON", "HSM_ENABLED=OFF"]
+
+        include:
+          - hsm_flag: "HSM_ENABLED=ON"
+            docker_tag: "buildenv_with_hsm"
+            softhsm2_conf: "/usr/share/softhsm/softhsm2.conf"
+            softhsm2_grp: ":softhsm"
+         
+          - hsm_flag: "HSM_ENABLED=OFF"
+            docker_tag: "buildenv"
+            softhsm2_conf: ""
+            softhsm2_grp:
+
     steps:
       - name: "Checkout"
         uses: actions/checkout@v2
@@ -46,10 +61,18 @@ jobs:
           docker_tag: ${{ env.DOCKER_TAG }}
           docker_file_path: ${{ env.DOCKER_FILE_PATH }}
 
+      - name: "Build Docker Image With HSM"
+        uses: ./.github/actions/build-docker
+        with:
+          docker_tag: ${{ env.DOCKER_WITH_HSM_TAG }}
+          docker_file_path: ${{ env.DOCKER_WITH_HSM_FILE_PATH }}
+
       - name: "Build MoCOCrW"
         run: |
           mkdir build
-          docker run --rm -e SOFTHSM2_CONF='/usr/share/softhsm/softhsm2.conf' -u "$UID":softhsm -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c \
+          docker run --rm -e SOFTHSM2_CONF="${{ matrix.softhsm2_conf }}" \
+            -u "$UID"${{ matrix.softhsm2_grp }} \
+            -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
             'cmake \
               -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
@@ -61,4 +84,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          docker run --rm -e SOFTHSM2_CONF='/usr/share/softhsm/softhsm2.conf' -u "$UID":softhsm -v "$PWD:/src:rw" -w /src/build ${{ env.DOCKER_TAG }} bash -c 'ctest -j $(nproc)'
+          docker run --rm -e SOFTHSM2_CONF="${{ matrix.softhsm2_conf }}" \
+            -u "$UID"${{ matrix.softhsm2_grp }} \
+            -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
+            'ctest -j $(nproc)'
