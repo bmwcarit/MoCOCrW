@@ -11,8 +11,6 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-rec
         googletest \
         libboost-all-dev \
         libssl-dev \
-        # For llvm-symbolizer (used by ASAN).
-        llvm \
         make \
         ninja-build \
         pkg-config \
