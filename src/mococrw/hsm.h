@@ -18,25 +18,29 @@
  */
 #pragma once
 
-#include <boost/optional/optional.hpp>
 #include "openssl_wrap.h"
 
 namespace mococrw
 {
 /**
- * Driver for Hardware Security Modules (HSMs).
+ * The highest-level abstract class of a Hardware Security Module (HSM).
+ *
+ * All HSM implementations should inherit this class either directly or
+ * indirectly.
  */
 class HSM
 {
 public:
-    HSM();
-    virtual ~HSM() {}
+    HSM(const std::string &name) : _name(name) {}
+    virtual ~HSM() = default;
+
+    /**
+     * Returns the name of the HSM.
+     */
+    const std::string &getName();
 
 protected:
-    /**
-     * Returns the name of the HSM driver.
-     */
-    virtual const std::string getName() = 0;
+    const std::string &_name;
 
     /**
      *  Loads public key from HSM.
@@ -89,16 +93,16 @@ protected:
 };
 
 /**
- * HSM driver that leverages OpenSSL's ENGINE_* API interface.
+ * Abstract class of an HSMEngine that leverages OpenSSL's ENGINE_* API interface.
  */
 class HsmEngine : public HSM
 {
 public:
-    HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin);
+    HsmEngine(const std::string &name,
+              const std::string &id,
+              const std::string &modulePath,
+              const std::string &pin);
     virtual ~HsmEngine();
-
-    ENGINE *internal();
-    const ENGINE *internal() const;
 
 protected:
     /** Pointer to OpenSSL ENGINE. */
@@ -110,11 +114,9 @@ protected:
     /** Pin to access PKCS11 Engine. */
     const std::string &_pin;
 
-    virtual const std::string getName() override = 0;
+    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) override;
 
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) override;
-
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) override;
+    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) override;
 };
 
 }  // namespace mococrw

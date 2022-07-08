@@ -17,16 +17,18 @@
  * #L%
  */
 #include "mococrw/hsm.h"
-#include <boost/format.hpp>
 
 namespace mococrw
 {
 using namespace openssl;
 
-HSM::HSM() {}
+const std::string &HSM::getName() { return _name; }
 
-HsmEngine::HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin)
-        : _id(id), _modulePath(modulePath), _pin(pin)
+HsmEngine::HsmEngine(const std::string &name,
+                     const std::string &id,
+                     const std::string &modulePath,
+                     const std::string &pin)
+        : HSM(name), _id(id), _modulePath(modulePath), _pin(pin)
 {
     // Fetch engine via ID.
     _engine = _ENGINE_by_id(_id);
