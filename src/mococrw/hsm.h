@@ -40,11 +40,17 @@ protected:
 
     /**
      *  Loads public key from HSM.
+     *
+     *  @param keyID The ID of the public key to load.
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) = 0;
 
     /**
      * Stores public key to HSM.
+     *
+     * @param key The public key to store.
+     * @param label The label of the key to store.
+     * @param keyID The ID of the key to store.
      */
     virtual void storePublicKey(EVP_PKEY *key,
                                 const std::string &label,
@@ -52,11 +58,17 @@ protected:
 
     /**
      * Loads private key from HSM.
+     *
+     * @param keyID The ID of the private key to load.
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) = 0;
 
     /**
      * Stores private key to HSM.
+     *
+     * @param key The private key to store.
+     * @param label The label of the key to store.
+     * @param keyID The ID of the key to store.
      */
     virtual void storePrivateKey(EVP_PKEY *key,
                                  const std::string &label,
@@ -65,22 +77,19 @@ protected:
     /**
      * Generates a key pair via HSM.
      *
+     * @param bits Specifies key size.
+     * @param label The label of the key to generate.
+     * @param id The ID of the key to generate.
+     *
      * \note Currently, RSA keys are only supported.
      */
     virtual void generateKey(unsigned int bits,
                              const std::string &label,
                              const std::string &id) = 0;
-
-    // Many of protected functions provided by the HSM class are seen
-    // as internal, not to be used by the User of MoCOCrW but specific
-    // friends:
-    friend class AsymmetricPublicKey;
-    friend class AsymmetricKeypair;
-    friend class RSASpec;
 };
 
 /**
- * HSM driver implemented using OpenSSL's engine interface.
+ * HSM driver that leverages OpenSSL's ENGINE_* API interface.
  */
 class HsmEngine : public HSM
 {
