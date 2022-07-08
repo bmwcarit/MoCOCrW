@@ -63,6 +63,20 @@ EVP_PKEY_CTX* somePkeyCtxPtr()
     static char dummyBuf[42] = {};
     return reinterpret_cast<EVP_PKEY_CTX*>(&dummyBuf);
 }
+
+EVP_PKEY* somePkeyPtr()
+{
+    /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
+    static char dummyBuf[42] = {};
+    return reinterpret_cast<EVP_PKEY*>(&dummyBuf);
+}
+
+ENGINE* someEnginePtr()
+{
+    /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
+    static char dummyBuf[42] = {};
+    return reinterpret_cast<ENGINE*>(&dummyBuf);
+}
 }  // namespace testutils
 
 void OpenSSLWrapperTest::SetUp()
@@ -218,4 +232,111 @@ TEST_F(OpenSSLWrapperTest, testThatX509ParsingThrowsOnNullptr)
     EXPECT_CALL(_mock(), SSL_PEM_read_bio_X509(bio, nullptr, nullptr, nullptr))
             .WillOnce(Return(nullptr));
     EXPECT_THROW(_PEM_read_bio_X509(bio), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineById)
+{
+    std::string id = "engine_id";
+    EXPECT_CALL(_mock(), SSL_ENGINE_by_id(id.c_str()))
+            .WillOnce(Return(::testutils::someEnginePtr()));
+    EXPECT_NO_THROW(_ENGINE_by_id(id));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineByIdThrowsException)
+{
+    std::string id = "engine_id";
+    EXPECT_CALL(_mock(), SSL_ENGINE_by_id(id.c_str())).WillOnce(Return(nullptr));
+    EXPECT_THROW(_ENGINE_by_id(id), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineInit)
+{
+    auto engine = ::testutils::someEnginePtr();
+    EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
+    EXPECT_NO_THROW(_ENGINE_init(engine));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineInitThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(0));
+    EXPECT_THROW(_ENGINE_init(engine), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmd)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string cmd = "command";
+    std::string cmdArg = "command_arg";
+
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(engine, cmd.c_str(), cmdArg.c_str(), 0 /*non-optional*/))
+            .WillOnce(Return(1));
+    EXPECT_NO_THROW(_ENGINE_ctrl_cmd_string(engine, cmd, cmdArg));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmdiThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string cmd = "command";
+    std::string cmdArg = "command_arg";
+
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(engine, cmd.c_str(), cmdArg.c_str(), 0 /*non-optional*/))
+            .WillOnce(Return(0));
+    EXPECT_THROW(_ENGINE_ctrl_cmd_string(engine, cmd, cmdArg), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineLoadPublicKey)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string keyId = "keyid";
+
+    EXPECT_CALL(_mock(), SSL_ENGINE_load_public_key(engine, keyId.c_str(), nullptr, nullptr))
+            .WillOnce(Return(::testutils::somePkeyPtr()));
+    EXPECT_NO_THROW(_ENGINE_load_public_key(engine, keyId));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineLoadPublicKeyThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string keyId = "keyid";
+
+    EXPECT_CALL(_mock(), SSL_ENGINE_load_public_key(engine, keyId.c_str(), nullptr, nullptr))
+            .WillOnce(Return(nullptr));
+    EXPECT_THROW(_ENGINE_load_public_key(engine, keyId), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineLoadPrivateKey)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string keyId = "keyid";
+
+    EXPECT_CALL(_mock(), SSL_ENGINE_load_private_key(engine, keyId.c_str(), nullptr, nullptr))
+            .WillOnce(Return(::testutils::somePkeyPtr()));
+    EXPECT_NO_THROW(_ENGINE_load_private_key(engine, keyId));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineLoadPrivateKeyThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string keyId = "keyid";
+
+    EXPECT_CALL(_mock(), SSL_ENGINE_load_private_key(engine, keyId.c_str(), nullptr, nullptr))
+            .WillOnce(Return(nullptr));
+    EXPECT_THROW(_ENGINE_load_private_key(engine, keyId), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineFinish)
+{
+    auto engine = ::testutils::someEnginePtr();
+    EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(1));
+    EXPECT_NO_THROW(_ENGINE_finish(engine));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineFinishThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(0));
+    EXPECT_THROW(_ENGINE_finish(engine), OpenSSLException);
 }

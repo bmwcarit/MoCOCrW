@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ extern "C" {
 #include <openssl/crypto.h>
 #include <openssl/dsa.h>
 #include <openssl/ec.h>
+#include <openssl/engine.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
@@ -58,6 +59,22 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_ENGINE_free(ENGINE* e) noexcept;
+    static int SSL_ENGINE_finish(ENGINE* e) noexcept;
+    static ENGINE* SSL_ENGINE_by_id(const char* id) noexcept;
+    static int SSL_ENGINE_init(ENGINE* e) noexcept;
+    static int SSL_ENGINE_ctrl_cmd_string(ENGINE* e,
+                                          const char* cmd_name,
+                                          const char* cmd_arg,
+                                          int cmd_optional) noexcept;
+    static EVP_PKEY* SSL_ENGINE_load_public_key(ENGINE* e,
+                                                const char* key_id,
+                                                UI_METHOD* ui_method,
+                                                void* callback_data) noexcept;
+    static EVP_PKEY* SSL_ENGINE_load_private_key(ENGINE* e,
+                                                 const char* key_id,
+                                                 UI_METHOD* ui_method,
+                                                 void* callback_data) noexcept;
     static ECDSA_SIG* SSL_d2i_ECDSA_SIG(ECDSA_SIG** sig,
                                         const unsigned char** pp,
                                         long len) noexcept;
