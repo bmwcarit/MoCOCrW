@@ -91,11 +91,11 @@ jobs:
           docker run --rm -e SOFTHSM2_CONF="${{ matrix.softhsm2_conf }}" \
             -u "$UID"${{ matrix.softhsm2_grp }} \
             -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
-            'if [ ${{ matrix.hsm_flag }} = "HSM_ENABLED=ON" ]; then \
+            'if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
                 softhsm2-util --init-token --free --label ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi \
             && ctest --verbose -j $(nproc) \
-            && if [ ${{ matrix.hsm_flag }} = "HSM_ENABLED=ON" ]; then \
+            && if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
                 softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi'
 
