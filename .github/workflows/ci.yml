@@ -12,15 +12,10 @@ env:
 
   DOCKER_WITH_HSM_TAG: buildenv_with_hsm
   DOCKER_WITH_HSM_FILE_PATH: ./docker-build-env/Dockerfile-With-HSM
- 
+
   TOKEN_LABEL: token-label
   USER_PIN: 1234
   SO_PIN: 4321
-  
-  # Include suppression list to avoid false positives reported by LSAN.
-  LSAN_OPTIONS: "suppressions=/src/lsan_suppression.txt"
-  # Disable fast unwind to have clean stack-traces for better suppression.
-  ASAN_OPTIONS: "fast_unwind_on_malloc=false"
 
 jobs:
   check-format:
@@ -50,6 +45,16 @@ jobs:
         hsm_flag: ["HSM_ENABLED=ON", "HSM_ENABLED=OFF"]
 
         include:
+          - build_type: "ASAN"
+            # Disable fast unwind to have clean stack-traces for better suppression.
+            ASAN_OPTIONS: "fast_unwind_on_malloc=false"
+            # Include suppression list to avoid false positives reported by LSAN.
+            LSAN_OPTIONS: "suppressions=/src/lsan_suppression.txt"
+
+          - build_type: ""
+            ASAN_OPTIONS: ""
+            LSAN_OPTIONS: ""
+
           - hsm_flag: "HSM_ENABLED=ON"
             docker_tag: "buildenv_with_hsm"
             softhsm2_conf: "/usr/share/softhsm/softhsm2.conf"
@@ -93,7 +98,7 @@ jobs:
 
       - name: "Run tests"
         run: |
-          docker run --rm -e ASAN_OPTIONS="${{ env.ASAN_OPTIONS }}" -e LSAN_OPTIONS="${{ env.LSAN_OPTIONS }}" \
+          docker run --rm -e ASAN_OPTIONS="${{ matrix.ASAN_OPTIONS }}" -e LSAN_OPTIONS="${{ matrix.LSAN_OPTIONS }}" \
             -e SOFTHSM2_CONF="${{ matrix.softhsm2_conf }}" \
             -u "$UID"${{ matrix.softhsm2_grp }} \
             -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \

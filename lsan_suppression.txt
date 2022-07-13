@@ -1,2 +1,2 @@
-# Leak arises from OpenSSL usage of MoCOCrW and SoftHSM2.
+# Leak arises from OpenSSL p11 and SoftHSM2, where an engine is allocated during initilisation.
 leak:OPENSSL_init_crypto

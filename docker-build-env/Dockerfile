@@ -11,7 +11,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-rec
         googletest \
         libboost-all-dev \
         libssl-dev \
-        # For llvm-symbolizer (used by ASAN).
+        # For llvm-symbolizer (used by A/LSAN).
+        # In particular, LLVM's symboliser is needed to print clearer
+        # stack-traces for more accurate suppressions.
         llvm \
         make \
         ninja-build \
