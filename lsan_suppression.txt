@@ -1,2 +1,27 @@
-# Leak arises from OpenSSL p11 and SoftHSM2, where an engine is allocated during initilisation.
+# Leak arises from OpenSSL, where an engine is allocated during initilisation.
+# =================================================================
+# ==77==ERROR: LeakSanitizer: detected memory leaks
+#
+# Direct leak of 216 byte(s) in 1 object(s) allocated from:
+#     #0 0x495c9d in malloc (/src/build/examples/hsm-store-example+0x495c9d)
+#     #1 0x7fa88c020c0d in CRYPTO_zalloc (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17bc0d)
+#     #2 0x7fa88bff89ef in ENGINE_new (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x1539ef)
+#     #3 0x7fa88bffa69d  (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x15569d)
+#     #4 0x7fa88c01c47c  (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x17747c)
+#     #5 0x7fa88bb4d4de in __pthread_once_slow (/lib/x86_64-linux-gnu/libpthread.so.0+0x114de)
+#     #6 0x7fa88c087aac in CRYPTO_THREAD_run_once (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x1e2aac)
+#     #7 0x7fa88c01cc0c in OPENSSL_init_crypto (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x177c0c)
+#     #8 0x7fa88bf85a3c  (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0xe0a3c)
+#     #9 0x7fa88c01c4f3  (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x1774f3)
+#     #10 0x7fa88bb4d4de in __pthread_once_slow (/lib/x86_64-linux-gnu/libpthread.so.0+0x114de)
+#     #11 0x7fa88c087aac in CRYPTO_THREAD_run_once (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x1e2aac)
+#     #12 0x7fa88c01cb77 in OPENSSL_init_crypto (/lib/x86_64-linux-gnu/libcrypto.so.1.1+0x177b77)
+#     #13 0x7fa88c1b1574 in OPENSSL_init_ssl (/lib/x86_64-linux-gnu/libssl.so.1.1+0x36574)
+#     #14 0x7fa88c3a67c1 in mococrw::openssl::lib::OpenSSLLib::SSL_SSL_load_error_strings() /src/build/../src/openssl_lib.cpp:61:58
+#     #15 0x7fa88c3a675d in mococrw::openssl::$_0::operator()() const /src/build/../src/openssl_lib.cpp:45:5
+#     #16 0x7fa88c338f98 in __cxx_global_var_init /src/build/../src/openssl_lib.cpp:42:43
+#     #17 0x7fa88c338fa8 in _GLOBAL__sub_I_openssl_lib.cpp /src/build/../src/openssl_lib.cpp
+#     #18 0x7fa88c498b99  (/lib64/ld-linux-x86-64.so.2+0x11b99)
+#     #19 0x7fa88c498ca0  (/lib64/ld-linux-x86-64.so.2+0x11ca0)
+#     #20 0x7fa88c488139  (/lib64/ld-linux-x86-64.so.2+0x1139)
 leak:OPENSSL_init_crypto
