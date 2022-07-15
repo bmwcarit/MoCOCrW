@@ -58,14 +58,9 @@ void LibP11MockManager::destroy()
 namespace lib
 {
 /**
- * Provide implementations for the OpenSSLLib members that forward
+ * Provide implementations for the LibP11 members that forward
  * to the mock object.
- *
- * This translation unit is inserted into the bulid process for unit-tests
- * via CMake. The library gets these definitions from a corresponding class
- * in the src-dir.
  */
-// TODO unit test the initialization
 
 PKCS11_CTX *LibP11::P11_PKCS11_CTX_new(void) noexcept
 {

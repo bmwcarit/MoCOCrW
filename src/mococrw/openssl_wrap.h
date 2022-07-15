@@ -114,8 +114,11 @@ struct SSLFree
  * An Exception for OpenSSL errors.
  *
  * This exception is thrown by all methods when an OpenSSL error occurs.
+ *
+ * It is also the parent class of other exception types, including
+ * P11Exception.
  */
-class OpenSSLException final : public std::exception
+class OpenSSLException : public std::exception
 {
 public:
     template <class StringType>

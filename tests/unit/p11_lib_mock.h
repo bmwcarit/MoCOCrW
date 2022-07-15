@@ -123,7 +123,7 @@ public:
  * inside static members of this class.
  *
  * This gets rid of the need for a singleton and all
- * the realted problems.
+ * the related problems.
  */
 class LibP11MockManager
 {

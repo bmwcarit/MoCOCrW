@@ -38,16 +38,11 @@ namespace mococrw
 {
 namespace p11
 {
-std::string P11Exception::generateP11ErrorString()
-{
-    // Note, pkcs11_CTX_new() internally loads LibP11 error strings,
-    // i.e., it invokes ERR_load_PKCS11_strings(). We therefore
-    // don't trigger the loading ourselves.
-    auto error = openssl::lib::OpenSSLLib::SSL_ERR_get_error();
-    auto formatter = boost::format("%s: %d");
-    formatter % openssl::lib::OpenSSLLib::SSL_ERR_error_string(error, nullptr) % error;
-    return formatter.str();
-}
+// Initialise error strings of LibP11 wrapper:
+const std::string P11Exception::nullCtxExceptionString = "Found NULL PKCS11 Context";
+const std::string P11Exception::nullSlotListExceptionString = "Found NULL Slot List";
+const std::string P11Exception::nullTokenExceptionString = "Found NULL Token";
+const std::string P11Exception::mismatchLoginExceptionString = "Login/Logout Mismatch Detected";
 
 /**
  * This struct is used by CWrap to
@@ -63,7 +58,7 @@ struct P11ExceptionErrorPolicy
 /**
  * Throw a P11 exception upon error.
  *
- * This method gets the error string and throws an exception
+ * This method fetches the error string and throws an exception
  * with the corresponding message.
  */
 template <class Rv>
@@ -72,22 +67,147 @@ void P11ExceptionErrorPolicy::handleError(const Rv & /* unused */)
     throw P11Exception();
 }
 
+// For checking return values:
 using P11CallPtr =
         ::cppc::CallCheckContext<::cppc::IsNotNullptrReturnCheckPolicy, P11ExceptionErrorPolicy>;
 using P11IsNonNegative =
         ::cppc::CallCheckContext<::cppc::IsNotNegativeReturnCheckPolicy, P11ExceptionErrorPolicy>;
 
-P11_SlotInfo::P11_SlotInfo() : _slots(nullptr), _numSlots(0) {}
+/***********************************************************************************
+ * Implementation of P11_SlotInfo
+ */
 
-P11_SlotInfo::P11_SlotInfo(PKCS11_SLOT *slots, unsigned int numSlots)
-        : _slots(slots), _numSlots(numSlots)
+P11_SlotInfo::P11_SlotInfo(P11_PKCS11_CTX_Ptr ctx) : _ctx(ctx), _slotList(nullptr), _numSlots(0)
 {
+    PKCS11_SLOT *slots;
+
+    // Enumerate slots to obtain slot information.
+    P11IsNonNegative::callChecked(
+            lib::LibP11::P11_PKCS11_enumerate_slots, _ctx.get(), &slots, &_numSlots);
+
+    // If the returned slot list is NULL, we cannot continue!
+    if (slots == nullptr) {
+        throw P11Exception(P11Exception::nullSlotListExceptionString);
+    }
+
+    SlotListDeleter deleter(_ctx, _numSlots);
+    _slotList = P11_PKCS11_SLOT_LIST_PTR(slots, deleter);
+}
+
+void P11_SlotInfo::SlotListDeleter::operator()(PKCS11_SLOT *slotList)
+{
+    if (slotList == nullptr) {
+        throw P11Exception(P11Exception::nullSlotListExceptionString);
+    }
+
+    lib::LibP11::P11_PKCS11_release_all_slots(_ctx.get(), slotList, _numSlots);
+}
+
+P11_PKCS11_SLOT_PTR P11_SlotInfo::findSlot()
+{
+    PKCS11_SLOT *raw_slot = P11CallPtr::callChecked(
+            lib::LibP11::P11_PKCS11_find_token, _ctx.get(), _slotList.get(), _numSlots);
+
+    // Leverage aliasing.
+    return P11_PKCS11_SLOT_PTR(_slotList, raw_slot);
+}
+
+/***********************************************************************************
+ * Implementation of P11_Session
+ */
+
+P11_Session::P11_Session(P11_PKCS11_SLOT_PTR slot, const std::string &pin, SessionMode mode)
+        : _slot(slot)
+{
+    openSession(mode);
+    login(pin);
+}
+
+P11_Session::~P11_Session() { logout(); }
+
+P11_PKCS11_TOKEN_PTR P11_Session::getTokenFromSlot()
+{
+    // Simply obtain the token via the slot's data structure.
+    if (_slot.get()->token == nullptr) {
+        throw P11Exception(P11Exception::nullTokenExceptionString);
+    }
+
+    // Leverage aliasing.
+    return P11_PKCS11_TOKEN_PTR(_slot, _slot.get()->token);
+}
+
+void P11_Session::openSession(SessionMode mode)
+{
+    P11IsNonNegative::callChecked(
+            lib::LibP11::P11_PKCS11_open_session, _slot.get(), mode /* Denotes read/write mode. */);
+}
+
+void P11_Session::login(const std::string &pin)
+{
+    if (isLoggedIn()) {
+        // Weird: We are trying to log in, when we are logged in already.
+        throw P11Exception(P11Exception::mismatchLoginExceptionString);
+    }
+
+    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_login,
+                                  _slot.get(),
+                                  0 /* Always login as normal user. */,
+                                  pin.c_str());
+}
+
+void P11_Session::logout()
+{
+    if (!isLoggedIn()) {
+        // Weird: We are trying to log out, when we are logged out already.
+        throw P11Exception(P11Exception::mismatchLoginExceptionString);
+    }
+
+    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_logout, _slot.get());
+}
+
+bool P11_Session::isLoggedIn()
+{
+    int result;
+    P11IsNonNegative::callChecked(
+            lib::LibP11::P11_PKCS11_is_logged_in, _slot.get(), 0 /* Check normal user. */, &result);
+
+    // Result is 1 if logged in.
+    return result == 1;
+}
+
+/***********************************************************************************
+ * Implementation of API functions.
+ */
+
+/* Destroys a PKCS11 context by first unloading it, and then freeing it. */
+static void _PKCS11_CTX_destroy(PKCS11_CTX *ctx)
+{
+    if (ctx == nullptr) {
+        throw P11Exception(P11Exception::nullCtxExceptionString);
+    }
+    lib::LibP11::P11_PKCS11_CTX_unload(ctx);
+    lib::LibP11::P11_PKCS11_CTX_free(ctx);
+}
+
+P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module)
+{
+    PKCS11_CTX *ctx = P11CallPtr::callChecked(lib::LibP11::P11_PKCS11_CTX_new);
+    try {
+        P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_CTX_load, ctx, module.c_str());
+    } catch (const P11Exception &e) {
+        // Free the ctx if loading failed and then throw.
+        lib::LibP11::P11_PKCS11_CTX_free(ctx);
+        throw;
+    }
+
+    // Create shared pointer which will unload and free the ctx automatically.
+    return P11_PKCS11_CTX_Ptr{ctx, _PKCS11_CTX_destroy};
 }
 
 static std::string parseID(const std::string &idHexString)
 {
     /* We require IDs to be represented as hex strings from the user.
-     * Libp11 does the necessary pre-processing, such as unhexing, on IDs
+     * LibP11 does the necessary pre-processing, such as unhexing, on IDs
      * only when invoked via OpenSSL's Engine API. However, when interacting directly
      * with LibP11 API, like we do here, this pre-processing is not performed. To make
      * matters worse, LibP11 does not export its internal
@@ -97,134 +217,7 @@ static std::string parseID(const std::string &idHexString)
     return parsedID;
 }
 
-P11_PKCS11_CTX_Ptr _PKCS11_CTX_new(void)
-{
-    return P11_PKCS11_CTX_Ptr{P11CallPtr::callChecked(lib::LibP11::P11_PKCS11_CTX_new)};
-}
-
-void _PKCS11_CTX_load(PKCS11_CTX *ctx, const std::string &module)
-{
-    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_CTX_load, ctx, module.c_str());
-}
-
-void _PKCS11_CTX_unload(PKCS11_CTX *ctx)
-{
-    if (ctx == nullptr) {
-        throw P11Exception("NULL passed for context that is required to be unloaded");
-    }
-    lib::LibP11::P11_PKCS11_CTX_unload(ctx);
-}
-
-P11_SlotInfo _PKCS11_enumerate_slots(PKCS11_CTX *ctx)
-{
-    if (ctx == nullptr) {
-        throw P11Exception("NULL passed for context when enumerating slots");
-    }
-
-    PKCS11_SLOT *slotsp;
-    unsigned int nslotsp;
-    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_enumerate_slots, ctx, &slotsp, &nslotsp);
-
-    // Based on the information obtained by slot enumaration, we instantiate
-    // a corresponding P11_SlotInfo object as a return value.
-    P11_SlotInfo slotInfo(slotsp, nslotsp);
-    return slotInfo;
-}
-
-void _PKCS11_release_all_slots(PKCS11_CTX *ctx, P11_SlotInfo &slotInfo)
-{
-    if (ctx == nullptr) {
-        throw P11Exception("NULL passed for context when releaseing slots");
-    }
-
-    if (slotInfo._slots == nullptr) {
-        throw P11Exception("NULL list when releaseing slots");
-    }
-
-    lib::LibP11::P11_PKCS11_release_all_slots(ctx, slotInfo._slots, slotInfo._numSlots);
-
-    // Finally, clear the object to remove dangling information.
-    slotInfo._slots = nullptr;
-    slotInfo._numSlots = 0;
-}
-
-P11_PKCS11_SLOT_PTR _PKCS11_find_token(PKCS11_CTX *ctx, P11_SlotInfo &slotInfo)
-{
-    if (ctx == nullptr) {
-        throw P11Exception("NULL passed for ctx");
-    }
-
-    return P11CallPtr::callChecked(
-            lib::LibP11::P11_PKCS11_find_token, ctx, slotInfo._slots, slotInfo._numSlots);
-}
-
-P11_PKCS11_TOKEN_PTR _PKCS11_getTokenFromSlot(PKCS11_SLOT *slot)
-{
-    if (slot == nullptr) {
-        throw P11Exception("Cannot retrieve token from NULL slot pointer");
-    }
-
-    // Simply obtain the token via the slot's data structure.
-    P11_PKCS11_TOKEN_PTR token = slot->token;
-    if (token == nullptr) {
-        throw P11Exception("Cannot get token. Slot not associated with token");
-    }
-
-    return token;
-}
-
-void _PKCS11_open_session(PKCS11_SLOT *slot, SessionMode mode)
-{
-    if (slot == nullptr) {
-        throw P11Exception("Cannot open session from NULL slot pointer");
-    }
-
-    P11IsNonNegative::callChecked(
-            lib::LibP11::P11_PKCS11_open_session, slot, mode /* Denotes read/write mode. */);
-}
-
-void _PKCS11_login(PKCS11_SLOT *slot, const std::string &pin)
-{
-    if (slot == nullptr) {
-        throw P11Exception("Cannot login from NULL slot pointer");
-    }
-
-    if (_PKCS11_is_logged_in(slot)) {
-        throw P11Exception("Mismatch detected; user already logged in");
-    }
-
-    P11IsNonNegative::callChecked(
-            lib::LibP11::P11_PKCS11_login, slot, 0 /* Always login as normal user. */, pin.c_str());
-}
-
-void _PKCS11_logout(PKCS11_SLOT *slot)
-{
-    if (slot == nullptr) {
-        throw P11Exception("Cannot logout from NULL slot pointer");
-    }
-
-    if (!_PKCS11_is_logged_in(slot)) {
-        throw P11Exception("Mismatch detected; user not logged in to perform logout");
-    }
-
-    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_logout, slot);
-}
-
-bool _PKCS11_is_logged_in(PKCS11_SLOT *slot)
-{
-    if (slot == nullptr) {
-        throw P11Exception("Cannot check login from NULL slot pointer");
-    }
-
-    int result;
-    P11IsNonNegative::callChecked(
-            lib::LibP11::P11_PKCS11_is_logged_in, slot, 0 /* Check normal user. */, &result);
-
-    // Result is 1 if logged in.
-    return result == 1;
-}
-
-void _PKCS11_store_private_key(PKCS11_TOKEN *token,
+void _PKCS11_store_private_key(P11_Session &session,
                                EVP_PKEY *pk,
                                const std::string &label,
                                const std::string &id)
@@ -234,14 +227,14 @@ void _PKCS11_store_private_key(PKCS11_TOKEN *token,
             reinterpret_cast<unsigned char *>(const_cast<char *>(parsedStrID.c_str()));
 
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_store_private_key,
-                                  token,
+                                  session.getTokenFromSlot().get(),
                                   pk,
                                   const_cast<char *>(label.c_str()),
                                   parsedID,
                                   parsedStrID.size());
 }
 
-void _PKCS11_store_public_key(PKCS11_TOKEN *token,
+void _PKCS11_store_public_key(P11_Session &session,
                               EVP_PKEY *pk,
                               const std::string &label,
                               const std::string &id)
@@ -251,14 +244,14 @@ void _PKCS11_store_public_key(PKCS11_TOKEN *token,
             reinterpret_cast<unsigned char *>(const_cast<char *>(parsedStrID.c_str()));
 
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_store_public_key,
-                                  token,
+                                  session.getTokenFromSlot().get(),
                                   pk,
                                   const_cast<char *>(label.c_str()),
                                   parsedID,
                                   parsedStrID.size());
 }
 
-void _PKCS11_generate_key(PKCS11_TOKEN *token,
+void _PKCS11_generate_key(P11_Session &session,
                           unsigned int bits,
                           const std::string &label,
                           const std::string &id)
@@ -271,7 +264,7 @@ void _PKCS11_generate_key(PKCS11_TOKEN *token,
     // It is deprecated but no alternative has been implemented yet.
     // See: https://github.com/OpenSC/libp11/pull/378
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_generate_key,
-                                  token,
+                                  session.getTokenFromSlot().get(),
                                   0 /* Currently, algorithm is ignored by LibP11. */,
                                   bits,
                                   const_cast<char *>(label.c_str()),

@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include "openssl_wrap.h"
 #include "p11_lib.h"
 #include "util.h"
 
@@ -26,9 +27,9 @@ namespace mococrw
 namespace p11
 {
 /**
- * Template to wrap OpenSSLs "_free" functions
+ * Template to wrap LibP11 free/destroy functions
  * into a functor so that a std::unique_ptr
- * can use them.
+ * can use them upon being out-of-scope.
  */
 template <class R, class P, R(Func)(P *)>
 struct P11Deleter
@@ -45,43 +46,112 @@ struct P11Deleter
 /**
  * An Exception for LibP11 errors.
  *
- * This exception is thrown by all methods when an OpenSSL error occurs.
+ * This exception is thrown by all methods when a LibP11 error occurs.
  */
-class P11Exception final : public std::exception
+class P11Exception final : public openssl::OpenSSLException
 {
+    // Note, pkcs11_CTX_new() internally loads LibP11 error strings,
+    // i.e., it invokes ERR_load_PKCS11_strings(). We therefore
+    // don't trigger the loading ourselves.
+
 public:
     template <class StringType>
-    explicit P11Exception(StringType &&message) : _message{std::forward<StringType>(message)}
+    explicit P11Exception(StringType &&message) : OpenSSLException(message)
     {
     }
 
     /**
      * Generate an exception with the defalt LibP11 error-string
-     * as message.
+     * as message. Internally, LibP11 uses OpenSSL's error handling framework,
+     * and therefore we simply extend OpenSSLException.
      *
      */
-    P11Exception() : _message{generateP11ErrorString()} {}
+    P11Exception() : OpenSSLException() {}
 
-    const char *what() const noexcept override { return _message.c_str(); }
-
-private:
-    static std::string generateP11ErrorString();
-    std::string _message;
+    /**
+     * Error Strings.
+     *
+     * These are declared here to reduce string duplication as well as facilitate
+     * tests that check exceptions.
+     */
+    static const std::string nullCtxExceptionString;
+    static const std::string nullSlotListExceptionString;
+    static const std::string nullTokenExceptionString;
+    static const std::string mismatchLoginExceptionString;
 };
 
 /*
  * Wrap all the pointer-types returned by LibP11.
  */
 
-using P11_PKCS11_CTX_Ptr =
-        std::unique_ptr<PKCS11_CTX, P11Deleter<void, PKCS11_CTX, lib::LibP11::P11_PKCS11_CTX_free>>;
+using P11_PKCS11_CTX_Ptr = std::shared_ptr<PKCS11_CTX>;
+using P11_PKCS11_SLOT_LIST_PTR = std::shared_ptr<PKCS11_SLOT>;
 
-/*
- * The memory referred to by these pointer types live out of scope of their pointers.
- * Therefore, simply wrap the C pointer, without use of smart pointer (this is a bit ugly).
+/* The memory referred to by these pointer types live out-of-scope of their pointers.
+ * Therefore, we leverage the aliasing constructor of shared pointers when the following
+ * smart pointer types are created.
  */
-using P11_PKCS11_SLOT_PTR = PKCS11_SLOT *;
-using P11_PKCS11_TOKEN_PTR = PKCS11_TOKEN *;
+using P11_PKCS11_SLOT_PTR = std::shared_ptr<PKCS11_SLOT>;
+using P11_PKCS11_TOKEN_PTR = std::shared_ptr<PKCS11_TOKEN>;
+
+/**
+ * Details information related to a slot list, obtained via enumeration of HSM.
+ */
+class P11_SlotInfo
+{
+public:
+    P11_SlotInfo(P11_PKCS11_CTX_Ptr ctx);
+
+    struct SlotListDeleter
+    {
+        SlotListDeleter(P11_PKCS11_CTX_Ptr ctx, int numSlots) : _ctx(ctx), _numSlots(numSlots) {}
+        void operator()(PKCS11_SLOT *);
+
+        P11_PKCS11_CTX_Ptr _ctx;
+        int _numSlots;
+    };
+
+    /**
+     * Finds the slot of a token on the HSM.
+     */
+    P11_PKCS11_SLOT_PTR findSlot();
+
+private:
+    P11_PKCS11_CTX_Ptr _ctx;             // The context associated with the slot information.
+    P11_PKCS11_SLOT_LIST_PTR _slotList;  // Array consisting of slot descriptors on the HSM.
+    unsigned int _numSlots;              // The size of the array, i.e., the number of slots.
+};
+
+/**
+ * Session mode denotes whether to open a session in read/write mode.
+ */
+enum SessionMode { ReadOnly = 0, ReadWrite = 1 };
+
+class P11_Session
+{
+public:
+    P11_Session(P11_PKCS11_SLOT_PTR slot, const std::string &pin, SessionMode mode);
+    ~P11_Session();  // After session is made out-of-scope, trigger logout.
+
+    /* Returns the token descriptor associated with the passed slot. */
+    P11_PKCS11_TOKEN_PTR getTokenFromSlot();
+
+private:
+    P11_PKCS11_SLOT_PTR _slot;
+
+    /* Opens a sessions with the passed slot. */
+    void openSession(SessionMode mode);
+
+    /* Performs a user login to the HSM. This function performs a user login and not an SO login. */
+    void login(const std::string &pin);
+
+    /* Performs a user logout from the HSM. This function only performs a user logout, and not an SO
+     * logout. */
+    void logout();
+
+    /* Returns true if a user is currently logged in. */
+    bool isLoggedIn();
+};
 
 /* Below is the "wrapped" LibP11 library. By convention, all functions start with an
  * underscore to visually distinguish them from the methods of the class P11Lib and
@@ -89,103 +159,22 @@ using P11_PKCS11_TOKEN_PTR = PKCS11_TOKEN *;
  */
 
 /**
- * Returns a new PKCS11 context for HSM interaction.
- */
-P11_PKCS11_CTX_Ptr _PKCS11_CTX_new(void);
-
-/**
- * Loads the PKCS11 module to use.
+ * Returns a new and loaded PKCS11 context for HSM interaction.
  *
- * @param ctx The current context obtained via _PKCS11_CTX_new().
  * @param module The PKCS#11 module filename.
+ * @return A new PKCS11 context.
  */
-void _PKCS11_CTX_load(PKCS11_CTX *ctx, const std::string &module);
-
-struct P11_SlotInfo
-{
-    PKCS11_SLOT *_slots;     // Array consisting of slot descriptors on the HSM.
-    unsigned int _numSlots;  // The size of the array, i.e., the number of slots.
-
-    P11_SlotInfo();
-    P11_SlotInfo(PKCS11_SLOT *slots, unsigned int numSlots);
-};
-
-/**
- * Obtains information of all current slots on the HSM.
- *
- * @param ctx The current context obtained via _PKCS11_CTX_new().
- */
-P11_SlotInfo _PKCS11_enumerate_slots(PKCS11_CTX *ctx);
-
-/**
- * Destroys slot information obtained by _PKCS11_enumerate_slots().
- *
- * @param ctx The current context obtained via _PKCS11_CTX_new().
- * @param slotInfo The slot-list information to destroy.
- */
-void _PKCS11_release_all_slots(PKCS11_CTX *ctx, P11_SlotInfo &slotInfo);
-
-/**
- * Finds a token on the HSM according to the passed slot information \p slotInfo.
- *
- * @param ctx The current context obtained via _PKCS11_CTX_new().
- * @param slotInfo Slot information obtained via _PKCS11_enumerate_slots().
- */
-P11_PKCS11_SLOT_PTR _PKCS11_find_token(PKCS11_CTX *ctx, P11_SlotInfo &slotInfo);
-
-/**
- * Returns the token descriptor associated with \p slot.
- *
- * @param slot The slot of the returned token.
- */
-P11_PKCS11_TOKEN_PTR _PKCS11_getTokenFromSlot(PKCS11_SLOT *slot);
-
-enum SessionMode { ReadOnly = 0, ReadWrite = 1 };
-
-/**
- * Opens a sessions with the passed \p slot.
- *
- * @param slot The slot to open session with.
- * @param rw Whether to open the session in read/write mode. Set to != 0
- * if read/write mode is required.
- */
-void _PKCS11_open_session(PKCS11_SLOT *slot, SessionMode mode);
-
-/**
- * Performs a user login to the HSM.
- *
- * @param slot The slot to consider for login.
- * @param pin The pin to perform the login.
- *
- * \note This function performs a user login and not an SO login.
- */
-void _PKCS11_login(PKCS11_SLOT *slot, const std::string &pin);
-
-/**
- * Performs a user logout from the HSM.
- *
- * @param slot The slot logout from.
- *
- * \note This function only performs a user logout, and not an SO logout.
- */
-void _PKCS11_logout(PKCS11_SLOT *slot);
-
-/**
- * Returns true if a user is currently logged in.
- *
- * @param slot The slot to check login status.
- */
-bool _PKCS11_is_logged_in(PKCS11_SLOT *slot);
+P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module);
 
 /**
  * Stores a private key inside the HSM.
  *
- * @param token The token used to store the private key.
+ * @param session The session used to store the private key.
  * @param pk The key to store.
  * @param label The label of the key to store.
  * @param id The ID of the key to store.
  */
-void _PKCS11_store_private_key(PKCS11_TOKEN *token,
+void _PKCS11_store_private_key(P11_Session &session,
                                EVP_PKEY *pk,
                                const std::string &label,
                                const std::string &id);
@@ -193,12 +182,12 @@ void _PKCS11_store_private_key(PKCS11_TOKEN *token,
 /**
  * Stores a public key inside the HSM.
  *
- * @param token The token used to store the public key.
+ * @param session The session used to store the public key.
  * @param pk The key to store.
  * @param label The label of the key to store.
  * @param id The ID of the key to store.
  */
-void _PKCS11_store_public_key(PKCS11_TOKEN *token,
+void _PKCS11_store_public_key(P11_Session &session,
                               EVP_PKEY *pk,
                               const std::string &label,
                               const std::string &id);
@@ -206,22 +195,17 @@ void _PKCS11_store_public_key(PKCS11_TOKEN *token,
 /**
  * Generates a key inside the HSM.
  *
- * @param token The token used to generate the key.
+ * @param session The session used to generate the key.
  * @param bits The size of the modulus in bits.
  * @param label The label of the generated key.
  * @param id The ID of the generated key.
  *
  * \note Due to limited support offered by LibP11, this function only generates RSA keys.
  */
-void _PKCS11_generate_key(PKCS11_TOKEN *token,
+void _PKCS11_generate_key(P11_Session &session,
                           unsigned int bits,
                           const std::string &label,
                           const std::string &id);
-
-/**
- * Unloads the PKCS11 module.
- */
-void _PKCS11_CTX_unload(PKCS11_CTX *ctx);
 
 }  // namespace p11
 }  // namespace mococrw
