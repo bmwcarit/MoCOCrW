@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <boost/core/noncopyable.hpp>
 #include "openssl_wrap.h"
 #include "p11_lib.h"
 #include "util.h"
@@ -67,77 +68,75 @@ public:
      *
      */
     P11Exception() : OpenSSLException() {}
-
-    /**
-     * Error Strings.
-     *
-     * These are declared here to reduce string duplication as well as facilitate
-     * tests that check exceptions.
-     */
-    static const std::string nullCtxExceptionString;
-    static const std::string nullSlotListExceptionString;
-    static const std::string nullTokenExceptionString;
-    static const std::string mismatchLoginExceptionString;
 };
 
 /*
- * Wrap all the pointer-types returned by LibP11.
+ * Wrap all the pointer-types returned by LibP11. The following
+ * shared pointers have custom deleters, which are specified upon their
+ * construction.
  */
 
-using P11_PKCS11_CTX_Ptr = std::shared_ptr<PKCS11_CTX>;
-using P11_PKCS11_SLOT_LIST_PTR = std::shared_ptr<PKCS11_SLOT>;
+using P11_PKCS11_CTX_SharedPtr = std::shared_ptr<PKCS11_CTX>;
+using P11_PKCS11_SLOT_LIST_SharedPtr = std::shared_ptr<PKCS11_SLOT>;
 
 /* The memory referred to by these pointer types live out-of-scope of their pointers.
  * Therefore, we leverage the aliasing constructor of shared pointers when the following
  * smart pointer types are created.
  */
-using P11_PKCS11_SLOT_PTR = std::shared_ptr<PKCS11_SLOT>;
-using P11_PKCS11_TOKEN_PTR = std::shared_ptr<PKCS11_TOKEN>;
+using P11_PKCS11_SLOT_SharedPtr = std::shared_ptr<PKCS11_SLOT>;
+using P11_PKCS11_TOKEN_SharedPtr = std::shared_ptr<PKCS11_TOKEN>;
 
 /**
  * Details information related to a slot list, obtained via enumeration of HSM.
  */
-class P11_SlotInfo
+class P11SlotInfo : private boost::noncopyable
 {
 public:
-    P11_SlotInfo(P11_PKCS11_CTX_Ptr ctx);
+    P11SlotInfo(P11_PKCS11_CTX_SharedPtr ctx);
 
-    struct SlotListDeleter
+    class SlotListDeleter
     {
-        SlotListDeleter(P11_PKCS11_CTX_Ptr ctx, int numSlots) : _ctx(ctx), _numSlots(numSlots) {}
+    public:
+        SlotListDeleter(P11_PKCS11_CTX_SharedPtr ctx, int numSlots) : _ctx(ctx), _numSlots(numSlots)
+        {
+        }
         void operator()(PKCS11_SLOT *);
 
-        P11_PKCS11_CTX_Ptr _ctx;
+    private:
+        P11_PKCS11_CTX_SharedPtr _ctx;
         int _numSlots;
     };
 
     /**
      * Finds the slot of a token on the HSM.
      */
-    P11_PKCS11_SLOT_PTR findSlot();
+    P11_PKCS11_SLOT_SharedPtr findSlot();
 
 private:
-    P11_PKCS11_CTX_Ptr _ctx;             // The context associated with the slot information.
-    P11_PKCS11_SLOT_LIST_PTR _slotList;  // Array consisting of slot descriptors on the HSM.
-    unsigned int _numSlots;              // The size of the array, i.e., the number of slots.
+    P11_PKCS11_CTX_SharedPtr _ctx;             // The context associated with the slot information.
+    P11_PKCS11_SLOT_LIST_SharedPtr _slotList;  // Array consisting of slot descriptors on the HSM.
+    unsigned int _numSlots;                    // The size of the array, i.e., the number of slots.
 };
+
+// Shorthand for shared pointer of type P11SlotInfo
+using P11SlotInfo_SharedPtr = std::shared_ptr<P11SlotInfo>;
 
 /**
  * Session mode denotes whether to open a session in read/write mode.
  */
 enum SessionMode { ReadOnly = 0, ReadWrite = 1 };
 
-class P11_Session
+class P11Session : private boost::noncopyable
 {
 public:
-    P11_Session(P11_PKCS11_SLOT_PTR slot, const std::string &pin, SessionMode mode);
-    ~P11_Session();  // After session is made out-of-scope, trigger logout.
+    P11Session(P11_PKCS11_SLOT_SharedPtr slot, const std::string &pin, SessionMode mode);
+    ~P11Session();  // After session is made out-of-scope, trigger logout.
 
-    /* Returns the token descriptor associated with the passed slot. */
-    P11_PKCS11_TOKEN_PTR getTokenFromSlot();
+    /* Returns the token descriptor of the slot associated with the session. */
+    P11_PKCS11_TOKEN_SharedPtr getTokenFromSessionSlot();
 
 private:
-    P11_PKCS11_SLOT_PTR _slot;
+    P11_PKCS11_SLOT_SharedPtr _slot;
 
     /* Opens a sessions with the passed slot. */
     void openSession(SessionMode mode);
@@ -148,10 +147,10 @@ private:
     /* Performs a user logout from the HSM. This function only performs a user logout, and not an SO
      * logout. */
     void logout();
-
-    /* Returns true if a user is currently logged in. */
-    bool isLoggedIn();
 };
+
+// Shorthand for shared pointer of type P11SlotInfo
+using P11Session_SharedPtr = std::shared_ptr<P11Session>;
 
 /* Below is the "wrapped" LibP11 library. By convention, all functions start with an
  * underscore to visually distinguish them from the methods of the class P11Lib and
@@ -164,7 +163,7 @@ private:
  * @param module The PKCS#11 module filename.
  * @return A new PKCS11 context.
  */
-P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module);
+P11_PKCS11_CTX_SharedPtr _PKCS11_CTX_create(const std::string &module);
 
 /**
  * Stores a private key inside the HSM.
@@ -174,7 +173,7 @@ P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module);
  * @param label The label of the key to store.
  * @param id The ID of the key to store.
  */
-void _PKCS11_store_private_key(P11_Session &session,
+void _PKCS11_store_private_key(P11Session_SharedPtr session,
                                EVP_PKEY *pk,
                                const std::string &label,
                                const std::string &id);
@@ -187,25 +186,26 @@ void _PKCS11_store_private_key(P11_Session &session,
  * @param label The label of the key to store.
  * @param id The ID of the key to store.
  */
-void _PKCS11_store_public_key(P11_Session &session,
+void _PKCS11_store_public_key(P11Session_SharedPtr session,
                               EVP_PKEY *pk,
                               const std::string &label,
                               const std::string &id);
 
 /**
- * Generates a key inside the HSM.
+ * Generates an RSA key inside the HSM.
  *
  * @param session The session used to generate the key.
  * @param bits The size of the modulus in bits.
  * @param label The label of the generated key.
  * @param id The ID of the generated key.
  *
- * \note Due to limited support offered by LibP11, this function only generates RSA keys.
+ * \note Due to limited support offered by LibP11, this function only
+ * generates RSA keys.
  */
-void _PKCS11_generate_key(P11_Session &session,
-                          unsigned int bits,
-                          const std::string &label,
-                          const std::string &id);
+void _PKCS11_generate_rsa_key(P11Session_SharedPtr session,
+                              unsigned int bits,
+                              const std::string &label,
+                              const std::string &id);
 
 }  // namespace p11
 }  // namespace mococrw

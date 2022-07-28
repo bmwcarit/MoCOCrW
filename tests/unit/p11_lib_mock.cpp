@@ -109,11 +109,6 @@ int LibP11::P11_PKCS11_logout(PKCS11_SLOT *slot) noexcept
     return LibP11MockManager::getMockInterface().P11_PKCS11_logout(slot);
 }
 
-int LibP11::P11_PKCS11_is_logged_in(PKCS11_SLOT *slot, int so, int *res) noexcept
-{
-    return LibP11MockManager::getMockInterface().P11_PKCS11_is_logged_in(slot, so, res);
-}
-
 /* Key Management */
 int LibP11::P11_PKCS11_store_private_key(
         PKCS11_TOKEN *token, EVP_PKEY *pk, char *label, unsigned char *id, size_t id_len) noexcept

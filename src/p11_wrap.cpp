@@ -38,12 +38,6 @@ namespace mococrw
 {
 namespace p11
 {
-// Initialise error strings of LibP11 wrapper:
-const std::string P11Exception::nullCtxExceptionString = "Found NULL PKCS11 Context";
-const std::string P11Exception::nullSlotListExceptionString = "Found NULL Slot List";
-const std::string P11Exception::nullTokenExceptionString = "Found NULL Token";
-const std::string P11Exception::mismatchLoginExceptionString = "Login/Logout Mismatch Detected";
-
 /**
  * This struct is used by CWrap to
  * determine how to react to an error
@@ -74,10 +68,10 @@ using P11IsNonNegative =
         ::cppc::CallCheckContext<::cppc::IsNotNegativeReturnCheckPolicy, P11ExceptionErrorPolicy>;
 
 /***********************************************************************************
- * Implementation of P11_SlotInfo
+ * Implementation of P11SlotInfo
  */
 
-P11_SlotInfo::P11_SlotInfo(P11_PKCS11_CTX_Ptr ctx) : _ctx(ctx), _slotList(nullptr), _numSlots(0)
+P11SlotInfo::P11SlotInfo(P11_PKCS11_CTX_SharedPtr ctx) : _ctx(ctx), _slotList(nullptr), _numSlots(0)
 {
     PKCS11_SLOT *slots;
 
@@ -87,92 +81,72 @@ P11_SlotInfo::P11_SlotInfo(P11_PKCS11_CTX_Ptr ctx) : _ctx(ctx), _slotList(nullpt
 
     // If the returned slot list is NULL, we cannot continue!
     if (slots == nullptr) {
-        throw P11Exception(P11Exception::nullSlotListExceptionString);
+        throw P11Exception("Slot enumeration erroneously returned a null slot list");
     }
 
     SlotListDeleter deleter(_ctx, _numSlots);
-    _slotList = P11_PKCS11_SLOT_LIST_PTR(slots, deleter);
+    _slotList = P11_PKCS11_SLOT_LIST_SharedPtr(slots, deleter);
 }
 
-void P11_SlotInfo::SlotListDeleter::operator()(PKCS11_SLOT *slotList)
+void P11SlotInfo::SlotListDeleter::operator()(PKCS11_SLOT *slotList)
 {
-    if (slotList == nullptr) {
-        throw P11Exception(P11Exception::nullSlotListExceptionString);
-    }
-
     lib::LibP11::P11_PKCS11_release_all_slots(_ctx.get(), slotList, _numSlots);
 }
 
-P11_PKCS11_SLOT_PTR P11_SlotInfo::findSlot()
+P11_PKCS11_SLOT_SharedPtr P11SlotInfo::findSlot()
 {
-    PKCS11_SLOT *raw_slot = P11CallPtr::callChecked(
+    auto raw_slot = P11CallPtr::callChecked(
             lib::LibP11::P11_PKCS11_find_token, _ctx.get(), _slotList.get(), _numSlots);
 
-    // Leverage aliasing.
-    return P11_PKCS11_SLOT_PTR(_slotList, raw_slot);
+    // The memory of the slot is owned by the slot list. Therefore, use shared pointer's alias
+    // constructor.
+    return P11_PKCS11_SLOT_SharedPtr(_slotList, raw_slot);
 }
 
 /***********************************************************************************
- * Implementation of P11_Session
+ * Implementation of P11Session
  */
 
-P11_Session::P11_Session(P11_PKCS11_SLOT_PTR slot, const std::string &pin, SessionMode mode)
+P11Session::P11Session(P11_PKCS11_SLOT_SharedPtr slot, const std::string &pin, SessionMode mode)
         : _slot(slot)
 {
     openSession(mode);
     login(pin);
 }
 
-P11_Session::~P11_Session() { logout(); }
+P11Session::~P11Session() { logout(); }
 
-P11_PKCS11_TOKEN_PTR P11_Session::getTokenFromSlot()
+P11_PKCS11_TOKEN_SharedPtr P11Session::getTokenFromSessionSlot()
 {
     // Simply obtain the token via the slot's data structure.
     if (_slot.get()->token == nullptr) {
-        throw P11Exception(P11Exception::nullTokenExceptionString);
+        throw P11Exception("Slot is erroneously associated with a null token");
     }
 
-    // Leverage aliasing.
-    return P11_PKCS11_TOKEN_PTR(_slot, _slot.get()->token);
+    // The memory of the token is owned by the slot. Therefore, use shared pointer's alias
+    // constructor.
+    return P11_PKCS11_TOKEN_SharedPtr(_slot, _slot.get()->token);
 }
 
-void P11_Session::openSession(SessionMode mode)
+void P11Session::openSession(SessionMode mode)
 {
     P11IsNonNegative::callChecked(
             lib::LibP11::P11_PKCS11_open_session, _slot.get(), mode /* Denotes read/write mode. */);
 }
 
-void P11_Session::login(const std::string &pin)
+void P11Session::login(const std::string &pin)
 {
-    if (isLoggedIn()) {
-        // Weird: We are trying to log in, when we are logged in already.
-        throw P11Exception(P11Exception::mismatchLoginExceptionString);
-    }
-
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_login,
                                   _slot.get(),
                                   0 /* Always login as normal user. */,
                                   pin.c_str());
 }
 
-void P11_Session::logout()
+void P11Session::logout()
 {
-    if (!isLoggedIn()) {
-        // Weird: We are trying to log out, when we are logged out already.
-        throw P11Exception(P11Exception::mismatchLoginExceptionString);
-    }
-
-    P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_logout, _slot.get());
-}
-
-bool P11_Session::isLoggedIn()
-{
-    int result;
-    P11IsNonNegative::callChecked(
-            lib::LibP11::P11_PKCS11_is_logged_in, _slot.get(), 0 /* Check normal user. */, &result);
-
-    // Result is 1 if logged in.
-    return result == 1;
+    // Don't check return value and potentially raise an exception as this function
+    // is used by the destructor, which shouldn't throw.
+    lib::LibP11::P11_PKCS11_logout(_slot.get());
 }
 
 /***********************************************************************************
@@ -182,14 +156,11 @@ bool P11_Session::isLoggedIn()
 /* Destroys a PKCS11 context by first unloading it, and then freeing it. */
 static void _PKCS11_CTX_destroy(PKCS11_CTX *ctx)
 {
-    if (ctx == nullptr) {
-        throw P11Exception(P11Exception::nullCtxExceptionString);
-    }
     lib::LibP11::P11_PKCS11_CTX_unload(ctx);
     lib::LibP11::P11_PKCS11_CTX_free(ctx);
 }
 
-P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module)
+P11_PKCS11_CTX_SharedPtr _PKCS11_CTX_create(const std::string &module)
 {
     PKCS11_CTX *ctx = P11CallPtr::callChecked(lib::LibP11::P11_PKCS11_CTX_new);
     try {
@@ -201,10 +172,10 @@ P11_PKCS11_CTX_Ptr _PKCS11_CTX_create(const std::string &module)
     }
 
     // Create shared pointer which will unload and free the ctx automatically.
-    return P11_PKCS11_CTX_Ptr{ctx, _PKCS11_CTX_destroy};
+    return P11_PKCS11_CTX_SharedPtr{ctx, _PKCS11_CTX_destroy};
 }
 
-static std::string parseID(const std::string &idHexString)
+static std::vector<unsigned char> parseID(const std::string &idHexString)
 {
     /* We require IDs to be represented as hex strings from the user.
      * LibP11 does the necessary pre-processing, such as unhexing, on IDs
@@ -213,63 +184,58 @@ static std::string parseID(const std::string &idHexString)
      * matters worse, LibP11 does not export its internal
      * pre-processing function. We therefore begin to re-implement it here.
      */
-    auto parsedID = boost::algorithm::unhex(idHexString);
+    auto parsedIDStr = boost::algorithm::unhex(idHexString);
+    std::vector<unsigned char> parsedID;
+    std::copy(parsedIDStr.begin(), parsedIDStr.end(), std::back_inserter(parsedID));
+
     return parsedID;
 }
 
-void _PKCS11_store_private_key(P11_Session &session,
+void _PKCS11_store_private_key(P11Session_SharedPtr session,
                                EVP_PKEY *pk,
                                const std::string &label,
                                const std::string &id)
 {
-    std::string parsedStrID = parseID(id);
-    unsigned char *parsedID =
-            reinterpret_cast<unsigned char *>(const_cast<char *>(parsedStrID.c_str()));
-
+    auto parsedID = parseID(id);
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_store_private_key,
-                                  session.getTokenFromSlot().get(),
+                                  session->getTokenFromSessionSlot().get(),
                                   pk,
                                   const_cast<char *>(label.c_str()),
-                                  parsedID,
-                                  parsedStrID.size());
+                                  parsedID.data(),
+                                  parsedID.size());
 }
 
-void _PKCS11_store_public_key(P11_Session &session,
+void _PKCS11_store_public_key(P11Session_SharedPtr session,
                               EVP_PKEY *pk,
                               const std::string &label,
                               const std::string &id)
 {
-    auto parsedStrID = parseID(id);
-    unsigned char *parsedID =
-            reinterpret_cast<unsigned char *>(const_cast<char *>(parsedStrID.c_str()));
-
+    auto parsedID = parseID(id);
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_store_public_key,
-                                  session.getTokenFromSlot().get(),
+                                  session->getTokenFromSessionSlot().get(),
                                   pk,
                                   const_cast<char *>(label.c_str()),
-                                  parsedID,
-                                  parsedStrID.size());
+                                  parsedID.data(),
+                                  parsedID.size());
 }
 
-void _PKCS11_generate_key(P11_Session &session,
-                          unsigned int bits,
-                          const std::string &label,
-                          const std::string &id)
+void _PKCS11_generate_rsa_key(P11Session_SharedPtr session,
+                              unsigned int bits,
+                              const std::string &label,
+                              const std::string &id)
 {
-    std::string parsedStrID = parseID(id);
-    unsigned char *parsedID =
-            reinterpret_cast<unsigned char *>(const_cast<char *>(parsedStrID.c_str()));
+    auto parsedID = parseID(id);
 
     // Note, PKCS11_generate_key() function only generates RSA keys.
     // It is deprecated but no alternative has been implemented yet.
     // See: https://github.com/OpenSC/libp11/pull/378
     P11IsNonNegative::callChecked(lib::LibP11::P11_PKCS11_generate_key,
-                                  session.getTokenFromSlot().get(),
+                                  session->getTokenFromSessionSlot().get(),
                                   0 /* Currently, algorithm is ignored by LibP11. */,
                                   bits,
                                   const_cast<char *>(label.c_str()),
-                                  parsedID,
-                                  parsedStrID.size());
+                                  parsedID.data(),
+                                  parsedID.size());
 }
 
 }  // namespace p11
