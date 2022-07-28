@@ -207,7 +207,7 @@ void P11WrapperTest::testFindSlotHelper(PKCS11_CTX *context,
                         ::testutils::somePKCS11CtxPtr(), ::testutils::somePKCS11SlotPtr(), 1))
             .WillOnce(Return(retSlot));
 
-    slotInfo->findSlot();
+    slotInfo->findFirstSlot();
 }
 
 /* Test P11_PKCS11_find_token() with bad return value. */

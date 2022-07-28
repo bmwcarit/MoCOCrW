@@ -93,13 +93,14 @@ void P11SlotInfo::SlotListDeleter::operator()(PKCS11_SLOT *slotList)
     lib::LibP11::P11_PKCS11_release_all_slots(_ctx.get(), slotList, _numSlots);
 }
 
-P11_PKCS11_SLOT_SharedPtr P11SlotInfo::findSlot()
+P11_PKCS11_SLOT_SharedPtr P11SlotInfo::findFirstSlot()
 {
     auto raw_slot = P11CallPtr::callChecked(
             lib::LibP11::P11_PKCS11_find_token, _ctx.get(), _slotList.get(), _numSlots);
 
     // The memory of the slot is owned by the slot list. Therefore, use shared pointer's alias
-    // constructor.
+    // constructor. This prevents the list from being destroyed until the the created shared pointer
+    // of the slot becomes out-of-scope.
     return P11_PKCS11_SLOT_SharedPtr(_slotList, raw_slot);
 }
 

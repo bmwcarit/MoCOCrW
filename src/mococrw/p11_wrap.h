@@ -110,7 +110,7 @@ public:
     /**
      * Finds the slot of a token on the HSM.
      */
-    P11_PKCS11_SLOT_SharedPtr findSlot();
+    P11_PKCS11_SLOT_SharedPtr findFirstSlot();
 
 private:
     P11_PKCS11_CTX_SharedPtr _ctx;             // The context associated with the slot information.
