@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,9 @@
  * #L%
  */
 #pragma once
+#ifdef HSM_ENABLED
+#include "mococrw/hsm.h"
+#endif
 #include "openssl_wrap.h"
 
 namespace mococrw
@@ -82,6 +85,14 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
     static AsymmetricPublicKey readPublicKeyFromPEM(const std::string& pem);
+
+#ifdef HSM_ENABLED
+    /**
+     * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
+     * object as a result.
+     */
+    static AsymmetricPublicKey readPublicKeyFromHSM(HSM& hsm, const std::string& keyID);
+#endif
 
     /**
      * @brief Returns a public key object based on the provided EC point
@@ -253,6 +264,14 @@ public:
 
     static AsymmetricKeypair readPrivateKeyFromPEM(const std::string& pem,
                                                    const std::string& password);
+
+#ifdef HSM_ENABLED
+    /**
+     * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
+     * object as a result.
+     */
+    static AsymmetricKeypair readPrivateKeyFromHSM(HSM& hsm, const std::string& keyID);
+#endif
 
 private:
     AsymmetricKeypair(AsymmetricKey&& key) : AsymmetricPublicKey{std::move(key)} {}

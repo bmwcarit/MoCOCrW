@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -106,6 +106,14 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string 
     return AsymmetricPublicKey{std::move(key)};
 }
 
+#ifdef HSM_ENABLED
+AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(HSM &hsm, const std::string &keyID)
+{
+    auto key = hsm.loadPublicKey(keyID);
+    return AsymmetricPublicKey{std::move(key)};
+}
+#endif
+
 AsymmetricPublicKey AsymmetricPublicKey::fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
                                                      const std::vector<uint8_t> &point)
 {
@@ -176,6 +184,14 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
     auto key = _PEM_read_bio_PrivateKey(bio.internal(), password.c_str());
     return AsymmetricKeypair{std::move(key)};
 }
+
+#ifdef HSM_ENABLED
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID)
+{
+    auto key = hsm.loadPrivateKey(keyID);
+    return AsymmetricKeypair{std::move(key)};
+}
+#endif
 
 AsymmetricKey RSASpec::generate() const
 {

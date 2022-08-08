@@ -22,13 +22,8 @@ namespace mococrw
 {
 using namespace openssl;
 
-const std::string &HSM::getName() { return _name; }
-
-HsmEngine::HsmEngine(const std::string &name,
-                     const std::string &id,
-                     const std::string &modulePath,
-                     const std::string &pin)
-        : HSM(name), _id(id), _modulePath(modulePath), _pin(pin)
+HsmEngine::HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin)
+        : HSM(), _id(id), _modulePath(modulePath), _pin(pin)
 {
     // Fetch engine via ID.
     _engine = _ENGINE_by_id(_id);

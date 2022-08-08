@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2022 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,10 @@
 
 #include "key.cpp"
 #include "util.cpp"
+
+#ifdef HSM_ENABLED
+#include "hsm_mock.h"
+#endif
 
 using namespace mococrw;
 using namespace ::testing;
@@ -269,6 +273,44 @@ TEST_F(KeyHandlingTests, testPrivKeyFromSavedPemIsSameAsOriginal)
             AsymmetricKeypair::readPrivateKeyFromPEM(pemOfSectEd25519PrivateKey, "bar");
     ASSERT_EQ(pemOfSectEd25519PubKey, retrievedEd25519KeyPair.publicKeyToPem());
 }
+
+#ifdef HSM_ENABLED
+TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
+{
+    std::string keyId = "keyId";
+
+    // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
+    // is called. We do this directly using the (wrapped) Bio Api.
+    BioObject bio{BioObject::Types::MEM};
+    bio.write(_pemEccPubKeyEd25519);
+    auto resKey = _PEM_read_bio_PUBKEY(bio.internal());
+
+    auto eccPubKey = mococrw::AsymmetricPublicKey::readPublicKeyFromPEM(
+            KeyHandlingTests::_pemEccPubKeyEd25519);
+
+    HSMMock hsmMock;
+    EXPECT_CALL(hsmMock, loadPublicKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccPubKey, AsymmetricPublicKey::readPublicKeyFromHSM(hsmMock, keyId));
+}
+
+TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
+{
+    std::string keyId = "keyId";
+    std::string password = "password";
+
+    // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
+    // is called. We do this directly using the (wrapped) Bio Api.
+    BioObject bio{BioObject::Types::MEM};
+    bio.write(_pemEccPrivKeyEd25519);
+    auto resKey = _PEM_read_bio_PrivateKey(bio.internal(), password.c_str());
+
+    auto eccKeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(_pemEccPrivKeyEd25519, password);
+
+    HSMMock hsmMock;
+    EXPECT_CALL(hsmMock, loadPrivateKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
+}
+#endif
 
 TEST_F(KeyHandlingTests, testBothGeneratedKeysNotTheSame)
 {
