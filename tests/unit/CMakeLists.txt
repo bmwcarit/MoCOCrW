@@ -30,6 +30,12 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 
     add_executable(openssltest test_opensslwrapper.cpp ${MOCK_SOURCES})
 
+    if(HSM_ENABLED)
+        add_executable(hsmtest test_hsm.cpp
+                               "${SRC_DIR}/hsm.cpp"
+                               ${MOCK_SOURCES})
+    endif()
+
     add_executable(asn1timetests test_asn1time.cpp ${REAL_SOURCES})
     add_executable(keytests test_key.cpp ${REAL_SOURCES})
     add_executable(csrtests test_csr.cpp "${SRC_DIR}/key.cpp" ${REAL_SOURCES})
@@ -140,6 +146,11 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     # Cannot link to imported OpenSSL and leverage implicit include-dir-propagation, as openssltest uses mocks.
     target_include_directories(openssltest PUBLIC ${OPENSSL_INCLUDE_DIR})
 
+    if(HSM_ENABLED)
+        target_link_libraries(hsmtest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+        target_include_directories(hsmtest PUBLIC ${OPENSSL_INCLUDE_DIR})
+    endif()
+
     target_link_libraries(asn1timetests
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
     target_link_libraries(keytests
@@ -181,10 +192,21 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(eciestests
 	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
+    if(HSM_ENABLED)
+        target_compile_definitions(keytests PUBLIC HSM_ENABLED)
+    endif()
+
     add_test(
         NAME OpenSSLTest
         COMMAND openssltest
     )
+
+    if(HSM_ENABLED)
+        add_test(
+            NAME HSMTest
+            COMMAND hsmtest
+        )
+    endif()
 
     add_test(
         NAME Asn1TimeTests
