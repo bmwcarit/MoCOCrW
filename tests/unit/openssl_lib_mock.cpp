@@ -917,7 +917,7 @@ int OpenSSLLib::SSL_EVP_MD_size(const EVP_MD *md) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_MD_size(md);
 }
-EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
+const EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_get0_EC_KEY(pkey);
 }

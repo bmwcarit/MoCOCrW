@@ -793,7 +793,7 @@ int OpenSSLLib::SSL_EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD
     return EVP_PKEY_CTX_set_rsa_mgf1_md(ctx, md);
 }
 
-EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey) noexcept
+const EC_KEY *OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY(EVP_PKEY* pkey) noexcept
 {
     return EVP_PKEY_get0_EC_KEY(pkey);
 }

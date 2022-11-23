@@ -438,7 +438,7 @@ TEST_F(KeyHandlingTests, testGetSize)
     EXPECT_EQ(_eccKeyPairSecp521r1.getKeySize(), 521);
     EXPECT_EQ(_eccKeyPairSect571r1.getKeySize(), 570);
     EXPECT_EQ(_Ed448KeyPair.getKeySize(), 456);
-    EXPECT_EQ(_Ed25519KeyPair.getKeySize(), 253);
+    EXPECT_EQ(_Ed25519KeyPair.getKeySize(), 256);
     auto rsaKey1024 = AsymmetricKeypair::generate(mococrw::RSASpec{1024});
     EXPECT_EQ(rsaKey1024.getKeySize(), 1024);
 }

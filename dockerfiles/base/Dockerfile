@@ -1,10 +1,10 @@
-FROM ubuntu:focal
+FROM ubuntu:jammy
 
 # Install MoCOCrW dependencies (except OpenSSL)
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-recommends install \
         ca-certificates \
         clang \
-        clang-format-10 \
+        clang-format-11 \
         cmake \
         g++ \
         git \

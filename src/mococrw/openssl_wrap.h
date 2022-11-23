@@ -1467,7 +1467,7 @@ enum class EllipticCurvePointConversionForm {
 
 };
 
-EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
+const EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
 
 void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass,
                         const std::vector<uint8_t> salt,
