@@ -1560,5 +1560,15 @@ SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE *e, const std::string &keyId);
  */
 void _ENGINE_finish(ENGINE *e);
 
+/**
+ * Send control command to an engine and pass arbitrary data through \p p
+ */
+void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p);
+
+/**
+ *
+ */
+std::string _EC_curve_nid2nist(int nid);
+
 }  // namespace openssl
 }  // namespace mococrw

@@ -19,6 +19,7 @@
 #pragma once
 
 #include "mococrw/hsm.h"
+#include "mococrw/key.h"
 
 #include <mutex>
 
@@ -33,6 +34,36 @@ class HSMMock final : public HSM
 public:
     MOCK_METHOD1(loadPublicKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
     MOCK_METHOD1(loadPrivateKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
+    MOCK_METHOD4(genKeyGetPublic,
+                 openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
+                                           const std::string &keyID,
+                                           const std::string &tokenLabel,
+                                           const std::string &keyLabel));
+    MOCK_METHOD4(genKeyGetPrivate,
+                 openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
+                                           const std::string &keyID,
+                                           const std::string &tokenLabel,
+                                           const std::string &keyLabel));
+    MOCK_METHOD4(genKeyGetPublic,
+                 openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
+                                           const std::string &keyID,
+                                           const std::string &tokenLabel,
+                                           const std::string &keyLabel));
+    MOCK_METHOD4(genKeyGetPrivate,
+                 openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
+                                           const std::string &keyID,
+                                           const std::string &tokenLabel,
+                                           const std::string &keyLabel));
+    MOCK_METHOD4(genKey,
+                 void(const RSASpec &spec,
+                      const std::string &keyID,
+                      const std::string &tokenLabel,
+                      const std::string &keyLabel));
+    MOCK_METHOD4(genKey,
+                 void(const ECCSpec &spec,
+                      const std::string &keyID,
+                      const std::string &tokenLabel,
+                      const std::string &keyLabel));
 };
 
 }  // namespace mococrw

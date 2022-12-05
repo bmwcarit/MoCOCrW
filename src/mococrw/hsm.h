@@ -22,6 +22,8 @@
 
 namespace mococrw
 {
+class ECCSpec;
+class RSASpec;
 /**
  * The highest-level abstract class of a Hardware Security Module (HSM).
  *
@@ -53,6 +55,36 @@ protected:
      * @param keyID The ID of the private key to load.
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) = 0;
+
+    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const RSASpec &spec,
+                                                      const std::string &keyID,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel) = 0;
+
+    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const ECCSpec &spec,
+                                                      const std::string &keyID,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel) = 0;
+
+    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const RSASpec &spec,
+                                                       const std::string &keyID,
+                                                       const std::string &tokenLabel,
+                                                       const std::string &keyLabel) = 0;
+
+    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const ECCSpec &spec,
+                                                       const std::string &keyID,
+                                                       const std::string &tokenLabel,
+                                                       const std::string &keyLabel) = 0;
+
+    virtual void genKey(const RSASpec &spec,
+                        const std::string &keyID,
+                        const std::string &tokenLabel,
+                        const std::string &keyLabel) = 0;
+
+    virtual void genKey(const ECCSpec &spec,
+                        const std::string &keyID,
+                        const std::string &tokenLabel,
+                        const std::string &keyLabel) = 0;
 };
 
 /**
@@ -77,6 +109,36 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) override;
 
     openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) override;
+
+    openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const RSASpec &spec,
+                                              const std::string &keyID,
+                                              const std::string &tokenLabel,
+                                              const std::string &keyLabel) override;
+
+    openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const ECCSpec &spec,
+                                              const std::string &keyID,
+                                              const std::string &tokenLabel,
+                                              const std::string &keyLabel) override;
+
+    openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const RSASpec &spec,
+                                               const std::string &keyID,
+                                               const std::string &tokenLabel,
+                                               const std::string &keyLabel) override;
+
+    openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const ECCSpec &spec,
+                                               const std::string &keyID,
+                                               const std::string &tokenLabel,
+                                               const std::string &keyLabel) override;
+
+    void genKey(const RSASpec &spec,
+                const std::string &keyID,
+                const std::string &tokenLabel,
+                const std::string &keyLabel) override;
+
+    void genKey(const ECCSpec &spec,
+                const std::string &keyID,
+                const std::string &tokenLabel,
+                const std::string &keyLabel) override;
 };
 
 }  // namespace mococrw

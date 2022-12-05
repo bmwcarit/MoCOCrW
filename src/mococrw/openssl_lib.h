@@ -59,6 +59,13 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static const char *SSL_EC_curve_nid2nist(int nid) noexcept;
+    static int SSL_ENGINE_ctrl_cmd(ENGINE *e,
+                                   const char *cmd_name,
+                                   long i,
+                                   void *p,
+                                   void (*f)(void),
+                                   int cmd_optional) noexcept;
     static int SSL_ENGINE_free(ENGINE *e) noexcept;
     static int SSL_ENGINE_finish(ENGINE *e) noexcept;
     static ENGINE *SSL_ENGINE_by_id(const char *id) noexcept;

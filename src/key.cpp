@@ -112,6 +112,26 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(HSM &hsm, const st
     auto key = hsm.loadPublicKey(keyID);
     return AsymmetricPublicKey{std::move(key)};
 }
+
+AsymmetricPublicKey AsymmetricPublicKey::genKeyOnHsmGetPublic(HSM &hsm,
+                                                              const ECCSpec &spec,
+                                                              const std::string &keyID,
+                                                              const std::string &tokenLabel,
+                                                              const std::string &keyLabel)
+{
+    auto key = hsm.genKeyGetPublic(spec, keyID, tokenLabel, keyLabel);
+    return AsymmetricPublicKey{std::move(key)};
+}
+
+AsymmetricPublicKey AsymmetricPublicKey::genKeyOnHsmGetPublic(HSM &hsm,
+                                                              const RSASpec &spec,
+                                                              const std::string &keyID,
+                                                              const std::string &tokenLabel,
+                                                              const std::string &keyLabel)
+{
+    auto key = hsm.genKeyGetPublic(spec, keyID, tokenLabel, keyLabel);
+    return AsymmetricPublicKey{std::move(key)};
+}
 #endif
 
 AsymmetricPublicKey AsymmetricPublicKey::fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
@@ -189,6 +209,26 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
 AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID)
 {
     auto key = hsm.loadPrivateKey(keyID);
+    return AsymmetricKeypair{std::move(key)};
+}
+
+AsymmetricKeypair AsymmetricKeypair::genKeyOnHsmGetPrivate(HSM &hsm,
+                                                           const ECCSpec &spec,
+                                                           const std::string &keyID,
+                                                           const std::string &tokenLabel,
+                                                           const std::string &keyLabel)
+{
+    auto key = hsm.genKeyGetPrivate(spec, keyID, tokenLabel, keyLabel);
+    return AsymmetricKeypair{std::move(key)};
+}
+
+AsymmetricKeypair AsymmetricKeypair::genKeyOnHsmGetPrivate(HSM &hsm,
+                                                           const RSASpec &spec,
+                                                           const std::string &keyID,
+                                                           const std::string &tokenLabel,
+                                                           const std::string &keyLabel)
+{
+    auto key = hsm.genKeyGetPrivate(spec, keyID, tokenLabel, keyLabel);
     return AsymmetricKeypair{std::move(key)};
 }
 #endif

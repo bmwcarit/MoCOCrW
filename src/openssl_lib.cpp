@@ -1021,6 +1021,16 @@ int OpenSSLLib::SSL_ENGINE_init(ENGINE *e) noexcept { return ENGINE_init(e); }
 ENGINE *OpenSSLLib::SSL_ENGINE_by_id(const char *id) noexcept { return ENGINE_by_id(id); }
 int OpenSSLLib::SSL_ENGINE_finish(ENGINE *e) noexcept { return ENGINE_finish(e); }
 int OpenSSLLib::SSL_ENGINE_free(ENGINE *e) noexcept { return ENGINE_free(e); }
+int OpenSSLLib::SSL_ENGINE_ctrl_cmd(ENGINE *e,
+                                    const char *cmd_name,
+                                    long i,
+                                    void *p,
+                                    void (*f)(void),
+                                    int cmd_optional) noexcept
+{
+    return ENGINE_ctrl_cmd(e, cmd_name, i, p, f, cmd_optional);
+}
+const char *OpenSSLLib::SSL_EC_curve_nid2nist(int nid) noexcept { return EC_curve_nid2nist(nid); }
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw

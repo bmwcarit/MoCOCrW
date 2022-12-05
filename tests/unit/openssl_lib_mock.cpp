@@ -1193,6 +1193,16 @@ int OpenSSLLib::SSL_ENGINE_free(ENGINE *e) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_free(e);
 }
+int OpenSSLLib::SSL_ENGINE_ctrl_cmd(
+        ENGINE *e, const char *cmd_name, long i, void *p, void (*f)(), int cmd_optional) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ENGINE_ctrl_cmd(
+            e, cmd_name, i, p, f, cmd_optional);
+}
+const char *OpenSSLLib::SSL_EC_curve_nid2nist(int nid) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EC_curve_nid2nist(nid);
+}
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw

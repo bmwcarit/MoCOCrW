@@ -92,6 +92,18 @@ public:
      * object as a result.
      */
     static AsymmetricPublicKey readPublicKeyFromHSM(HSM &hsm, const std::string &keyID);
+
+    static AsymmetricPublicKey genKeyOnHsmGetPublic(HSM &hsm,
+                                                    const RSASpec &spec,
+                                                    const std::string &keyID,
+                                                    const std::string &tokenLabel,
+                                                    const std::string &keyLabel);
+    static AsymmetricPublicKey genKeyOnHsmGetPublic(HSM &hsm,
+                                                    const ECCSpec &spec,
+                                                    const std::string &keyID,
+                                                    const std::string &tokenLabel,
+                                                    const std::string &keyLabel);
+
 #endif
 
     /**
@@ -271,6 +283,17 @@ public:
      * object as a result.
      */
     static AsymmetricKeypair readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID);
+
+    static AsymmetricKeypair genKeyOnHsmGetPrivate(HSM &hsm,
+                                                   const RSASpec &spec,
+                                                   const std::string &keyID,
+                                                   const std::string &tokenLabel,
+                                                   const std::string &keyLabel);
+    static AsymmetricKeypair genKeyOnHsmGetPrivate(HSM &hsm,
+                                                   const ECCSpec &spec,
+                                                   const std::string &keyID,
+                                                   const std::string &tokenLabel,
+                                                   const std::string &keyLabel);
 #endif
 
 private:

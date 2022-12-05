@@ -17,7 +17,9 @@
  * #L%
  */
 #include <mococrw/asymmetric_crypto_ctx.h>
+#include <mococrw/hash.h>
 #include <mococrw/hsm.h>
+#include <mococrw/key.h>
 #include <iostream>
 
 /* This example demonstrates how to create a PKCS11 engine object,
@@ -26,6 +28,67 @@
 
 using namespace mococrw;
 
+std::vector<uint8_t> ecdsaSign(const AsymmetricPrivateKey &privKey,
+                               const DigestTypes digestType,
+                               const ECDSASignatureFormat sigFormat,
+                               const std::vector<uint8_t> &message)
+{
+    std::shared_ptr<MessageSignatureCtx> signCtx;
+    try {
+        /* The argument hashFunction is optional. Default is SHA256
+         * The default signature format is ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS */
+        signCtx = std::make_shared<ECDSASignaturePrivateKeyCtx>(privKey, digestType, sigFormat);
+    } catch (MoCOCrWException &e) {
+        std::cerr << "Please check your ECC key. Failure creating context." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    }
+
+    std::vector<uint8_t> signature;
+    try {
+        signature = signCtx->signMessage(message);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - error in openssl (sign, padding, ...)
+         * - Hash function's digest size doesn't match the message's digest size
+         * - Invalid signature format set
+         */
+        std::cerr << "Failure occurred during signing." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    return signature;
+}
+
+void ecdsaVerify(const AsymmetricPublicKey &pubKey,
+                 const DigestTypes digestType,
+                 const ECDSASignatureFormat sigFormat,
+                 const std::vector<uint8_t> &signature,
+                 const std::vector<uint8_t> &message)
+{
+    std::shared_ptr<MessageVerificationCtx> verifyCtx;
+    try {
+        verifyCtx = std::make_shared<ECDSASignaturePublicKeyCtx>(pubKey, digestType, sigFormat);
+    } catch (const MoCOCrWException &e) {
+        std::cerr << "Please check your ECC key. Failure creating context." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    }
+    try {
+        verifyCtx->verifyMessage(signature, message);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - error in openssl (sign, padding, ...)
+         * - Hash function's digest size doesn't match the message's digest size
+         * - Invalid signature format set
+         * - Signature can't be parsed
+         * - Invalid signature
+         */
+        std::cerr << "Verification failed!" << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
 int main(void)
 {
     // Information for engine loading and key management.
@@ -33,13 +96,26 @@ int main(void)
     std::string modulePath("/usr/lib/softhsm/libsofthsm2.so");
     std::string pin("1234");
     std::string keyID("1001");
-
-    // Step 2: Initialise the PKCS11 Engine.
+    std::vector<uint8_t> message = utility::fromHex("deadbeef");
     HsmEngine hsmEngine(id, modulePath, pin);
 
-    // Step 4: Load the key from the HSM and print it.
-    auto pubKey = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyID);
-    std::cout << "Loaded key: \n\n" << pubKey.publicKeyToPem() << "\n\n" << std::endl;
+    /************** ECDSA signature **************/
+    auto ecdsaDigestType = DigestTypes::SHA512;
+    ECCSpec ecspec;
+    auto eccPrivKey = AsymmetricPrivateKey::genKeyOnHsmGetPrivate(
+            hsmEngine, ecspec, "5567", "token-label", "DobarKey");
+    auto ecdsaSigFormat = ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS;
+
+    /* The argument hashFunction is optional. Default is SHA256
+     * The default signature format is ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS */
+    auto signature = ecdsaSign(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, message);
+
+    /* we can use here the private key, as it also contains the public key.
+     * In MoCOCrW the AsymmetricPrivateKey is a specialisation of AsymmetricPublicKey. Thus
+     * we do an implicit upcast here.
+     */
+    ecdsaVerify(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, signature, message);
+    /*********************************************/
 
     return 0;
 }

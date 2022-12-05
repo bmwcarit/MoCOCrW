@@ -1597,5 +1597,16 @@ void _ENGINE_finish(ENGINE *e)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ENGINE_finish, e);
 }
 
+void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p)
+{
+    OpensslCallIsOne::callChecked(
+            lib::OpenSSLLib::SSL_ENGINE_ctrl_cmd, e, cmdName.c_str(), 0, p, nullptr, 1);
+}
+
+std::string _EC_curve_nid2nist(int nid)
+{
+    return std::string{lib::OpenSSLLib::SSL_EC_curve_nid2nist(nid)};
+}
+
 }  // namespace openssl
 }  // namespace mococrw

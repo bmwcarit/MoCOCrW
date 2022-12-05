@@ -23,7 +23,7 @@
 
 #include <openssl/crypto.h>
 
-#include "mococrw/error.h"
+#include "error.h"
 
 namespace mococrw
 {
