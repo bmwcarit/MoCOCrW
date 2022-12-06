@@ -4,8 +4,8 @@ inputs:
   docker_tag:
     description: 'Tag of Docker image'
     required: true
-  docker_file_path:
-    description: 'Path to docker file'
+  docker_folder_path:
+    description: 'Path to docker folder'
     required: true
 
 runs:
@@ -17,5 +17,5 @@ runs:
     - name: "Build Docker image"
       shell: bash
       run: |
-        docker build -t ${{ inputs.docker_tag }} - < ${{ inputs.docker_file_path }}
+        docker build -t ${{ inputs.docker_tag }} ${{ inputs.docker_folder_path }}
 

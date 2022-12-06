@@ -8,10 +8,10 @@ on:
 
 env:
   DOCKER_TAG: buildenv
-  DOCKER_FILE_PATH: ./docker-build-env/Dockerfile
+  DOCKER_FOLDER_PATH: ./dockerfiles/base
 
   DOCKER_WITH_HSM_TAG: buildenv_with_hsm
-  DOCKER_WITH_HSM_FILE_PATH: ./docker-build-env/Dockerfile-With-HSM
+  DOCKER_WITH_HSM_FOLDER_PATH: ./dockerfiles/hsm-support
 
   TOKEN_LABEL: token-label
   USER_PIN: 1234
@@ -30,7 +30,7 @@ jobs:
         uses: ./.github/actions/build-docker
         with:
           docker_tag: ${{ env.DOCKER_TAG }}
-          docker_file_path: ${{ env.DOCKER_FILE_PATH }}
+          docker_folder_path: ${{ env.DOCKER_FOLDER_PATH }}
 
       - name: "Check code format"
         run: |
@@ -61,7 +61,7 @@ jobs:
             docker_tag: "buildenv_with_hsm"
             softhsm2_conf: "/usr/share/softhsm/softhsm2.conf"
             softhsm2_grp: ":softhsm"
-         
+
           - hsm_flag: "HSM_ENABLED=OFF"
             docker_tag: "buildenv"
             softhsm2_conf: ""
@@ -75,13 +75,14 @@ jobs:
         uses: ./.github/actions/build-docker
         with:
           docker_tag: ${{ env.DOCKER_TAG }}
-          docker_file_path: ${{ env.DOCKER_FILE_PATH }}
+          docker_folder_path: ${{ env.DOCKER_FOLDER_PATH }}
 
       - name: "Build Docker Image With HSM"
+        if: ${{ matrix.hsm_flag == 'HSM_ENABLED=ON' }}
         uses: ./.github/actions/build-docker
         with:
           docker_tag: ${{ env.DOCKER_WITH_HSM_TAG }}
-          docker_file_path: ${{ env.DOCKER_WITH_HSM_FILE_PATH }}
+          docker_folder_path: ${{ env.DOCKER_WITH_HSM_FOLDER_PATH }}
 
       - name: "Build MoCOCrW"
         run: |
