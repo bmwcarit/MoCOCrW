@@ -82,6 +82,10 @@ public:
             HMAC_CTX *ctx, const void *key, int key_len, const EVP_MD *md, ENGINE *impl) = 0;
     virtual int SSL_i2d_X509_REQ_bio(BIO *bp, X509_REQ *req) = 0;
     virtual X509_REQ *SSL_d2i_X509_REQ_bio(BIO *bp, X509_REQ **req) = 0;
+    virtual void SSL_X509_PUBKEY_free(X509_PUBKEY *a) = 0;
+    virtual X509_PUBKEY *SSL_d2i_X509_PUBKEY(X509_PUBKEY **a,
+                                             const unsigned char **ppin,
+                                             long length) = 0;
     virtual int SSL_EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX *c, int pad) = 0;
     virtual int SSL_EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *c) = 0;
     virtual int SSL_RAND_bytes(unsigned char *buf, int num) = 0;
@@ -144,6 +148,7 @@ public:
     virtual BIGNUM *SSL_ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn) = 0;
     virtual int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y) = 0;
     virtual long SSL_ASN1_INTEGER_get(const ASN1_INTEGER *a) = 0;
+    virtual int SSL_ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a) = 0;
     virtual int SSL_ASN1_INTEGER_set(ASN1_INTEGER *a, long value) = 0;
     virtual ASN1_INTEGER *SSL_X509_get_serialNumber(X509 *x) = 0;
     virtual int SSL_X509_set_serialNumber(X509 *x, ASN1_INTEGER *serial) = 0;
@@ -451,6 +456,8 @@ public:
     MOCK_METHOD5(SSL_HMAC_Init_ex, int(HMAC_CTX *, const void *, int, const EVP_MD *, ENGINE *));
     MOCK_METHOD2(SSL_i2d_X509_REQ_bio, int(BIO *, X509_REQ *));
     MOCK_METHOD2(SSL_d2i_X509_REQ_bio, X509_REQ *(BIO *, X509_REQ **));
+    MOCK_METHOD3(SSL_d2i_X509_PUBKEY, X509_PUBKEY *(X509_PUBKEY **, const unsigned char **, long));
+    MOCK_METHOD1(SSL_X509_PUBKEY_free, void(X509_PUBKEY *));
     MOCK_METHOD2(SSL_EVP_CIPHER_CTX_set_padding, int(EVP_CIPHER_CTX *, int));
     MOCK_METHOD1(SSL_EVP_CIPHER_CTX_reset, int(EVP_CIPHER_CTX *));
     MOCK_METHOD2(SSL_RAND_bytes, int(unsigned char *, int));
@@ -507,6 +514,7 @@ public:
     MOCK_METHOD2(SSL_ASN1_INTEGER_to_BN, BIGNUM *(const ASN1_INTEGER *, BIGNUM *));
     MOCK_METHOD2(SSL_ASN1_INTEGER_cmp, int(const ASN1_INTEGER *, const ASN1_INTEGER *));
     MOCK_METHOD1(SSL_ASN1_INTEGER_get, long(const ASN1_INTEGER *));
+    MOCK_METHOD2(SSL_ASN1_INTEGER_get_int64, int(int64_t *, const ASN1_INTEGER *));
     MOCK_METHOD2(SSL_ASN1_INTEGER_set, int(ASN1_INTEGER *, long));
     MOCK_METHOD1(SSL_X509_get_serialNumber, ASN1_INTEGER *(X509 *));
     MOCK_METHOD2(SSL_X509_set_serialNumber, int(X509 *, ASN1_INTEGER *));
@@ -557,6 +565,10 @@ public:
     MOCK_METHOD1(SSL_EVP_PKEY_id, int(const EVP_PKEY *pkey));
 
     MOCK_METHOD1(SSL_EVP_PKEY_size, int(EVP_PKEY *pkey));
+
+    MOCK_METHOD1(SSL_PKCS8_PRIV_KEY_INFO_free, void(PKCS8_PRIV_KEY_INFO *));
+    MOCK_METHOD3(SSL_d2i_PKCS8_PRIV_KEY_INFO,
+                 PKCS8_PRIV_KEY_INFO *(PKCS8_PRIV_KEY_INFO **, const unsigned char **, long));
 
     MOCK_METHOD0(SSL_ERR_get_error, unsigned long());
     MOCK_METHOD2(SSL_ERR_error_string, char *(unsigned long, char *));

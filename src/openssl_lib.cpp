@@ -146,6 +146,18 @@ int OpenSSLLib::SSL_EVP_PKEY_id(const EVP_PKEY *pkey) noexcept { return EVP_PKEY
 
 int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept { return EVP_PKEY_size(pkey); }
 
+PKCS8_PRIV_KEY_INFO *OpenSSLLib::SSL_d2i_PKCS8_PRIV_KEY_INFO(PKCS8_PRIV_KEY_INFO **a,
+                                                             const unsigned char **ppin,
+                                                             long length) noexcept
+{
+    return d2i_PKCS8_PRIV_KEY_INFO(a, ppin, length);
+}
+
+void OpenSSLLib::SSL_PKCS8_PRIV_KEY_INFO_free(PKCS8_PRIV_KEY_INFO *a) noexcept
+{
+    PKCS8_PRIV_KEY_INFO_free(a);
+}
+
 char *OpenSSLLib::SSL_ERR_error_string(unsigned long error, char *buf) noexcept
 {
     return ERR_error_string(error, buf);
@@ -386,6 +398,15 @@ ASN1_TIME *OpenSSLLib::SSL_X509_get_notBefore(X509 *x) noexcept { return X509_ge
 
 ASN1_TIME *OpenSSLLib::SSL_X509_get_notAfter(X509 *x) noexcept { return X509_get_notAfter(x); }
 
+X509_PUBKEY *OpenSSLLib::SSL_d2i_X509_PUBKEY(X509_PUBKEY **a,
+                                             const unsigned char **ppin,
+                                             long length) noexcept
+{
+    return d2i_X509_PUBKEY(a, ppin, length);
+}
+
+void OpenSSLLib::SSL_X509_PUBKEY_free(X509_PUBKEY *a) noexcept { X509_PUBKEY_free(a); }
+
 /* ASN1 TIME */
 void OpenSSLLib::SSL_ASN1_TIME_free(ASN1_TIME *x) noexcept { ASN1_TIME_free(x); }
 
@@ -520,6 +541,11 @@ int OpenSSLLib::SSL_ASN1_INTEGER_set(ASN1_INTEGER *a, long value) noexcept
 long OpenSSLLib::SSL_ASN1_INTEGER_get(const ASN1_INTEGER *a) noexcept
 {
     return ASN1_INTEGER_get(a);
+}
+
+int OpenSSLLib::SSL_ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a) noexcept
+{
+    return ASN1_INTEGER_get_int64(pr, a);
 }
 
 int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y) noexcept

@@ -257,6 +257,13 @@ void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc)
             lib::OpenSSLLib::SSL_EVP_PKEY_CTX_set_ec_param_enc, ctx, param_enc);
 }
 
+SSL_PKCS8_PRIV_KEY_INFO_Ptr _SSL_d2i_PKCS8_PRIV_KEY_INFO(const unsigned char *buf, long length)
+{
+    const unsigned char **pbuf = &buf;
+    return SSL_PKCS8_PRIV_KEY_INFO_Ptr{OpensslCallPtr::callChecked(
+            lib::OpenSSLLib::SSL_d2i_PKCS8_PRIV_KEY_INFO, nullptr, pbuf, length)};
+}
+
 const EC_GROUP *_EC_KEY_get0_group(const EC_KEY *key)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_KEY_get0_group, key);
@@ -1049,6 +1056,13 @@ uint64_t Asn1IntegerToInt64(ASN1_INTEGER *number)
     return static_cast<uint64_t>(lib::OpenSSLLib::SSL_ASN1_INTEGER_get(number));
 }
 
+int64_t _SSL_ASN1_INTEGER_get_int64(const ASN1_INTEGER *a)
+{
+    int64_t pr;
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_ASN1_INTEGER_get_int64, &pr, a);
+    return pr;
+}
+
 std::string Asn1IntegerToString(ASN1_INTEGER *number)
 {
     auto bnNumber = SSL_BIGNUM_Ptr{
@@ -1129,6 +1143,12 @@ SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO *bp)
 {
     return SSL_X509_CRL_Ptr{
             OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_d2i_X509_CRL_bio, bp, nullptr)};
+}
+
+SSL_X509_PUBKEY_Ptr _d2i_X509_PUBKEY(const unsigned char *pin, long length)
+{
+    return SSL_X509_PUBKEY_Ptr{OpensslCallPtr::callChecked(
+            lib::OpenSSLLib::SSL_d2i_X509_PUBKEY, nullptr, &pin, length)};
 }
 
 SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO *bp)
