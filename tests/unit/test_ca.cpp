@@ -51,8 +51,8 @@ class CATest : public ::testing::Test, public ::testing::WithParamInterface<cert
 public:
     void SetUp() override;
 
-    rootCertAndCa getRootCertAndCa(const AsymmetricKeypair& key,
-                                   const CertificateSigningParameters& caSignParams)
+    rootCertAndCa getRootCertAndCa(const AsymmetricKeypair &key,
+                                   const CertificateSigningParameters &caSignParams)
     {
         auto rootCert = CertificateAuthority::createRootCertificate(
                 key, *_rootCertDetails, 0, _caSignParams);
@@ -188,7 +188,7 @@ void CATest::SetUp()
     _eccCa = std::make_unique<CertificateAuthority>(_signParams, 1, *_rootEccCert, *_rootEccKey);
 }
 
-void testValiditySpan(const X509Certificate& cert,
+void testValiditySpan(const X509Certificate &cert,
                       Asn1Time::Seconds validitySpan,
                       Asn1Time certificationTime)
 {
@@ -269,7 +269,7 @@ TEST_F(CATest, testIterateOnExtensionMap)
              _exampleConstraints->getConfigurationString()},
             {openssl::X509Extension_NID::KeyUsage, _exampleUsage->getConfigurationString()}};
 
-    for (auto& it : _signParams.extensionMap()) {
+    for (auto &it : _signParams.extensionMap()) {
         EXPECT_EQ(it.second.get()->getConfigurationString(), compareStringMap[it.first]);
     }
 

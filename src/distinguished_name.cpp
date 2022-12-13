@@ -27,8 +27,8 @@ namespace mococrw
 using namespace openssl;
 
 void DistinguishedName::_addString(
-        SSL_X509_NAME_Ptr& x509Name,
-        const boost::optional<DistinguishedName::Attribute>& attribute) const
+        SSL_X509_NAME_Ptr &x509Name,
+        const boost::optional<DistinguishedName::Attribute> &attribute) const
 {
     if (!x509Name.get()) {
         throw std::runtime_error(ERROR_STRING("Received a nullptr as X509_NAME."));
@@ -42,10 +42,10 @@ void DistinguishedName::_addString(
             x509Name.get(), attribute->id, ASN1_Name_Entry_Type::ASCIIString, vec);
 }
 
-void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr& subject) const
+void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr &subject) const
 {
     if (_customAttributeOrderFlag) {
-        for (const auto& it : _attributes) {
+        for (const auto &it : _attributes) {
             _addString(subject, it);
         }
     } else {
@@ -63,7 +63,7 @@ void DistinguishedName::populateX509Name(SSL_X509_NAME_Ptr& subject) const
     }
 }
 
-std::string _getEntryByNIDAsString(X509_NAME* x509, ASN1_NID nid)
+std::string _getEntryByNIDAsString(X509_NAME *x509, ASN1_NID nid)
 {
     if (!x509) {
         throw std::runtime_error(ERROR_STRING("nullptr"));
@@ -80,7 +80,7 @@ std::string _getEntryByNIDAsString(X509_NAME* x509, ASN1_NID nid)
     return _X509_NAME_ENTRY_get_data(entry);
 }
 
-DistinguishedName DistinguishedName::fromX509Name(X509_NAME* x509)
+DistinguishedName DistinguishedName::fromX509Name(X509_NAME *x509)
 {
     Builder builder{};
     builder.commonName(_getEntryByNIDAsString(x509, ASN1_NID::CommonName));
@@ -97,7 +97,7 @@ DistinguishedName DistinguishedName::fromX509Name(X509_NAME* x509)
     return builder.build();
 }
 
-auto _createTuple(const DistinguishedName& dn)
+auto _createTuple(const DistinguishedName &dn)
 {
     return std::make_tuple(dn.commonName(),
                            dn.countryName(),
@@ -112,7 +112,7 @@ auto _createTuple(const DistinguishedName& dn)
                            dn.title());
 }
 
-bool DistinguishedName::operator==(const DistinguishedName& other) const
+bool DistinguishedName::operator==(const DistinguishedName &other) const
 {
     if (_customAttributeOrderFlag && other._customAttributeOrderFlag) {
         // order matters now
@@ -120,7 +120,7 @@ bool DistinguishedName::operator==(const DistinguishedName& other) const
                           _attributes.end(),
                           other._attributes.begin(),
                           other._attributes.end(),
-                          [](const auto& left, const auto& right) {
+                          [](const auto &left, const auto &right) {
                               return left.id == right.id && left.name == right.name;
                           });
     } else {
@@ -145,7 +145,7 @@ boost::optional<DistinguishedName::Attribute> DistinguishedName::_getAttributeBy
     // returns the last occurence in case there is duplicates
     const auto it = std::find_if(_attributes.rbegin(),
                                  _attributes.rend(),
-                                 [id](const auto& attribute) { return attribute.id == id; });
+                                 [id](const auto &attribute) { return attribute.id == id; });
     if (it != _attributes.rend()) {
         ret = *it;
     };

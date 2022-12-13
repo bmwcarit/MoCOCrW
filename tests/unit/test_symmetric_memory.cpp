@@ -36,11 +36,11 @@ protected:
     }
 
     void assembleFromChunksAndCompareWithExpected(
-            const std::vector<uint8_t>& expected,
-            const std::vector<std::vector<uint8_t>>& actualChunks) const
+            const std::vector<uint8_t> &expected,
+            const std::vector<std::vector<uint8_t>> &actualChunks) const
     {
         std::vector<uint8_t> readData;
-        for (const auto& chunk : actualChunks) {
+        for (const auto &chunk : actualChunks) {
             readData.insert(std::end(readData), std::begin(chunk), std::end(chunk));
         }
         ASSERT_THAT(readData, ::testing::ElementsAreArray(expected));

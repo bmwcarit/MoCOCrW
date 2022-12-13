@@ -64,7 +64,7 @@ public:
      */
     openssl::DigestTypes digestType() const { return _digestType; }
 
-    const std::map<openssl::X509Extension_NID, std::shared_ptr<ExtensionBase> >& extensionMap()
+    const std::map<openssl::X509Extension_NID, std::shared_ptr<ExtensionBase> > &extensionMap()
             const
     {
         return _extensions;
@@ -105,12 +105,12 @@ private:
     }
 
 public:
-    bool operator==(const CertificateSigningParameters& other) const
+    bool operator==(const CertificateSigningParameters &other) const
     {
         return _makeTuple() == other._makeTuple();
     }
 
-    bool operator!=(const CertificateSigningParameters& other) const { return !operator==(other); }
+    bool operator!=(const CertificateSigningParameters &other) const { return !operator==(other); }
 
 private:
     boost::optional<Asn1Time> _notBefore;
@@ -125,28 +125,28 @@ class CertificateSigningParameters::Builder
 {
 public:
     template <class T>
-    Builder& certificateValidity(T&& validity)
+    Builder &certificateValidity(T &&validity)
     {
         _sp._certificateValidity = std::forward<T>(validity);
         return *this;
     }
 
     template <class T>
-    Builder& notBeforeAsn1(T&& notBefore)
+    Builder &notBeforeAsn1(T &&notBefore)
     {
         _sp._notBefore = std::forward<T>(notBefore);
         return *this;
     }
 
     template <class T>
-    Builder& digestType(T&& type)
+    Builder &digestType(T &&type)
     {
         _sp._digestType = std::forward<T>(type);
         return *this;
     }
 
     template <class T>
-    Builder& addExtension(T extension)
+    Builder &addExtension(T extension)
     {
         static_assert(std::is_base_of<ExtensionBase, T>::value,
                       "Extension is not derived from ExtensionBase");
@@ -156,7 +156,7 @@ public:
         return *this;
     }
 
-    Builder& addExtension(std::shared_ptr<ExtensionBase> extension)
+    Builder &addExtension(std::shared_ptr<ExtensionBase> extension)
     {
         auto nid = extension->getNid();
         _sp._extensions[nid] = std::move(extension);

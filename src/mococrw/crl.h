@@ -57,7 +57,7 @@ public:
      * @param signer the certificate that issued this CRL (and therefore signed it).
      * @throw MoCOCrWException if the verification failed.
      */
-    void verify(const X509Certificate& signer) const;
+    void verify(const X509Certificate &signer) const;
 
     /**
      * Creates a PEM representation of this CRL.
@@ -68,35 +68,35 @@ public:
      * Creates a CertificateRevocationList from a PEM representation.
      * @throw openssl::OpenSSLException if the PEM was invalid.
      */
-    static CertificateRevocationList fromPEM(const std::string& pem);
+    static CertificateRevocationList fromPEM(const std::string &pem);
 
     /**
      * Creates a CertificateRevocationList from a PEM representation in a file.
      * @throw openssl::OpenSSLException if the PEM was invalid or the file could not be read.
      */
-    static CertificateRevocationList fromPEMFile(const std::string& filename);
+    static CertificateRevocationList fromPEMFile(const std::string &filename);
 
     /**
      * Creates a CertificateRevocationList from a DER representation.
      * @throw openssl::OpenSSLException if the DER was invalid.
      */
-    static CertificateRevocationList fromDER(const std::vector<uint8_t>& derData);
+    static CertificateRevocationList fromDER(const std::vector<uint8_t> &derData);
 
     /**
      * Creates a CertificateRevocationList from a DER representation in a file.
      * @throw openssl::OpenSSLException if the DER was invalid or the file could not be read.
      */
-    static CertificateRevocationList fromDERFile(const std::string& filename);
+    static CertificateRevocationList fromDERFile(const std::string &filename);
 
     /**
      * Grants access to the internal OpenSSL object that is wrapped by this class.
      */
-    X509_CRL* internal();
+    X509_CRL *internal();
 
     /**
      * Grants access to the internal OpenSSL object that is wrapped by this class.
      */
-    const X509_CRL* internal() const;
+    const X509_CRL *internal() const;
 
 private:
     CertificateRevocationList(openssl::SSL_X509_CRL_Ptr crl) : _crl{std::move(crl)} {}
@@ -115,7 +115,7 @@ namespace util
  *         PEM string
  * @throw MoCOCrWException if the input or one of the included CRLs is invalid
  */
-std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string& pemChain);
+std::vector<CertificateRevocationList> loadCrlPEMChain(const std::string &pemChain);
 
 }  // namespace util
 

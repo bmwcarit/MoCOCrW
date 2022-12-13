@@ -39,9 +39,9 @@ namespace util
  * @return a vector with all PEMs, in the same order that they appeared in the chain.
  * @throw MoCOCrWException if the string didn't contain a list of PEMs.
  */
-inline std::vector<std::string> splitPEMChain(const std::string& pemChain,
-                                              const std::string& beginMarker,
-                                              const std::string& endMarker)
+inline std::vector<std::string> splitPEMChain(const std::string &pemChain,
+                                              const std::string &beginMarker,
+                                              const std::string &endMarker)
 {
     std::string::size_type pos = 0;
     std::size_t index = 0;

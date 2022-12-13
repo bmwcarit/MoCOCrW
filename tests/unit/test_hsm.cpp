@@ -43,7 +43,7 @@ public:
 protected:
     std::string _defaultErrorMessage{"bla bla bla"};
     const unsigned long _defaultErrorCode = 1L;
-    openssl::OpenSSLLibMock& _mock() const
+    openssl::OpenSSLLibMock &_mock() const
     {
         return openssl::OpenSSLLibMockManager::getMockInterface();
     }
@@ -51,11 +51,11 @@ protected:
 
 namespace testutils
 {
-ENGINE* someEnginePtr()
+ENGINE *someEnginePtr()
 {
     /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
     static char dummyBuf[42] = {};
-    return reinterpret_cast<ENGINE*>(&dummyBuf);
+    return reinterpret_cast<ENGINE *>(&dummyBuf);
 }
 }  // namespace testutils
 
@@ -68,7 +68,7 @@ void HSMTest::SetUp()
     openssl::OpenSSLLibMockManager::resetMock();
     ON_CALL(_mock(), SSL_ERR_get_error()).WillByDefault(Return(_defaultErrorCode));
     ON_CALL(_mock(), SSL_ERR_error_string(_, nullptr))
-            .WillByDefault(Return(const_cast<char*>(_defaultErrorMessage.c_str())));
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorMessage.c_str())));
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 

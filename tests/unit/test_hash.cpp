@@ -201,38 +201,38 @@ TEST_F(HashTest, sha1SingleUpdateBinaryArray)
 {
     EXPECT_THAT(
             utility::toHex(
-                    Hash::sha1().update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3).digest()),
+                    Hash::sha1().update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3).digest()),
             Eq(sha1_foo));
 }
 
 TEST_F(HashTest, sha256SingleUpdateBinaryArray)
 {
-    EXPECT_THAT(
-            utility::toHex(
-                    Hash::sha256().update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3).digest()),
-            Eq(sha256_foo));
+    EXPECT_THAT(utility::toHex(Hash::sha256()
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
+                                       .digest()),
+                Eq(sha256_foo));
 }
 
 TEST_F(HashTest, sha384SingleUpdateBinaryArray)
 {
-    EXPECT_THAT(
-            utility::toHex(
-                    Hash::sha384().update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3).digest()),
-            Eq(sha384_foo));
+    EXPECT_THAT(utility::toHex(Hash::sha384()
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
+                                       .digest()),
+                Eq(sha384_foo));
 }
 
 TEST_F(HashTest, sha512SingleUpdateBinaryArray)
 {
-    EXPECT_THAT(
-            utility::toHex(
-                    Hash::sha512().update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3).digest()),
-            Eq(sha512_foo));
+    EXPECT_THAT(utility::toHex(Hash::sha512()
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
+                                       .digest()),
+                Eq(sha512_foo));
 }
 
 TEST_F(HashTest, sha3_256SingleUpdateBinaryArray)
 {
     EXPECT_THAT(utility::toHex(Hash::sha3_256()
-                                       .update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3)
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
                                        .digest()),
                 Eq(sha3_256_foo));
 }
@@ -240,7 +240,7 @@ TEST_F(HashTest, sha3_256SingleUpdateBinaryArray)
 TEST_F(HashTest, sha3_384SingleUpdateBinaryArray)
 {
     EXPECT_THAT(utility::toHex(Hash::sha3_384()
-                                       .update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3)
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
                                        .digest()),
                 Eq(sha3_384_foo));
 }
@@ -248,7 +248,7 @@ TEST_F(HashTest, sha3_384SingleUpdateBinaryArray)
 TEST_F(HashTest, sha3_512SingleUpdateBinaryArray)
 {
     EXPECT_THAT(utility::toHex(Hash::sha3_512()
-                                       .update(reinterpret_cast<const uint8_t*>(&"foo"[0]), 3)
+                                       .update(reinterpret_cast<const uint8_t *>(&"foo"[0]), 3)
                                        .digest()),
                 Eq(sha3_512_foo));
 }
@@ -369,7 +369,7 @@ TEST_F(HashTest, sha1StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha1(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha1(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha1_foo));
 }
 
@@ -377,7 +377,7 @@ TEST_F(HashTest, sha256StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha256(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha256(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha256_foo));
 }
 
@@ -385,7 +385,7 @@ TEST_F(HashTest, sha384StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha384(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha384(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha384_foo));
 }
 
@@ -393,7 +393,7 @@ TEST_F(HashTest, sha512StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha512(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha512(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha512_foo));
 }
 
@@ -401,7 +401,7 @@ TEST_F(HashTest, sha3_256StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha3_256(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha3_256(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha3_256_foo));
 }
 
@@ -409,7 +409,7 @@ TEST_F(HashTest, sha3_384StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha3_384(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha3_384(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha3_384_foo));
 }
 
@@ -417,7 +417,7 @@ TEST_F(HashTest, sha3_512StandaloneFunctionBinaryVersion)
 {
     std::string message = "foo";
     std::vector<uint8_t> digest =
-            sha3_512(reinterpret_cast<const uint8_t*>(message.c_str()), message.length());
+            sha3_512(reinterpret_cast<const uint8_t *>(message.c_str()), message.length());
     EXPECT_THAT(utility::toHex(digest), Eq(sha3_512_foo));
 }
 

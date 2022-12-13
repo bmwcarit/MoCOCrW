@@ -41,13 +41,13 @@ public:
      * @param messageSize The size of the message that will be encrypted
      * @return the maximum size of the data that can be encrypted in bytes.
      */
-    virtual bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const = 0;
+    virtual bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const = 0;
 
     /**
      * @brief Prepares the given openssl context with the padding specific parameters.
      * @param ctx OpenSSL PKEY context
      */
-    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const = 0;
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const = 0;
 };
 
 /**
@@ -68,7 +68,7 @@ public:
      * @param ctx OpenSSL context
      * @param hashFunction The hash function to be used
      */
-    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx,
                                        openssl::DigestTypes hashFunction) const = 0;
 };
 
@@ -80,9 +80,9 @@ public:
 class NoPadding : public RSAEncryptionPadding
 {
 public:
-    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const override;
 };
 
 /**
@@ -94,11 +94,11 @@ public:
 class PKCSPadding : public RSAEncryptionPadding, public RSASignaturePadding
 {
 public:
-    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const override;
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx,
                                openssl::DigestTypes hashFunction) const override;
 
 private:
@@ -119,7 +119,7 @@ public:
      * parameters.
      * @param ctx OpenSSL context
      */
-    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const = 0;
+    virtual void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const = 0;
 };
 
 /**
@@ -142,7 +142,7 @@ public:
 
     virtual ~MGF1();
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const override;
 
 private:
     /**
@@ -177,26 +177,26 @@ public:
      */
     OAEPPadding(openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256,
                 std::shared_ptr<MaskGenerationFunction> maskGenerationFunction = nullptr,
-                const std::string& label = "");
+                const std::string &label = "");
 
     /**
      * @brief Copy Constrcutor
      */
-    OAEPPadding(const OAEPPadding& other);
+    OAEPPadding(const OAEPPadding &other);
 
     /**
      * @brief Copy Assignment
      */
-    OAEPPadding& operator=(const OAEPPadding& other);
+    OAEPPadding &operator=(const OAEPPadding &other);
 
     /**
      * @brief Destructor
      */
     ~OAEPPadding();
 
-    bool checkMessageSize(const AsymmetricPublicKey& key, size_t messageSize) const override;
+    bool checkMessageSize(const AsymmetricPublicKey &key, size_t messageSize) const override;
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx) const override;
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx) const override;
 
 private:
     /**
@@ -236,19 +236,19 @@ public:
     /**
      * @brief Copy Constructor
      */
-    PSSPadding(const PSSPadding& other);
+    PSSPadding(const PSSPadding &other);
 
     /**
      * @brief Copy Assignment
      */
-    PSSPadding& operator=(const PSSPadding& other);
+    PSSPadding &operator=(const PSSPadding &other);
 
     /**
      * @brief Destructor
      */
     ~PSSPadding();
 
-    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr& ctx,
+    void prepareOpenSSLContext(openssl::SSL_EVP_PKEY_CTX_Ptr &ctx,
                                openssl::DigestTypes hashFunction) const override;
 
 private:

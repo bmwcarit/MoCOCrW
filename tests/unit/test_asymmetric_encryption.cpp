@@ -33,7 +33,7 @@ using namespace mococrw;
 /// \brief Structure to hold a private/public key pair
 struct KeyPair
 {
-    KeyPair(const std::string& publicKey, const std::string& privateKey)
+    KeyPair(const std::string &publicKey, const std::string &privateKey)
             : pubKey(AsymmetricPublicKey::readPublicKeyFromPEM(publicKey))
             , privKey(AsymmetricPrivateKey::readPrivateKeyFromPEM(privateKey, ""))
     {
@@ -46,9 +46,9 @@ struct KeyPair
 /// \brief Structure to hold the input data set for the test cases
 struct NominalDataSet
 {
-    NominalDataSet(const std::string& message,
-                   const std::vector<uint8_t>& encrypted,
-                   const KeyPair& keyPair,
+    NominalDataSet(const std::string &message,
+                   const std::vector<uint8_t> &encrypted,
+                   const KeyPair &keyPair,
                    std::shared_ptr<RSAEncryptionPadding> padding)
             : message(message)
             , encrypted(encrypted)
@@ -70,7 +70,7 @@ class AsymmetricEncryptionTest : public ::testing::Test,
 public:
     static const std::vector<NominalDataSet> nominalDataSet;
 
-    static const NominalDataSet& OAEPPaddingDataSet;
+    static const NominalDataSet &OAEPPaddingDataSet;
 };
 
 /// \brief RSA 1024-bit Pair public/private key
@@ -310,7 +310,7 @@ const std::vector<NominalDataSet> AsymmetricEncryptionTest::nominalDataSet{
          keyPairs2048bit,
          std::make_shared<NoPadding>()}};
 
-const NominalDataSet& AsymmetricEncryptionTest::OAEPPaddingDataSet = nominalDataSet[2];
+const NominalDataSet &AsymmetricEncryptionTest::OAEPPaddingDataSet = nominalDataSet[2];
 
 /**
  * @brief Tests the nominal scenarios of the decryption functionality. The nominal encryption data

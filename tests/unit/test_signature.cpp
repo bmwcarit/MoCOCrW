@@ -76,13 +76,13 @@ protected:
     static const X509Certificate _validEd448Certificate;
 
     /* The signatures of the hashed test message with the previously declared private key */
-    static const std::vector<uint8_t>& _validEd25519Signature;
-    static const std::vector<uint8_t>& _validEd448Signature;
-    static const std::vector<uint8_t>& _validPKCS1SignatureSHA256;
-    static const std::vector<uint8_t>& _validEccSignatureSHA1;
+    static const std::vector<uint8_t> &_validEd25519Signature;
+    static const std::vector<uint8_t> &_validEd448Signature;
+    static const std::vector<uint8_t> &_validPKCS1SignatureSHA256;
+    static const std::vector<uint8_t> &_validEccSignatureSHA1;
 
-    static const std::vector<uint8_t>& _validEccIEEE1363SignatureSHA1;
-    static const std::vector<uint8_t>& _eccIEEE1363SignatureSHA1SwappedInts;
+    static const std::vector<uint8_t> &_validEccIEEE1363SignatureSHA1;
+    static const std::vector<uint8_t> &_eccIEEE1363SignatureSHA1SwappedInts;
 
     /* Pre-configured padding modes for RSA operations */
     static const std::shared_ptr<PKCSPadding> _PKCSPadding;
@@ -525,16 +525,16 @@ const std::vector<SignatureTestsStrategy> SignatureTest::SignatureTestData = {
           0xb7, 0x15, 0xb5, 0x33, 0x0e, 0x77, 0xe1, 0xa5, 0x88, 0x9c, 0x77, 0x19, 0xc9,
           0x08, 0x07, 0x44, 0xcc, 0x4e, 0x84, 0xae, 0xda, 0x9c, 0xd7, 0x3a, 0x02}}};
 
-const std::vector<uint8_t>& SignatureTest::_validPKCS1SignatureSHA256 =
+const std::vector<uint8_t> &SignatureTest::_validPKCS1SignatureSHA256 =
         SignatureTestData[1].validSignature;
-const std::vector<uint8_t>& SignatureTest::_validEccSignatureSHA1 =
+const std::vector<uint8_t> &SignatureTest::_validEccSignatureSHA1 =
         SignatureTestData[8].validSignature;
-const std::vector<uint8_t>& SignatureTest::_validEd448Signature =
+const std::vector<uint8_t> &SignatureTest::_validEd448Signature =
         SignatureTestData[12].validSignature;
-const std::vector<uint8_t>& SignatureTest::_validEd25519Signature =
+const std::vector<uint8_t> &SignatureTest::_validEd25519Signature =
         SignatureTestData[14].validSignature;
 
-const std::vector<uint8_t>& SignatureTest::_validEccIEEE1363SignatureSHA1 = {
+const std::vector<uint8_t> &SignatureTest::_validEccIEEE1363SignatureSHA1 = {
         /* r */
         0x08,
         0x2d,
@@ -603,7 +603,7 @@ const std::vector<uint8_t>& SignatureTest::_validEccIEEE1363SignatureSHA1 = {
         0x20,
 };
 
-const std::vector<uint8_t>& SignatureTest::_eccIEEE1363SignatureSHA1SwappedInts = {
+const std::vector<uint8_t> &SignatureTest::_eccIEEE1363SignatureSHA1SwappedInts = {
         /* s */
         0x59,
         0x5f,

@@ -44,7 +44,7 @@ public:
 
 private:
     std::vector<uint8_t> _readCompleteBlock();
-    void _readPartialBlock(size_t requestedSize, std::vector<uint8_t>& output);
+    void _readPartialBlock(size_t requestedSize, std::vector<uint8_t> &output);
     std::deque<std::vector<uint8_t>> _queue;
     size_t _totalBytesStored = 0;
 };

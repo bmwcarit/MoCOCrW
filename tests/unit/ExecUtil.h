@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <array>
 
-std::string exec(const char* cmd)
+std::string exec(const char *cmd)
 {
     std::array<char, 128> buffer;
     std::string result;

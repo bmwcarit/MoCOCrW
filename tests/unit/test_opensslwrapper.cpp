@@ -52,30 +52,30 @@ public:
 protected:
     std::string _defaultErrorMessage{"bla bla bla"};
     const unsigned long _defaultErrorCode = 1L;
-    OpenSSLLibMock& _mock() const { return OpenSSLLibMockManager::getMockInterface(); }
+    OpenSSLLibMock &_mock() const { return OpenSSLLibMockManager::getMockInterface(); }
 };
 
 namespace testutils
 {
-EVP_PKEY_CTX* somePkeyCtxPtr()
+EVP_PKEY_CTX *somePkeyCtxPtr()
 {
     /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
     static char dummyBuf[42] = {};
-    return reinterpret_cast<EVP_PKEY_CTX*>(&dummyBuf);
+    return reinterpret_cast<EVP_PKEY_CTX *>(&dummyBuf);
 }
 
-EVP_PKEY* somePkeyPtr()
+EVP_PKEY *somePkeyPtr()
 {
     /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
     static char dummyBuf[42] = {};
-    return reinterpret_cast<EVP_PKEY*>(&dummyBuf);
+    return reinterpret_cast<EVP_PKEY *>(&dummyBuf);
 }
 
-ENGINE* someEnginePtr()
+ENGINE *someEnginePtr()
 {
     /* Reserve some memory and cast a pointer to that ; pointers will not be dereferenced */
     static char dummyBuf[42] = {};
-    return reinterpret_cast<ENGINE*>(&dummyBuf);
+    return reinterpret_cast<ENGINE *>(&dummyBuf);
 }
 }  // namespace testutils
 
@@ -88,7 +88,7 @@ void OpenSSLWrapperTest::SetUp()
     OpenSSLLibMockManager::resetMock();
     ON_CALL(_mock(), SSL_ERR_get_error()).WillByDefault(Return(_defaultErrorCode));
     ON_CALL(_mock(), SSL_ERR_error_string(_, nullptr))
-            .WillByDefault(Return(const_cast<char*>(_defaultErrorMessage.c_str())));
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorMessage.c_str())));
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 
@@ -178,7 +178,7 @@ TEST_F(OpenSSLWrapperTest, keyGenTest)
  */
 TEST_F(OpenSSLWrapperTest, testAddEntryByNID)
 {
-    X509_NAME* name = nullptr;
+    X509_NAME *name = nullptr;
     constexpr int bufsize = 47;
     std::vector<unsigned char> buffer(bufsize);
     EXPECT_CALL(_mock(),
@@ -203,15 +203,15 @@ TEST_F(OpenSSLWrapperTest, testAddEntryByNID)
 MATCHER_P(IsSameCString, expectedString, "Expect same C-string")
 {
     return 0 == std::strncmp(expectedString.c_str(),
-                             reinterpret_cast<char*>(arg),
+                             reinterpret_cast<char *>(arg),
                              expectedString.size());
 }
 
 TEST_F(OpenSSLWrapperTest, testThatWritingPrivateKeyHandlesArgumentsCorrectly)
 {
-    BIO* bio = nullptr;
-    EVP_PKEY* pkey = nullptr;
-    EVP_CIPHER* cipher = nullptr;
+    BIO *bio = nullptr;
+    EVP_PKEY *pkey = nullptr;
+    EVP_CIPHER *cipher = nullptr;
     const auto pwd = "some password"s;
     EXPECT_CALL(_mock(),
                 SSL_PEM_write_bio_PKCS8PrivateKey(
@@ -228,7 +228,7 @@ TEST_F(OpenSSLWrapperTest, testThatWritingPrivateKeyHandlesArgumentsCorrectly)
 
 TEST_F(OpenSSLWrapperTest, testThatX509ParsingThrowsOnNullptr)
 {
-    BIO* bio = nullptr;
+    BIO *bio = nullptr;
     EXPECT_CALL(_mock(), SSL_PEM_read_bio_X509(bio, nullptr, nullptr, nullptr))
             .WillOnce(Return(nullptr));
     EXPECT_THROW(_PEM_read_bio_X509(bio), OpenSSLException);

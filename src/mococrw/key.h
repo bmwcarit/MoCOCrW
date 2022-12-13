@@ -51,8 +51,8 @@ public:
 
     std::unique_ptr<Spec> getKeySpec() const;
 
-    inline const openssl::SSL_EVP_PKEY_SharedPtr& internal() const { return _key; }
-    inline openssl::SSL_EVP_PKEY_SharedPtr& internal() { return _key; }
+    inline const openssl::SSL_EVP_PKEY_SharedPtr &internal() const { return _key; }
+    inline openssl::SSL_EVP_PKEY_SharedPtr &internal() { return _key; }
 
 private:
     openssl::SSL_EVP_PKEY_SharedPtr _key;
@@ -84,14 +84,14 @@ public:
      * @return the AsymmetricPublicKey object created form the PEM string
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
-    static AsymmetricPublicKey readPublicKeyFromPEM(const std::string& pem);
+    static AsymmetricPublicKey readPublicKeyFromPEM(const std::string &pem);
 
 #ifdef HSM_ENABLED
     /**
      * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
      */
-    static AsymmetricPublicKey readPublicKeyFromHSM(HSM& hsm, const std::string& keyID);
+    static AsymmetricPublicKey readPublicKeyFromHSM(HSM &hsm, const std::string &keyID);
 #endif
 
     /**
@@ -110,7 +110,7 @@ public:
      * @return An asymmetric public key
      */
     static AsymmetricPublicKey fromECPoint(const std::shared_ptr<ECCSpec> keySpec,
-                                           const std::vector<uint8_t>& point);
+                                           const std::vector<uint8_t> &point);
 
     /**
      * @brief This returns the point(s) of the current AsymmetricPublicKey in octet representation.
@@ -142,8 +142,8 @@ public:
     /**
      * Getters for the internal openSSL object.
      */
-    inline EVP_PKEY* internal() { return _key.internal().get(); }
-    inline const EVP_PKEY* internal() const { return _key.internal().get(); }
+    inline EVP_PKEY *internal() { return _key.internal().get(); }
+    inline const EVP_PKEY *internal() const { return _key.internal().get(); }
 
     /**
      * Gets the type of the asymmetric key or key pair, @see AsymmetricKey::KeyTypes for the
@@ -167,14 +167,14 @@ public:
      */
     int getKeySize() const { return _key.getKeySize(); }
 
-    inline bool operator==(const AsymmetricPublicKey& rhs) const
+    inline bool operator==(const AsymmetricPublicKey &rhs) const
     {
         return openssl::_EVP_PKEY_cmp(internal(), rhs.internal());
     }
-    inline bool operator!=(const AsymmetricPublicKey& rhs) const { return !(*this == rhs); }
+    inline bool operator!=(const AsymmetricPublicKey &rhs) const { return !(*this == rhs); }
 
 protected:
-    AsymmetricPublicKey(AsymmetricKey&& key) : _key{std::move(key)} {}
+    AsymmetricPublicKey(AsymmetricKey &&key) : _key{std::move(key)} {}
 
     AsymmetricKey _key;
 };
@@ -221,7 +221,7 @@ public:
      * @throws This method may throw an OpenSSLException if OpenSSL
      *      indicates an error
      */
-    static AsymmetricKeypair generate(const AsymmetricKey::Spec&);
+    static AsymmetricKeypair generate(const AsymmetricKey::Spec &);
 
     /**
      * Generate a RSA asymmetric keypair with default Spec.
@@ -260,21 +260,21 @@ public:
      * @throw OpenSSLException if OpenSSL indicates an error during the serialization
      *                         procedure
      */
-    std::string privateKeyToPem(const std::string& pwd) const;
+    std::string privateKeyToPem(const std::string &pwd) const;
 
-    static AsymmetricKeypair readPrivateKeyFromPEM(const std::string& pem,
-                                                   const std::string& password);
+    static AsymmetricKeypair readPrivateKeyFromPEM(const std::string &pem,
+                                                   const std::string &password);
 
 #ifdef HSM_ENABLED
     /**
      * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
      */
-    static AsymmetricKeypair readPrivateKeyFromHSM(HSM& hsm, const std::string& keyID);
+    static AsymmetricKeypair readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID);
 #endif
 
 private:
-    AsymmetricKeypair(AsymmetricKey&& key) : AsymmetricPublicKey{std::move(key)} {}
+    AsymmetricKeypair(AsymmetricKey &&key) : AsymmetricPublicKey{std::move(key)} {}
 };
 
 /**
