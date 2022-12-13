@@ -172,9 +172,9 @@ TEST_F(KeyHandlingTests, testReadExternalEccPEMKey)
 
     auto privSpec = eccPrivKey.getKeySpec();
     auto pubSpec = eccPubKey.getKeySpec();
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(privSpec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(privSpec.get())->curve(),
               openssl::ellipticCurveNid::SECT_409k1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(pubSpec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(pubSpec.get())->curve(),
               openssl::ellipticCurveNid::SECT_409k1);
 
     /*Write key to a new pem file and read back to compare with original*/
@@ -202,8 +202,8 @@ TEST_F(KeyHandlingTests, testReadExternalEd25519PEMKey)
 
     auto privSpec = eccPrivKey.getKeySpec();
     auto pubSpec = eccPubKey.getKeySpec();
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(privSpec.get())->curve(), openssl::ellipticCurveNid::Ed25519);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(pubSpec.get())->curve(), openssl::ellipticCurveNid::Ed25519);
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(privSpec.get())->curve(), openssl::ellipticCurveNid::Ed25519);
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(pubSpec.get())->curve(), openssl::ellipticCurveNid::Ed25519);
 
     /*Write key to a new pem file and read back to compare with original*/
     /*Public key*/
@@ -364,18 +364,18 @@ TEST_F(KeyHandlingTests, testGetKeySpec)
     auto Ed448Spec = _Ed448KeyPair.getKeySpec();
     auto Ed25519Spec = _Ed25519KeyPair.getKeySpec();
 
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(defaultSpec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(defaultSpec.get())->curve(),
               openssl::ellipticCurveNid::PRIME_256v1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Sect571r1Spec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Sect571r1Spec.get())->curve(),
               openssl::ellipticCurveNid::SECT_571r1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Secp521Spec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Secp521Spec.get())->curve(),
               openssl::ellipticCurveNid::SECP_521r1);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Ed448Spec.get())->curve(), openssl::ellipticCurveNid::Ed448);
-    EXPECT_EQ(dynamic_cast<ECCSpec*>(Ed25519Spec.get())->curve(),
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed448Spec.get())->curve(), openssl::ellipticCurveNid::Ed448);
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed25519Spec.get())->curve(),
               openssl::ellipticCurveNid::Ed25519);
 
     std::unique_ptr<RSASpec> defaultRSASpec(
-            dynamic_cast<RSASpec*>(_rsaKeyPair.getKeySpec().release()));
+            dynamic_cast<RSASpec *>(_rsaKeyPair.getKeySpec().release()));
     EXPECT_EQ(defaultRSASpec->numberOfBits(), 2048);
 }
 

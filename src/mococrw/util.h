@@ -32,7 +32,7 @@ namespace utility
 template <class T>
 using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
 
-std::string toHex(const std::vector<uint8_t>& data);
+std::string toHex(const std::vector<uint8_t> &data);
 
 /**
  * @brief Returns a uint8_t vector representation for a hex string
@@ -41,12 +41,12 @@ std::string toHex(const std::vector<uint8_t>& data);
  * @return A vector containing the data in uint8_t representation
  * @throws MoCOCrWException if there is an error parsing the hex string (invalid characters)
  */
-std::vector<uint8_t> fromHex(const std::string& hexData);
+std::vector<uint8_t> fromHex(const std::string &hexData);
 
 std::vector<uint8_t> cryptoRandomBytes(size_t length);
 
 template <typename T>
-void vectorCleanse(std::vector<T>& vec)
+void vectorCleanse(std::vector<T> &vec)
 {
     // Explicitly overwrite the memory, but check for size() > 0, since
     // std::vector<T>::data() is allowed to return a nullptr if the size is 0.
@@ -69,14 +69,14 @@ public:
      * @param[in] func Function to run on destruction.
      */
     template <class T>
-    Finally(T&& func) : _func(std::forward<T>(func))
+    Finally(T &&func) : _func(std::forward<T>(func))
     {
     }
 
-    Finally(const Finally& other) = delete;
-    Finally(Finally&& other) = delete;
-    Finally& operator=(const Finally& other) = delete;
-    Finally& operator=(Finally&& other) = delete;
+    Finally(const Finally &other) = delete;
+    Finally(Finally &&other) = delete;
+    Finally &operator=(const Finally &other) = delete;
+    Finally &operator=(Finally &&other) = delete;
 
     ~Finally()
     {

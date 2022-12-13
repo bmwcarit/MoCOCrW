@@ -155,7 +155,7 @@ TEST_P(CSRTest, testCreateCsrFromDerFile)
     auto name = csr.getSubjectName();
 
     std::ofstream of(_derFile);
-    of.write(reinterpret_cast<const char*>(derData.data()), derData.size());
+    of.write(reinterpret_cast<const char *>(derData.data()), derData.size());
     of.close();
 
     CertificateSigningRequest csrCheck = CertificateSigningRequest::fromDERFile(_derFile);
@@ -256,7 +256,7 @@ TEST_P(CSRTest, testCsrSignatureDigest)
         return;
     }
 
-    for (const auto& hashAlgo : hashAlgorithms) {
+    for (const auto &hashAlgo : hashAlgorithms) {
         CertificateSigningRequest csr{*_distinguishedName, data.keypair, std::get<0>(hashAlgo)};
         std::ofstream of(_pemFile, std::ios::trunc);
         of << csr.toPEM();

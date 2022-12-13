@@ -106,7 +106,7 @@ std::vector<uint8_t> QueueOfVectorsMemoryStrategy::_readCompleteBlock()
 }
 
 void QueueOfVectorsMemoryStrategy::_readPartialBlock(size_t requestedSize,
-                                                     std::vector<uint8_t>& output)
+                                                     std::vector<uint8_t> &output)
 {
     assert((_queue.front().size() > requestedSize) && "Callers must not overread the block.");
 

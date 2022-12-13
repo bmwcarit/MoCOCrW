@@ -45,7 +45,7 @@ public:
      * @returns The encrypted message
      * @throw MoCOCrWException If the encryption operation fails.
      */
-    virtual std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message) = 0;
+    virtual std::vector<uint8_t> encrypt(const std::vector<uint8_t> &message) = 0;
 };
 
 /**
@@ -68,7 +68,7 @@ public:
      * @returns The decrypted message
      * @throw MoCOCrWException If the decryption operation fails.
      */
-    virtual std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message) = 0;
+    virtual std::vector<uint8_t> decrypt(const std::vector<uint8_t> &message) = 0;
 };
 
 /**
@@ -95,7 +95,7 @@ public:
      * @throw MoCOCrWException If key is not an RSA private key
      */
     RSAEncryptionPrivateKeyCtx(
-            const AsymmetricPrivateKey& key,
+            const AsymmetricPrivateKey &key,
             std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Destructor
@@ -105,14 +105,14 @@ public:
     /**
      * @brief Copy Constructor
      */
-    RSAEncryptionPrivateKeyCtx(const RSAEncryptionPrivateKeyCtx& other);
+    RSAEncryptionPrivateKeyCtx(const RSAEncryptionPrivateKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    RSAEncryptionPrivateKeyCtx& operator=(const RSAEncryptionPrivateKeyCtx& other);
+    RSAEncryptionPrivateKeyCtx &operator=(const RSAEncryptionPrivateKeyCtx &other);
 
-    std::vector<uint8_t> decrypt(const std::vector<uint8_t>& message) override;
+    std::vector<uint8_t> decrypt(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -151,7 +151,7 @@ public:
      * @throw MoCOCrWException If key is not an RSA public key
      */
     RSAEncryptionPublicKeyCtx(
-            const AsymmetricPublicKey& key,
+            const AsymmetricPublicKey &key,
             std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
     /**
      * @brief Constructor
@@ -160,25 +160,25 @@ public:
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
     RSAEncryptionPublicKeyCtx(
-            const X509Certificate& cert,
+            const X509Certificate &cert,
             std::shared_ptr<RSAEncryptionPadding> padding = std::make_shared<OAEPPadding>());
 
     /**
      * @brief Copy Constructor
      */
-    RSAEncryptionPublicKeyCtx(const RSAEncryptionPublicKeyCtx& other);
+    RSAEncryptionPublicKeyCtx(const RSAEncryptionPublicKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    RSAEncryptionPublicKeyCtx& operator=(const RSAEncryptionPublicKeyCtx& other);
+    RSAEncryptionPublicKeyCtx &operator=(const RSAEncryptionPublicKeyCtx &other);
 
     /**
      * @brief Destructor
      */
     ~RSAEncryptionPublicKeyCtx();
 
-    std::vector<uint8_t> encrypt(const std::vector<uint8_t>& message) override;
+    std::vector<uint8_t> encrypt(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -214,7 +214,7 @@ public:
      * @throw MoCOCrWException If the sign operation fails.
      * @throw MoCOCrWException If digest size doesn't match the expected digest size.
      */
-    virtual std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) = 0;
+    virtual std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) = 0;
 };
 
 /**
@@ -238,7 +238,7 @@ public:
      * @return The created signature
      * @throw MoCOCrWException If the sign operation fails.
      */
-    virtual std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) = 0;
+    virtual std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) = 0;
 };
 
 /**
@@ -261,8 +261,8 @@ public:
      * @param digest The signed digest
      * @throw MoCOCrWException If the verification fails.
      */
-    virtual void verifyDigest(const std::vector<uint8_t>& signature,
-                              const std::vector<uint8_t>& digest) = 0;
+    virtual void verifyDigest(const std::vector<uint8_t> &signature,
+                              const std::vector<uint8_t> &digest) = 0;
 };
 
 /**
@@ -285,8 +285,8 @@ public:
      * @param message The signed message
      * @throw MoCOCrWException If the verification fails.
      */
-    virtual void verifyMessage(const std::vector<uint8_t>& signature,
-                               const std::vector<uint8_t>& message) = 0;
+    virtual void verifyMessage(const std::vector<uint8_t> &signature,
+                               const std::vector<uint8_t> &message) = 0;
 };
 
 /**
@@ -313,28 +313,28 @@ public:
      * @throw MoCOCrWException If key is not an RSA private key
      */
     RSASignaturePrivateKeyCtx(
-            const AsymmetricPrivateKey& key,
+            const AsymmetricPrivateKey &key,
             openssl::DigestTypes hashFunction,
             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
      */
-    RSASignaturePrivateKeyCtx(const RSASignaturePrivateKeyCtx& other);
+    RSASignaturePrivateKeyCtx(const RSASignaturePrivateKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    RSASignaturePrivateKeyCtx& operator=(const RSASignaturePrivateKeyCtx& other);
+    RSASignaturePrivateKeyCtx &operator=(const RSASignaturePrivateKeyCtx &other);
 
     /**
      * @brief Destructor
      */
     ~RSASignaturePrivateKeyCtx();
 
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) override;
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -373,7 +373,7 @@ public:
      * @throw MoCOCrWException If key is not an RSA public key
      */
     RSASignaturePublicKeyCtx(
-            const AsymmetricPublicKey& key,
+            const AsymmetricPublicKey &key,
             openssl::DigestTypes hashFunction,
             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
@@ -385,30 +385,30 @@ public:
      * @throw MoCOCrWException If cert doesn't contain an RSA public key
      */
     RSASignaturePublicKeyCtx(
-            const X509Certificate& cert,
+            const X509Certificate &cert,
             openssl::DigestTypes hashFunction,
             std::shared_ptr<RSASignaturePadding> padding = std::make_shared<PSSPadding>());
 
     /**
      * @brief Copy Constructor
      */
-    RSASignaturePublicKeyCtx(const RSASignaturePublicKeyCtx& other);
+    RSASignaturePublicKeyCtx(const RSASignaturePublicKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    RSASignaturePublicKeyCtx& operator=(const RSASignaturePublicKeyCtx& other);
+    RSASignaturePublicKeyCtx &operator=(const RSASignaturePublicKeyCtx &other);
 
     /**
      * @brief Destructor
      */
     ~RSASignaturePublicKeyCtx();
 
-    void verifyDigest(const std::vector<uint8_t>& signature,
-                      const std::vector<uint8_t>& digest) override;
+    void verifyDigest(const std::vector<uint8_t> &signature,
+                      const std::vector<uint8_t> &digest) override;
 
-    void verifyMessage(const std::vector<uint8_t>& signature,
-                       const std::vector<uint8_t>& message) override;
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -459,7 +459,7 @@ public:
      * @param hashFunction The hash function to be used
      * @throw MoCOCrWException If key is not an ECC private key
      */
-    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
+    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key,
                                 openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
 
     /**
@@ -470,28 +470,28 @@ public:
      * @param sigFormat The format of the generated signature
      * @throw MoCOCrWException If key is not an ECC private key
      */
-    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key,
+    ECDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key,
                                 openssl::DigestTypes hashFunction,
                                 ECDSASignatureFormat sigFormat);
 
     /**
      * @brief Copy Constructor
      */
-    ECDSASignaturePrivateKeyCtx(const ECDSASignaturePrivateKeyCtx& other);
+    ECDSASignaturePrivateKeyCtx(const ECDSASignaturePrivateKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    ECDSASignaturePrivateKeyCtx& operator=(const ECDSASignaturePrivateKeyCtx& other);
+    ECDSASignaturePrivateKeyCtx &operator=(const ECDSASignaturePrivateKeyCtx &other);
 
     /**
      * @brief Destructor
      */
     ~ECDSASignaturePrivateKeyCtx();
 
-    std::vector<uint8_t> signDigest(const std::vector<uint8_t>& messageDigest) override;
+    std::vector<uint8_t> signDigest(const std::vector<uint8_t> &messageDigest) override;
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -522,7 +522,7 @@ public:
      * @param hashFunction The hash function to be used
      * @throw MoCOCrWException If key is not an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key,
                                openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
 
     /**
@@ -538,7 +538,7 @@ public:
      */
     [[deprecated(
             "Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead "
-            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key,
                                                                     openssl::DigestTypes
                                                                             hashFunction,
                                                                     ECSDASignatureFormat sigFormat);
@@ -551,7 +551,7 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If key is not an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key,
+    ECDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key,
                                openssl::DigestTypes hashFunction,
                                ECDSASignatureFormat sigFormat);
 
@@ -562,7 +562,7 @@ public:
      * @param hashFunction The hash function to be used
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+    ECDSASignaturePublicKeyCtx(const X509Certificate &cert,
                                openssl::DigestTypes hashFunction = openssl::DigestTypes::SHA256);
 
     /**
@@ -578,7 +578,7 @@ public:
      */
     [[deprecated(
             "Replaced by ECDSASignaturePublicKeyCtx() which expects ECDSASignatureFormat instead "
-            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+            "of ECSDASignatureFormat")]] ECDSASignaturePublicKeyCtx(const X509Certificate &cert,
                                                                     openssl::DigestTypes
                                                                             hashFunction,
                                                                     ECSDASignatureFormat sigFormat);
@@ -591,30 +591,30 @@ public:
      * @param sigFormat The format that in which signatures are provided
      * @throw MoCOCrWException If cert doesn't contain an ECC public key
      */
-    ECDSASignaturePublicKeyCtx(const X509Certificate& cert,
+    ECDSASignaturePublicKeyCtx(const X509Certificate &cert,
                                openssl::DigestTypes hashFunction,
                                ECDSASignatureFormat sigFormat);
 
     /**
      * @brief Copy Constructor
      */
-    ECDSASignaturePublicKeyCtx(const ECDSASignaturePublicKeyCtx& other);
+    ECDSASignaturePublicKeyCtx(const ECDSASignaturePublicKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    ECDSASignaturePublicKeyCtx& operator=(const ECDSASignaturePublicKeyCtx& other);
+    ECDSASignaturePublicKeyCtx &operator=(const ECDSASignaturePublicKeyCtx &other);
 
     /**
      * @brief Destructor
      */
     ~ECDSASignaturePublicKeyCtx();
 
-    void verifyDigest(const std::vector<uint8_t>& signature,
-                      const std::vector<uint8_t>& digest) override;
+    void verifyDigest(const std::vector<uint8_t> &signature,
+                      const std::vector<uint8_t> &digest) override;
 
-    void verifyMessage(const std::vector<uint8_t>& signature,
-                       const std::vector<uint8_t>& message) override;
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -642,7 +642,7 @@ public:
      * @param key The private key to be used
      * @throw MoCOCrWException If key is not an Ed448 or Ed25519 private key
      */
-    EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey& key);
+    EdDSASignaturePrivateKeyCtx(const AsymmetricPrivateKey &key);
 
     /**
      * @brief Destructor
@@ -652,14 +652,14 @@ public:
     /**
      * @brief Copy Constructor
      */
-    EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx& other);
+    EdDSASignaturePrivateKeyCtx(const EdDSASignaturePrivateKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    EdDSASignaturePrivateKeyCtx& operator=(const EdDSASignaturePrivateKeyCtx& other);
+    EdDSASignaturePrivateKeyCtx &operator=(const EdDSASignaturePrivateKeyCtx &other);
 
-    std::vector<uint8_t> signMessage(const std::vector<uint8_t>& message) override;
+    std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message) override;
 
 private:
     /**
@@ -687,14 +687,14 @@ public:
      * @param key The public key to be used
      * @throw MoCOCrWException If key is not an Ed448 or Ed25519 public key
      */
-    EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey& key);
+    EdDSASignaturePublicKeyCtx(const AsymmetricPublicKey &key);
 
     /**
      * @brief Constructor
      * @param cert The certificate containing the publiy key to be used
      * @throw MoCOCrWException If the certificate does not contain an Ed448 or Ed25519 public key
      */
-    EdDSASignaturePublicKeyCtx(const X509Certificate& cert);
+    EdDSASignaturePublicKeyCtx(const X509Certificate &cert);
 
     /**
      * @brief Destructor
@@ -704,15 +704,15 @@ public:
     /**
      * @brief Copy Constructor
      */
-    EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx& other);
+    EdDSASignaturePublicKeyCtx(const EdDSASignaturePublicKeyCtx &other);
 
     /**
      * @brief Copy Assignment
      */
-    EdDSASignaturePublicKeyCtx& operator=(const EdDSASignaturePublicKeyCtx& other);
+    EdDSASignaturePublicKeyCtx &operator=(const EdDSASignaturePublicKeyCtx &other);
 
-    void verifyMessage(const std::vector<uint8_t>& signature,
-                       const std::vector<uint8_t>& message) override;
+    void verifyMessage(const std::vector<uint8_t> &signature,
+                       const std::vector<uint8_t> &message) override;
 
 private:
     /**

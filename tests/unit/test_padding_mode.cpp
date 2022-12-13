@@ -34,8 +34,8 @@ using namespace mococrw;
 /// \brief Structure to hold the data set used to test the message size
 struct MessageSizeDataSet
 {
-    MessageSizeDataSet(const std::string& message,
-                       const AsymmetricPublicKey& pubKey,
+    MessageSizeDataSet(const std::string &message,
+                       const AsymmetricPublicKey &pubKey,
                        std::shared_ptr<RSAEncryptionPadding> padding,
                        bool expectThrow)
             : message(message)

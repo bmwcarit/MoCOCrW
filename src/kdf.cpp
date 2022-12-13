@@ -33,12 +33,12 @@ public:
 
     ~Impl() = default;
 
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t>& password,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
                                    const size_t outputLength,
-                                   const std::vector<uint8_t>& salt)
+                                   const std::vector<uint8_t> &salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
-        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
+        const EVP_MD *digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
         openssl::_PKCS5_PBKDF2_HMAC(password, salt, _iterations, digestFn, derivedKey);
 
         return derivedKey;
@@ -56,24 +56,24 @@ PBKDF2::PBKDF2(openssl::DigestTypes hashFunction, uint32_t iterations)
 
 PBKDF2::~PBKDF2() = default;
 
-std::vector<uint8_t> PBKDF2::deriveKey(const std::vector<uint8_t>& password,
+std::vector<uint8_t> PBKDF2::deriveKey(const std::vector<uint8_t> &password,
                                        const size_t outputLength,
-                                       const std::vector<uint8_t>& salt)
+                                       const std::vector<uint8_t> &salt)
 {
     return _impl->deriveKey(password, outputLength, salt);
 }
 
-PBKDF2::PBKDF2(PBKDF2&& other) = default;
+PBKDF2::PBKDF2(PBKDF2 &&other) = default;
 
-PBKDF2& PBKDF2::operator=(PBKDF2&& other)
+PBKDF2 &PBKDF2::operator=(PBKDF2 &&other)
 {
     this->_impl = std::move(other._impl);
     return *this;
 }
 
-PBKDF2::PBKDF2(const PBKDF2& other) : _impl(std::make_unique<PBKDF2::Impl>(*other._impl)) {}
+PBKDF2::PBKDF2(const PBKDF2 &other) : _impl(std::make_unique<PBKDF2::Impl>(*other._impl)) {}
 
-PBKDF2& PBKDF2::operator=(const PBKDF2& other)
+PBKDF2 &PBKDF2::operator=(const PBKDF2 &other)
 {
     this->_impl = std::make_unique<PBKDF2::Impl>(*other._impl);
     return *this;
@@ -86,12 +86,12 @@ public:
 
     ~Impl() = default;
 
-    std::vector<uint8_t> deriveKey(const std::vector<uint8_t>& password,
+    std::vector<uint8_t> deriveKey(const std::vector<uint8_t> &password,
                                    const size_t outputLength,
-                                   const std::vector<uint8_t>& salt)
+                                   const std::vector<uint8_t> &salt)
     {
         std::vector<uint8_t> derivedKey(outputLength);
-        const EVP_MD* digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
+        const EVP_MD *digestFn = openssl::_getMDPtrFromDigestType(_hashFunction);
         openssl::_ECDH_KDF_X9_63(derivedKey, password, salt, digestFn);
         return derivedKey;
     }
@@ -107,24 +107,24 @@ X963KDF::X963KDF(openssl::DigestTypes hashFunction)
 
 X963KDF::~X963KDF() = default;
 
-std::vector<uint8_t> X963KDF::deriveKey(const std::vector<uint8_t>& password,
+std::vector<uint8_t> X963KDF::deriveKey(const std::vector<uint8_t> &password,
                                         const size_t outputLength,
-                                        const std::vector<uint8_t>& salt)
+                                        const std::vector<uint8_t> &salt)
 {
     return _impl->deriveKey(password, outputLength, salt);
 }
 
-X963KDF::X963KDF(X963KDF&& other) = default;
+X963KDF::X963KDF(X963KDF &&other) = default;
 
-X963KDF::X963KDF(const X963KDF& other) : _impl(std::make_unique<X963KDF::Impl>(*other._impl)) {}
+X963KDF::X963KDF(const X963KDF &other) : _impl(std::make_unique<X963KDF::Impl>(*other._impl)) {}
 
-X963KDF& X963KDF::operator=(X963KDF&& other)
+X963KDF &X963KDF::operator=(X963KDF &&other)
 {
     this->_impl = std::move(other._impl);
     return *this;
 }
 
-X963KDF& X963KDF::operator=(const X963KDF& other)
+X963KDF &X963KDF::operator=(const X963KDF &other)
 {
     this->_impl = std::make_unique<X963KDF::Impl>(*other._impl);
     return *this;

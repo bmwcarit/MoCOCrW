@@ -162,7 +162,7 @@ TEST_F(VerificationTest, testExpiredEccCertValidationFails)
             {
                 try {
                     _eccExpiredCert->verify(trustStore, intermediateCAs);
-                } catch (const MoCOCrWException& e) {
+                } catch (const MoCOCrWException &e) {
                     EXPECT_STREQ("certificate has expired", e.what());
                     throw;
                 }
@@ -573,7 +573,7 @@ TEST_F(VerificationTest, testThatLValueInitializerListsAreCopiedToContext)
     EXPECT_NO_THROW(_root1->verify(ctx));
 }
 
-void putCertsInContext(std::initializer_list<X509Certificate>& certs)
+void putCertsInContext(std::initializer_list<X509Certificate> &certs)
 {
     VerificationContext ctx;
     ctx.addTrustedCertificates(certs);

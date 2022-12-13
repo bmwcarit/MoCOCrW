@@ -97,12 +97,12 @@ private:
     }
 
 public:
-    bool operator==(const KeyUsageExtension& other) const
+    bool operator==(const KeyUsageExtension &other) const
     {
         return _makeTuple() == other._makeTuple();
     }
 
-    bool operator!=(const KeyUsageExtension& other) const { return !operator==(other); }
+    bool operator!=(const KeyUsageExtension &other) const { return !operator==(other); }
 
     std::string getConfigurationString() const override
     {
@@ -152,55 +152,55 @@ private:
 class KeyUsageExtension::Builder
 {
 public:
-    Builder& decipherOnly()
+    Builder &decipherOnly()
     {
         _ku._decipherOnly = true;
         return *this;
     }
 
-    Builder& encipherOnly()
+    Builder &encipherOnly()
     {
         _ku._encipherOnly = true;
         return *this;
     }
 
-    Builder& cRLSign()
+    Builder &cRLSign()
     {
         _ku._cRLSign = true;
         return *this;
     }
 
-    Builder& keyCertSign()
+    Builder &keyCertSign()
     {
         _ku._keyCertSign = true;
         return *this;
     }
 
-    Builder& keyAgreement()
+    Builder &keyAgreement()
     {
         _ku._keyAgreement = true;
         return *this;
     }
 
-    Builder& dataEncipherment()
+    Builder &dataEncipherment()
     {
         _ku._dataEncipherment = true;
         return *this;
     }
 
-    Builder& keyEncipherment()
+    Builder &keyEncipherment()
     {
         _ku._keyEncipherment = true;
         return *this;
     }
 
-    Builder& nonRepudiation()
+    Builder &nonRepudiation()
     {
         _ku._nonRepudiation = true;
         return *this;
     }
 
-    Builder& digitalSignature()
+    Builder &digitalSignature()
     {
         _ku._digitalSignature = true;
         return *this;

@@ -63,11 +63,11 @@ using CmacCipherTypes = mococrw::CmacCipherTypes;
  * into a functor so that a std::unique_ptr
  * can use them.
  */
-template <class P, void(Func)(P*)>
+template <class P, void(Func)(P *)>
 struct SSLDeleter
 {
     template <class T>
-    void operator()(T* ptr) const noexcept
+    void operator()(T *ptr) const noexcept
     {
         if (ptr) {
             Func(ptr);
@@ -82,11 +82,11 @@ struct SSLDeleter
  * We could have modified SSLDeleter to take arbitrary return
  * types, but this might result in an unwanted ABI change.
  */
-template <class R, class P, R(Func)(P*)>
+template <class R, class P, R(Func)(P *)>
 struct SSLRetDeleter
 {
     template <class T>
-    void operator()(T* ptr) const noexcept
+    void operator()(T *ptr) const noexcept
     {
         if (ptr) {
             Func(ptr);
@@ -102,7 +102,7 @@ struct SSLRetDeleter
 template <class P>
 struct SSLFree
 {
-    void operator()(P* ptr)
+    void operator()(P *ptr)
     {
         if (ptr) {
             lib::OpenSSLLib::SSL_OPENSSL_free(ptr);
@@ -119,7 +119,7 @@ class OpenSSLException final : public std::exception
 {
 public:
     template <class StringType>
-    explicit OpenSSLException(StringType&& message) : _message{std::forward<StringType>(message)}
+    explicit OpenSSLException(StringType &&message) : _message{std::forward<StringType>(message)}
     {
     }
 
@@ -130,7 +130,7 @@ public:
      */
     OpenSSLException() : _message{generateOpenSSLErrorString()} {}
 
-    const char* what() const noexcept override { return _message.c_str(); }
+    const char *what() const noexcept override { return _message.c_str(); }
 
 private:
     static std::string generateOpenSSLErrorString();
@@ -242,22 +242,22 @@ using SSL_ENGINE_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_ENGINE_Ptr>
 /*
  * Retrieve the digest value from ctx and places it in md.
  */
-void _EVP_DigestFinal_ex(EVP_MD_CTX* ctx, unsigned char* md, unsigned int* s);
+void _EVP_DigestFinal_ex(EVP_MD_CTX *ctx, unsigned char *md, unsigned int *s);
 
 /*
  * Hash cnt bytes of data at d into the digest context ctx.
  */
-void _EVP_DigestUpdate(EVP_MD_CTX* ctx, const void* d, size_t cnt);
+void _EVP_DigestUpdate(EVP_MD_CTX *ctx, const void *d, size_t cnt);
 
 /*
  * Set up digest context ctx to use a digest type from ENGINE impl.
  */
-void _EVP_DigestInit_ex(EVP_MD_CTX* ctx, const EVP_MD* type, ENGINE* impl);
+void _EVP_DigestInit_ex(EVP_MD_CTX *ctx, const EVP_MD *type, ENGINE *impl);
 
 /*
  * Initialize digest context ctx.
  */
-void _EVP_MD_CTX_init(EVP_MD_CTX* ctx);
+void _EVP_MD_CTX_init(EVP_MD_CTX *ctx);
 
 /**
  * Create a new EVP_PKEY instance.
@@ -282,7 +282,7 @@ SSL_X509_REQ_Ptr _X509_REQ_new();
  * The ENGINE parameter is currently unused, which is why this parameter has not been included
  * (thankfully C++ supports overloading which is why it can always be added later).
  */
-SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new(EVP_PKEY* pkey);
+SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new(EVP_PKEY *pkey);
 
 /**
  * Create an EVP_PKEY_CTX instance for the given ID. The IDs come from OpenSSLs native headers.
@@ -302,14 +302,14 @@ SSL_EVP_PKEY_CTX_Ptr _EVP_PKEY_CTX_new_id(int id);
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-SSL_EVP_PKEY_Ptr _EVP_PKEY_keygen(EVP_PKEY_CTX* ctx);
+SSL_EVP_PKEY_Ptr _EVP_PKEY_keygen(EVP_PKEY_CTX *ctx);
 
 /**
  * Initialize the context for key-generation.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_keygen_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Set the number of bits the RSA key should have.
@@ -319,14 +319,14 @@ void _EVP_PKEY_keygen_init(EVP_PKEY_CTX* ctx);
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX* ctx, int mbits);
+void _EVP_PKEY_CTX_set_rsa_keygen_bits(EVP_PKEY_CTX *ctx, int mbits);
 
 /**
  * Initializes the key context so we can set the appropriate parameters for the key generation
  * @param ctx [out] initialized context
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_PKEY_paramgen_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_paramgen_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Generates the parameters to be used on the key generation.
@@ -334,7 +334,7 @@ void _EVP_PKEY_paramgen_init(EVP_PKEY_CTX* ctx);
  * @return the generated parameters to be used on the key generation
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-SSL_EVP_PKEY_Ptr _EVP_PKEY_paramgen(EVP_PKEY_CTX* ctx);
+SSL_EVP_PKEY_Ptr _EVP_PKEY_paramgen(EVP_PKEY_CTX *ctx);
 
 /**
  * Set the the elliptic curve used to generate the key pair
@@ -343,7 +343,7 @@ SSL_EVP_PKEY_Ptr _EVP_PKEY_paramgen(EVP_PKEY_CTX* ctx);
  * @param nid [in] Identifier of the curve to be used.
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX* ctx, int nid);
+void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid);
 
 /**
  * Sets the the elliptic curve parameter encoding when generating
@@ -353,23 +353,23 @@ void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX* ctx, int nid);
  * @param param_enc [in] Type of parameter encoding to be used
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX* ctx, int param_enc);
+void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc);
 
 /**
  * Gets the EC group of a given EC key
  */
-const EC_GROUP* _EC_KEY_get0_group(const EC_KEY* key);
+const EC_GROUP *_EC_KEY_get0_group(const EC_KEY *key);
 
 /**
  * EC_GROUP_get_degree gets the degree of the field. For Fp fields this will be the number of bits
  * in p. For F2^m fields this will be the value m.
  */
-int _EC_GROUP_get_degree(const EC_GROUP* group);
+int _EC_GROUP_get_degree(const EC_GROUP *group);
 
 /**
  * Gets the NID of the elliptic curve used to generate the EC key.
  */
-int _EC_GROUP_get_curve_name(const EC_GROUP* group);
+int _EC_GROUP_get_curve_name(const EC_GROUP *group);
 
 /**
  * Gets the type of a give PKey oject.
@@ -378,7 +378,7 @@ int _EC_GROUP_get_curve_name(const EC_GROUP* group);
  * @return Returns the PKEY type being used
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-int _EVP_PKEY_type(const EVP_PKEY* key);
+int _EVP_PKEY_type(const EVP_PKEY *key);
 
 /**
  * Gets the size in bytes of a pkey object
@@ -386,7 +386,7 @@ int _EVP_PKEY_type(const EVP_PKEY* key);
  * @return the size of provided key
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-int _EVP_PKEY_size(EVP_PKEY* pkey);
+int _EVP_PKEY_size(EVP_PKEY *pkey);
 
 /*
  * Check if two public keys are the same. Please note that this function
@@ -396,7 +396,7 @@ int _EVP_PKEY_size(EVP_PKEY* pkey);
  * @return true if the public keys are the same
  * @throw OpenSSLException if there was an error while comparing the keys
  */
-bool _EVP_PKEY_cmp(const EVP_PKEY* a, const EVP_PKEY* b);
+bool _EVP_PKEY_cmp(const EVP_PKEY *a, const EVP_PKEY *b);
 
 SSL_X509_NAME_Ptr _X509_NAME_new();
 
@@ -439,73 +439,73 @@ enum class X509Extension_NID : int {
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_NAME_add_entry_by_NID(X509_NAME* name,
+void _X509_NAME_add_entry_by_NID(X509_NAME *name,
                                  ASN1_NID nid,
                                  ASN1_Name_Entry_Type type,
-                                 std::vector<unsigned char>& bytes);
+                                 std::vector<unsigned char> &bytes);
 
 /**
  * Set the subject-name for the given X509_REQ object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_REQ_set_subject_name(X509_REQ* req, X509_NAME* name);
+void _X509_REQ_set_subject_name(X509_REQ *req, X509_NAME *name);
 
 /**
  * Set the public key for the given X509_REQ object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_REQ_set_pubkey(X509_REQ* req, EVP_PKEY* pkey);
+void _X509_REQ_set_pubkey(X509_REQ *req, EVP_PKEY *pkey);
 
 /**
  * Set the X509 version for the given X509_REQ object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_REQ_set_version(X509_REQ* req, unsigned long version);
+void _X509_REQ_set_version(X509_REQ *req, unsigned long version);
 
 /**
  * @result pointer to the internal X509_NAME structure.
  *
  * NOTE this result *MUST NOT BE FREED*.
  */
-X509_NAME* _X509_REQ_get_subject_name(const X509_REQ* req);
+X509_NAME *_X509_REQ_get_subject_name(const X509_REQ *req);
 
 /**
  * Get the public key for the given X509_REQ object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-SSL_EVP_PKEY_Ptr _X509_REQ_get_public_key(X509_REQ* req);
+SSL_EVP_PKEY_Ptr _X509_REQ_get_public_key(X509_REQ *req);
 
 /**
  * Verifies the given X509_REQ object against the given public key.
  *
  * @throw OpenSSLException if the verification fails.
  */
-void _X509_REQ_verify(X509_REQ* req, EVP_PKEY* key);
+void _X509_REQ_verify(X509_REQ *req, EVP_PKEY *key);
 
 /**
  * Write the X509_REQ to PEM format into the given BIO object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _PEM_write_bio_X509_REQ(BIO* bio, X509_REQ* req);
+void _PEM_write_bio_X509_REQ(BIO *bio, X509_REQ *req);
 
 /**
  * Write the X509 to PEM format into the given BIO object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _PEM_write_bio_X509(BIO* bio, X509* x);
+void _PEM_write_bio_X509(BIO *bio, X509 *x);
 
 /**
  * Read the X509_REQ in PEM format from the given BIO object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio);
+SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO *bio);
 
 /**
  *
@@ -516,12 +516,12 @@ SSL_X509_REQ_Ptr _PEM_read_bio_X509_REQ(BIO* bio);
  *
  * Presumably this points to static memory.
  */
-const BIO_METHOD* _BIO_s_mem();
+const BIO_METHOD *_BIO_s_mem();
 
 /**
  * Create a new BIO instance for the given method.
  */
-SSL_BIO_Ptr _BIO_new(const BIO_METHOD* method);
+SSL_BIO_Ptr _BIO_new(const BIO_METHOD *method);
 
 /**
  * Create a new file-backed BIO object
@@ -529,7 +529,7 @@ SSL_BIO_Ptr _BIO_new(const BIO_METHOD* method);
  * @throw OpenSSLException if an error occurs. In particular, if the file
  *                         cannot be accessed in the desired mode.
  */
-SSL_BIO_Ptr _BIO_new_file(const char* filename, const char* mode);
+SSL_BIO_Ptr _BIO_new_file(const char *filename, const char *mode);
 
 /**
  * Return value of 0 or -1 are possible without inidicating an error.
@@ -543,7 +543,7 @@ SSL_BIO_Ptr _BIO_new_file(const char* filename, const char* mode);
  *      depends on the method of the 'bio' (@see _BIO_new()).
  * @throw OpenSSLException if BIO_gets is not supported for the method of 'bio'
  */
-int _BIO_gets(BIO* bio, std::vector<char>& buf);
+int _BIO_gets(BIO *bio, std::vector<char> &buf);
 
 /**
  * Return value of 0 or -1 are possible without inidicating an error.
@@ -557,7 +557,7 @@ int _BIO_gets(BIO* bio, std::vector<char>& buf);
  *      depends on the method of the 'bio' (@see _BIO_new()).
  * @throw OpenSSLException if BIO_gets is not supported for the method of 'bio'
  */
-int _BIO_puts(BIO* bio, std::string buf);
+int _BIO_puts(BIO *bio, std::string buf);
 
 /**
  * Return value of 0 or -1 are possible without indicating an error.
@@ -571,7 +571,7 @@ int _BIO_puts(BIO* bio, std::string buf);
  *      depends on the method of the 'bio' (@see _BIO_new()).
  * @throw OpenSSLException if BIO_gets is not supported for the method of 'bio'
  */
-int _BIO_write(BIO* bio, const std::vector<uint8_t>& data);
+int _BIO_write(BIO *bio, const std::vector<uint8_t> &data);
 
 /**
  * Tries to read numBytes from the BIO object. It resizes the vector
@@ -591,49 +591,49 @@ int _BIO_write(BIO* bio, const std::vector<uint8_t>& data);
  *      depends on the method of the 'bio' (@see _BIO_new()).
  * @throw OpenSSLException if BIO_gets is not supported for the method of 'bio'
  */
-int _BIO_read(BIO* bio, std::vector<uint8_t>& buf, std::size_t numBytes);
+int _BIO_read(BIO *bio, std::vector<uint8_t> &buf, std::size_t numBytes);
 
 /*
  * Read a DER encoded X509 certificate from a bio
  *
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
-SSL_X509_Ptr _d2i_X509_bio(BIO* bp);
+SSL_X509_Ptr _d2i_X509_bio(BIO *bp);
 
 /*
  * Read a DER encoded X509 certificate request from a bio
  *
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
-SSL_X509_REQ_Ptr _d2i_X509_REQ_bio(BIO* bp);
+SSL_X509_REQ_Ptr _d2i_X509_REQ_bio(BIO *bp);
 
 /*
  * Write an X509 certificate in DER encoded form to a bio
  *
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
-void _i2d_X509_bio(BIO* bp, X509* x);
+void _i2d_X509_bio(BIO *bp, X509 *x);
 
 /*
  * Write an X509 certification request in DER encoded form to a bio
  *
  * @throw OpenSSLException if an OpenSSL internal error occurs.
  */
-void _i2d_X509_REQ_bio(BIO* bp, X509_REQ* x);
+void _i2d_X509_REQ_bio(BIO *bp, X509_REQ *x);
 
 /**
  * Sign an X509_REQ to obtain a complete CSR.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_REQ_sign_ctx(X509_REQ* req, EVP_MD_CTX* ctx);
+void _X509_REQ_sign_ctx(X509_REQ *req, EVP_MD_CTX *ctx);
 
 /**
  * Get reference to digest function for a given digest type.
  *
  * @throws std::runtime_error if the requested digest function was not found.
  */
-const EVP_MD* _getMDPtrFromDigestType(DigestTypes type);
+const EVP_MD *_getMDPtrFromDigestType(DigestTypes type);
 
 /**
  * Create an MD_CTX object.
@@ -661,11 +661,11 @@ SSL_EVP_MD_CTX_Ptr _EVP_MD_CTX_create();
  * @throws OpenSSLException if an error occurs in the underlying OpenSSL function.
  *
  */
-void _PEM_write_bio_PKCS8PrivateKey(BIO* out,
-                                    EVP_PKEY* pkey,
-                                    const EVP_CIPHER* cipher,
+void _PEM_write_bio_PKCS8PrivateKey(BIO *out,
+                                    EVP_PKEY *pkey,
+                                    const EVP_CIPHER *cipher,
                                     std::string pwd);
-void _PEM_write_bio_PUBKEY(BIO* bp, EVP_PKEY* x);
+void _PEM_write_bio_PUBKEY(BIO *bp, EVP_PKEY *x);
 
 /**
  * Note: The password is intentionally passed by value because openssl does not guarantee the
@@ -679,12 +679,12 @@ void _PEM_write_bio_PUBKEY(BIO* bp, EVP_PKEY* x);
  * @param bio The BIO instance to read the key from.
  * @param pwd The password (as ASCII string) to decrypt the key with.
  */
-SSL_EVP_PKEY_Ptr _PEM_read_bio_PrivateKey(BIO* bio, std::string pwd);
+SSL_EVP_PKEY_Ptr _PEM_read_bio_PrivateKey(BIO *bio, std::string pwd);
 
 /**
  * @param bio The BIO instance to read the key from.
  */
-SSL_EVP_PKEY_Ptr _PEM_read_bio_PUBKEY(BIO* bio);
+SSL_EVP_PKEY_Ptr _PEM_read_bio_PUBKEY(BIO *bio);
 
 /**
  * Read an X509 certificate from BIO instance.
@@ -694,7 +694,7 @@ SSL_EVP_PKEY_Ptr _PEM_read_bio_PUBKEY(BIO* bio);
  * @throws OpenSSLException if an internal OpenSSL error is encountered.
  *
  */
-SSL_X509_Ptr _PEM_read_bio_X509(BIO* bio);
+SSL_X509_Ptr _PEM_read_bio_X509(BIO *bio);
 
 /**
  * Let OpenSSL compute the time difference between two ASN1_TIMEs
@@ -706,7 +706,7 @@ SSL_X509_Ptr _PEM_read_bio_X509(BIO* bio);
  *           psec will be written with a negative value (or 0).
  * @throw OpenSSLException when an error occurs (e.g., wrong ASN1_TIME formats)
  */
-void _ASN1_TIME_diff(int* pday, int* psec, const ASN1_TIME* from, const ASN1_TIME* to);
+void _ASN1_TIME_diff(int *pday, int *psec, const ASN1_TIME *from, const ASN1_TIME *to);
 
 /**
  * Get an ASN1_TIME object from a time_t
@@ -718,7 +718,7 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_from_time_t(time_t t);
 /**
  * Set the time from a textual representation to an ASN.1 time
  */
-void _ASN1_TIME_set_string(ASN1_TIME* s, const char* str);
+void _ASN1_TIME_set_string(ASN1_TIME *s, const char *str);
 
 /**
  * Add an X509 certificate to an X509 store
@@ -728,7 +728,7 @@ void _ASN1_TIME_set_string(ASN1_TIME* s, const char* str);
  *
  * @throw OpenSSLException when an error occurs while adding the certificate
  */
-void _X509_STORE_add_cert(X509_STORE* store, X509* cert);
+void _X509_STORE_add_cert(X509_STORE *store, X509 *cert);
 
 /**
  * Initialize an X509 store context
@@ -741,9 +741,9 @@ void _X509_STORE_add_cert(X509_STORE* store, X509* cert);
  * @throw OpenSSLException when an error occurs while initializing
  *                         the context
  */
-void _X509_STORE_CTX_init(X509_STORE_CTX* ctx,
-                          X509_STORE* store,
-                          X509* x509,
+void _X509_STORE_CTX_init(X509_STORE_CTX *ctx,
+                          X509_STORE *store,
+                          X509 *x509,
                           STACK_OF(X509) * chain);
 
 /**
@@ -753,14 +753,14 @@ void _X509_STORE_CTX_init(X509_STORE_CTX* ctx,
  *
  * @throw OpenSSLException if an error occurs
  */
-X509_VERIFY_PARAM* _X509_STORE_CTX_get0_param(X509_STORE_CTX* ctx);
+X509_VERIFY_PARAM *_X509_STORE_CTX_get0_param(X509_STORE_CTX *ctx);
 
 /**
  * @brief Verify if the certificate is a CA
  *
  * @return Whether the certificate is a CA or not
  */
-bool _X509_check_ca(X509* cert);
+bool _X509_check_ca(X509 *cert);
 
 class X509VerificationFlags
 {
@@ -779,7 +779,7 @@ public:
  *
  * @throw OpenSSLException if an error occurs
  */
-void _X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM* param, unsigned long flags);
+void _X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM *param, unsigned long flags);
 
 /**
  * Verify an X509 certificate with the given certification context.
@@ -788,7 +788,7 @@ void _X509_VERIFY_PARAM_set_flags(X509_VERIFY_PARAM* param, unsigned long flags)
  *
  * @throw OpenSSLException if the verification failed.
  */
-void _X509_verify_cert(X509_STORE_CTX* ctx);
+void _X509_verify_cert(X509_STORE_CTX *ctx);
 
 /**
  * Wrapper to create openssl objects
@@ -799,7 +799,7 @@ void _X509_verify_cert(X509_STORE_CTX* ctx);
  * @throw OpenSSLException when no object could be created
  */
 template <class SslType>
-SslType* createOpenSSLObject();
+SslType *createOpenSSLObject();
 
 template <class SSLSmartPtrType>
 SSLSmartPtrType createManagedOpenSSLObject()
@@ -808,49 +808,49 @@ SSLSmartPtrType createManagedOpenSSLObject()
 }
 
 template <class StackType, class ObjType>
-void addObjectToStack(StackType* stack, const ObjType* obj);
+void addObjectToStack(StackType *stack, const ObjType *obj);
 
 /**
  * @result pointer to the internal X509_NAME structure.
  *
  * NOTE this result *MUST NOT BE FREED*.
  */
-X509_NAME* _X509_get_subject_name(X509* obj);
+X509_NAME *_X509_get_subject_name(X509 *obj);
 
 /**
  * @result pointer to the internal X509_NAME structure.
  *
  * NOTE this result *MUST NOT BE FREED*.
  */
-X509_NAME* _X509_get_issuer_name(X509* obj);
+X509_NAME *_X509_get_issuer_name(X509 *obj);
 
 /**
  * Get not before value of the certificate as system_clock::time_point
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-time_point _X509_get_notBefore(X509* x);
+time_point _X509_get_notBefore(X509 *x);
 
 /**
  * Get not after value of the certificate as system_clock::time_point
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-time_point _X509_get_notAfter(X509* x);
+time_point _X509_get_notAfter(X509 *x);
 
 /**
  * Get not before value of the certificate as ASN1_TIME
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-ASN1_TIME* _X509_get_notBefore_ASN1(X509* x);
+ASN1_TIME *_X509_get_notBefore_ASN1(X509 *x);
 
 /**
  * Get not after value of the certificate as ASN1_TIME
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-ASN1_TIME* _X509_get_notAfter_ASN1(X509* x);
+ASN1_TIME *_X509_get_notAfter_ASN1(X509 *x);
 
 /**
  * Get a pointer to the EVP_PKEY in a certificate.
@@ -862,56 +862,56 @@ ASN1_TIME* _X509_get_notAfter_ASN1(X509* x);
  *
  * @throw OpenSSLException if there is an error in retrieving the key
  */
-SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509* x);
+SSL_EVP_PKEY_Ptr _X509_get_pubkey(X509 *x);
 
 /**
  * Set the subject-name for the given X509 object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_set_subject_name(X509* x, X509_NAME* name);
+void _X509_set_subject_name(X509 *x, X509_NAME *name);
 
 /**
  * Set the issuer-name for the given X509 object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_set_issuer_name(X509* x, X509_NAME* name);
+void _X509_set_issuer_name(X509 *x, X509_NAME *name);
 
 /**
  * Set the public key for the given X509 object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _X509_set_pubkey(X509* x, EVP_PKEY* key);
+void _X509_set_pubkey(X509 *x, EVP_PKEY *key);
 
 /**
  * Set not before value of the certificate as system_clock::time_point
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-void _X509_set_notBefore(X509* x, const time_point& t);
+void _X509_set_notBefore(X509 *x, const time_point &t);
 
 /**
  * Set not after value of the certificate as system_clock::time_point
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-void _X509_set_notAfter(X509* x, const time_point& t);
+void _X509_set_notAfter(X509 *x, const time_point &t);
 
 /**
  * Set not before value of the certificate as ASN1_TIME
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-void _X509_set_notBefore_ASN1(X509* x, const ASN1_TIME* t);
+void _X509_set_notBefore_ASN1(X509 *x, const ASN1_TIME *t);
 
 /**
  * Set not after value of the certificate as ASN1_TIME
  *
  * @throw OpenSSLException if an internal OpenSSL error is encountered
  */
-void _X509_set_notAfter_ASN1(X509* x, const ASN1_TIME* t);
+void _X509_set_notAfter_ASN1(X509 *x, const ASN1_TIME *t);
 
 /**
  * Creates a new X509 certificate.
@@ -920,7 +920,7 @@ void _X509_set_notAfter_ASN1(X509* x, const ASN1_TIME* t);
  */
 SSL_X509_Ptr _X509_new();
 
-void _X509_sign(X509* x, EVP_PKEY* pkey, DigestTypes type);
+void _X509_sign(X509 *x, EVP_PKEY *pkey, DigestTypes type);
 
 /**
  * Return the list of locations in the structure that contain an entry with
@@ -933,7 +933,7 @@ void _X509_sign(X509* x, EVP_PKEY* pkey, DigestTypes type);
  *
  * @throws OpenSSLException if an internal OpenSSL error is encoutered.
  */
-std::vector<int> _X509_NAME_get_index_by_NID(X509_NAME* name, ASN1_NID nid);
+std::vector<int> _X509_NAME_get_index_by_NID(X509_NAME *name, ASN1_NID nid);
 
 /**
  * Retrieve the entry at the given position.
@@ -949,9 +949,9 @@ std::vector<int> _X509_NAME_get_index_by_NID(X509_NAME* name, ASN1_NID nid);
  * @throws OpenSSLException if an internal OpenSSL error is encoutered.
  *
  */
-X509_NAME_ENTRY* _X509_NAME_get_entry(X509_NAME* name, int loc);
+X509_NAME_ENTRY *_X509_NAME_get_entry(X509_NAME *name, int loc);
 
-std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY* entry);
+std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY *entry);
 
 /**
  * Return name of given cipher
@@ -959,7 +959,7 @@ std::string _X509_NAME_ENTRY_get_data(X509_NAME_ENTRY* entry);
  * @param cipher to get the name for
  * @returns name of cipher
  */
-const std::string _EVP_CIPHER_name(const EVP_CIPHER* cipher);
+const std::string _EVP_CIPHER_name(const EVP_CIPHER *cipher);
 
 /**
  * Return size of key used for given cipher
@@ -967,7 +967,7 @@ const std::string _EVP_CIPHER_name(const EVP_CIPHER* cipher);
  * @param cipher to get the key size for
  * @returns size of key in bytes
  */
-int _EVP_CIPHER_key_length(const EVP_CIPHER* cipher);
+int _EVP_CIPHER_key_length(const EVP_CIPHER *cipher);
 
 using SSL_EVP_CIPHER_CTX_Ptr =
         std::unique_ptr<EVP_CIPHER_CTX,
@@ -984,12 +984,12 @@ SSL_EVP_CIPHER_CTX_Ptr _EVP_CIPHER_CTX_new();
  * Clears all information from a cipher context and free up any allocated memory associated with it,
  * except the ctx itself.
  */
-void _EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX* ctx);
+void _EVP_CIPHER_CTX_reset(EVP_CIPHER_CTX *ctx);
 
 /**
  * Allows various cipher specific parameters to be determined and set
  */
-void _EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX* ctx, int type, int arg, void* ptr);
+void _EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX *ctx, int type, int arg, void *ptr);
 
 /**
  * Sets up cipher context `ctx` for encryption or decryption.
@@ -1001,11 +1001,11 @@ void _EVP_CIPHER_CTX_ctrl(EVP_CIPHER_CTX* ctx, int type, int arg, void* ptr);
  * @param iv the IV to use (if necessary),
  * @param enc 1 if context should be initialized for encryption and 0 if fo decryption.
  */
-void _EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx,
-                        const EVP_CIPHER* cipher,
-                        ENGINE* impl,
-                        const unsigned char* key,
-                        const unsigned char* iv,
+void _EVP_CipherInit_ex(EVP_CIPHER_CTX *ctx,
+                        const EVP_CIPHER *cipher,
+                        ENGINE *impl,
+                        const unsigned char *key,
+                        const unsigned char *iv,
                         int enc);
 
 /**
@@ -1026,7 +1026,7 @@ void _EVP_CipherInit_ex(EVP_CIPHER_CTX* ctx,
  * @param inl length of the input buffer.
  */
 void _EVP_CipherUpdate(
-        EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl, const unsigned char* in, int inl);
+        EVP_CIPHER_CTX *ctx, unsigned char *outm, int *outl, const unsigned char *in, int inl);
 
 /**
  * If padding is enabled (the default) this function encrypts/decrypts the "final" data, that is
@@ -1041,14 +1041,14 @@ void _EVP_CipherUpdate(
  * @param outl At the input the function expects size of the \c outm to be placed in \c outl.
  * At the output, the actual amount of data written to \c outm will be stored in this variable.
  */
-void _EVP_CipherFinal_ex(EVP_CIPHER_CTX* ctx, unsigned char* outm, int* outl);
+void _EVP_CipherFinal_ex(EVP_CIPHER_CTX *ctx, unsigned char *outm, int *outl);
 
 /**
  * Get the key length of a cipher.
  * @param ctx cipher context
  * @return key length of a cipher in bytes.
  */
-int _EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX* ctx);
+int _EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX *ctx);
 
 /**
  * Get the IV length of a cipher.
@@ -1058,7 +1058,7 @@ int _EVP_CIPHER_CTX_key_length(const EVP_CIPHER_CTX* ctx);
  * @param ctx cipher context
  * @return IV length of a cipher in bytes.
  */
-int _EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx);
+int _EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX *ctx);
 
 /**
  * Enables or disables padding.
@@ -1069,7 +1069,7 @@ int _EVP_CIPHER_CTX_iv_length(const EVP_CIPHER_CTX* ctx);
  * occur.
  */
 
-void _EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX* ctx, int pad);
+void _EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX *ctx, int pad);
 
 /**
  * Get the cipher descriptor for AES 256 in CBC mode.
@@ -1078,7 +1078,7 @@ void _EVP_CIPHER_CTX_set_padding(EVP_CIPHER_CTX* ctx, int pad);
  * @result A const pointer to the respective EVP_CIPHER struct
  * @throws OpenSSLException if an internal OpenSSL error is encountered
  */
-const EVP_CIPHER* _EVP_aes_256_cbc();
+const EVP_CIPHER *_EVP_aes_256_cbc();
 
 /**
  * Creates a new X509 extension, identified by its NID, from its string representation.
@@ -1088,13 +1088,13 @@ const EVP_CIPHER* _EVP_aes_256_cbc();
  * @param value the value of the extension that should be created
  * @return a unique pointer to the created extension
  */
-SSL_X509_EXTENSION_Ptr _X509V3_EXT_conf_nid(int ext_nid, X509V3_CTX* ctx, std::string value);
+SSL_X509_EXTENSION_Ptr _X509V3_EXT_conf_nid(int ext_nid, X509V3_CTX *ctx, std::string value);
 
 /**
  * Sets that there is no configuration database for a context.
  * @param ctx the context which is set
  */
-void _X509V3_set_ctx_nodb(X509V3_CTX* ctx);
+void _X509V3_set_ctx_nodb(X509V3_CTX *ctx);
 
 /**
  * Sets the information within a context.
@@ -1102,7 +1102,7 @@ void _X509V3_set_ctx_nodb(X509V3_CTX* ctx);
  * @param issuer the issuing certificate for this context
  * @param subject the subject certificate for this context
  */
-void _X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject);
+void _X509V3_set_ctx(X509V3_CTX *ctx, X509 *issuer, X509 *subject);
 
 /**
  * Adds an X509 extension to an X509 certificate.
@@ -1110,21 +1110,21 @@ void _X509V3_set_ctx(X509V3_CTX* ctx, X509* issuer, X509* subject);
  * @param x the certificate
  * @param ex the new extension
  */
-void _X509_add_ext(X509* x, X509_EXTENSION* ex);
+void _X509_add_ext(X509 *x, X509_EXTENSION *ex);
 
 /**
  * Sets the serial number of a certificate.
  * @param x the certificate
  * @param serial the new serial number
  */
-void _X509_set_serialNumber(X509* x, uint64_t serial);
+void _X509_set_serialNumber(X509 *x, uint64_t serial);
 
 /**
  * Gets the serial number of a certificate.
  * @param x the certificate
  * @return the serial number of the passed certificate
  */
-uint64_t _X509_get_serialNumber(X509* x);
+uint64_t _X509_get_serialNumber(X509 *x);
 
 /**
  * Gets the serial number of a certificate with arbitrary precision as a decimal representation in
@@ -1133,7 +1133,7 @@ uint64_t _X509_get_serialNumber(X509* x);
  * @param x the certificate
  * @return the decimal string representation of the serial number
  */
-std::string _X509_get_serialNumber_dec(X509* x);
+std::string _X509_get_serialNumber_dec(X509 *x);
 
 /**
  * Gets the serial number of a certificate with arbitrary precision as a binary representation.
@@ -1141,7 +1141,7 @@ std::string _X509_get_serialNumber_dec(X509* x);
  * @param x the certificate
  * @return the binary representation of the serial number
  */
-std::vector<uint8_t> _X509_get_serialNumber_bin(X509* x);
+std::vector<uint8_t> _X509_get_serialNumber_bin(X509 *x);
 
 /**
  * Creates a new (empty) ASN1_TIME object.
@@ -1154,52 +1154,52 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_new();
 /**
  * Create a copy of a raw openssl ASN1_TIME objec
  */
-SSL_ASN1_TIME_Ptr _ASN1_TIME_copy(const ASN1_TIME* t);
+SSL_ASN1_TIME_Ptr _ASN1_TIME_copy(const ASN1_TIME *t);
 
 /**
  * Convert an ASN1_TIME object to a C++ time_point
  */
-time_point _asn1TimeToTimePoint(const ASN1_TIME* time);
+time_point _asn1TimeToTimePoint(const ASN1_TIME *time);
 
 /**
  * Gets the time for the next, planned update for a CRL.
  */
-const ASN1_TIME* _X509_CRL_get_nextUpdate(const X509_CRL* crl);
+const ASN1_TIME *_X509_CRL_get_nextUpdate(const X509_CRL *crl);
 
 /**
  * Gets the time for the creation of a CRL.
  */
-const ASN1_TIME* _X509_CRL_get_lastUpdate(const X509_CRL* crl);
+const ASN1_TIME *_X509_CRL_get_lastUpdate(const X509_CRL *crl);
 
 /**
  * Verifies the signature of a crl with a given public key.
  */
-void _X509_CRL_verify(X509_CRL* crl, EVP_PKEY* key);
+void _X509_CRL_verify(X509_CRL *crl, EVP_PKEY *key);
 
 /**
  * Gets the issuer (the issuer name of the CA certificate) of a CRL.
  */
-X509_NAME* _X509_CRL_get_issuer(const X509_CRL* crl);
+X509_NAME *_X509_CRL_get_issuer(const X509_CRL *crl);
 
 /**
  * Writes a CRL as PEM encoded to a BIO object.
  */
-void _PEM_write_bio_X509_CRL(BIO* bio, X509_CRL* crl);
+void _PEM_write_bio_X509_CRL(BIO *bio, X509_CRL *crl);
 
 /**
  * Reads a PEM encoded CRL from a BIO object.
  */
-SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO* bp);
+SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO *bp);
 
 /**
  * Reads a DER encoded CRL from a BIO object.
  */
-SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO* bp);
+SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO *bp);
 
 /**
  * Sets a list of CRLs for a verification context.
  */
-void _X509_STORE_CTX_set0_crls(X509_STORE_CTX* ctx, STACK_OF(X509_CRL) * crls);
+void _X509_STORE_CTX_set0_crls(X509_STORE_CTX *ctx, STACK_OF(X509_CRL) * crls);
 
 /**
  * Adds a specific amount of days and seconds to a time_t and returns it as an ASN1_TIME.
@@ -1209,18 +1209,18 @@ SSL_ASN1_TIME_Ptr _ASN1_TIME_adj(std::time_t t, int days, long seconds);
 /**
  * Prints an ASN1_STRING to a BIO object.
  */
-void _ASN1_STRING_print_ex(BIO* out, const ASN1_STRING* str);
+void _ASN1_STRING_print_ex(BIO *out, const ASN1_STRING *str);
 
 /**
  * Sets the time of verification for a verification context.
  */
-void _X509_STORE_CTX_set_time(X509_STORE_CTX* ctx, std::time_t time);
+void _X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, std::time_t time);
 
 /**
  * Converts an ASN1_TIME to a time_t.
  * @throw OpenSSLException if the ASN1_TIME doesn't fit into a time_t.
  */
-time_t _asn1TimeToTimeT(const ASN1_TIME* time);
+time_t _asn1TimeToTimeT(const ASN1_TIME *time);
 
 enum class RSAPaddingMode {
     NONE = RSA_NO_PADDING,
@@ -1232,29 +1232,29 @@ enum class RSAPaddingMode {
 /**
  * Signs a message
  */
-void _EVP_PKEY_sign(EVP_PKEY_CTX* ctx,
-                    unsigned char* sig,
-                    size_t* siglen,
-                    const unsigned char* tbs,
+void _EVP_PKEY_sign(EVP_PKEY_CTX *ctx,
+                    unsigned char *sig,
+                    size_t *siglen,
+                    const unsigned char *tbs,
                     size_t tbslen);
 
 /**
  * Initializes the context for a signature
  */
-void _EVP_PKEY_sign_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_sign_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Initializes the context for a RSA signature verification
  */
-void _EVP_PKEY_verify_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_verify_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Performs a RSA signature verification
  */
-void _EVP_PKEY_verify(EVP_PKEY_CTX* ctx,
-                      const unsigned char* sig,
+void _EVP_PKEY_verify(EVP_PKEY_CTX *ctx,
+                      const unsigned char *sig,
                       size_t siglen,
-                      const unsigned char* tbs,
+                      const unsigned char *tbs,
                       size_t tbslen);
 
 /**
@@ -1267,7 +1267,7 @@ void _EVP_PKEY_verify(EVP_PKEY_CTX* ctx,
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_DigestSignInit(EVP_MD_CTX* ctx, DigestTypes md, EVP_PKEY* pkey);
+void _EVP_DigestSignInit(EVP_MD_CTX *ctx, DigestTypes md, EVP_PKEY *pkey);
 
 /**
  * Perform a digital signature of the message and store the signature in signatureBuffer.
@@ -1280,10 +1280,10 @@ void _EVP_DigestSignInit(EVP_MD_CTX* ctx, DigestTypes md, EVP_PKEY* pkey);
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_DigestSign(EVP_MD_CTX* ctx,
-                     unsigned char* signatureBuffer,
-                     size_t* signatureBufferLength,
-                     const unsigned char* message,
+void _EVP_DigestSign(EVP_MD_CTX *ctx,
+                     unsigned char *signatureBuffer,
+                     size_t *signatureBufferLength,
+                     const unsigned char *message,
                      size_t messageLength);
 
 /**
@@ -1296,7 +1296,7 @@ void _EVP_DigestSign(EVP_MD_CTX* ctx,
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_DigestVerifyInit(EVP_MD_CTX* ctx, DigestTypes type, EVP_PKEY* pkey);
+void _EVP_DigestVerifyInit(EVP_MD_CTX *ctx, DigestTypes type, EVP_PKEY *pkey);
 
 /**
  * Verifies a given digital signature of the given message.
@@ -1309,88 +1309,88 @@ void _EVP_DigestVerifyInit(EVP_MD_CTX* ctx, DigestTypes type, EVP_PKEY* pkey);
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
-void _EVP_DigestVerify(EVP_MD_CTX* ctx,
-                       const unsigned char* signature,
+void _EVP_DigestVerify(EVP_MD_CTX *ctx,
+                       const unsigned char *signature,
                        size_t signatureLength,
-                       const unsigned char* message,
+                       const unsigned char *message,
                        size_t messageLength);
 /**
  * Sets the RSA padding
  */
-void _EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX* ctx, int pad);
+void _EVP_PKEY_CTX_set_rsa_padding(EVP_PKEY_CTX *ctx, int pad);
 
 /**
  * Sets the masking algorithm
  */
-void _EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX* ctx, const EVP_MD* md);
+void _EVP_PKEY_CTX_set_signature_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
 /**
  * Sets the salt length
  */
-void _EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX* ctx, int len);
+void _EVP_PKEY_CTX_set_rsa_pss_saltlen(EVP_PKEY_CTX *ctx, int len);
 /**
  * Sets the mgf1
  */
-void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX* ctx, const EVP_MD* md);
+void _EVP_PKEY_CTX_set_rsa_mgf1_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
 
 /**
  * Initializes the context for an encryption operation
  */
-void _EVP_PKEY_encrypt_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_encrypt_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Encrypts a message
  */
-void _EVP_PKEY_encrypt(EVP_PKEY_CTX* ctx,
-                       unsigned char* out,
-                       size_t* outlen,
-                       const unsigned char* in,
+void _EVP_PKEY_encrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out,
+                       size_t *outlen,
+                       const unsigned char *in,
                        size_t inlen);
 
 /**
  * Initializes the context for an decryption operation
  */
-void _EVP_PKEY_decrypt_init(EVP_PKEY_CTX* ctx);
+void _EVP_PKEY_decrypt_init(EVP_PKEY_CTX *ctx);
 
 /**
  * Decrypts a message
  */
-void _EVP_PKEY_decrypt(EVP_PKEY_CTX* ctx,
-                       unsigned char* out,
-                       size_t* outlen,
-                       const unsigned char* in,
+void _EVP_PKEY_decrypt(EVP_PKEY_CTX *ctx,
+                       unsigned char *out,
+                       size_t *outlen,
+                       const unsigned char *in,
                        size_t inlen);
 
 /**
  * Sets the OAEP hashing function
  */
-void _EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX* ctx, const EVP_MD* md);
+void _EVP_PKEY_CTX_set_rsa_oaep_md(EVP_PKEY_CTX *ctx, const EVP_MD *md);
 
 /**
  * Sets the OAEP label
  */
-void _EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX* ctx, unsigned char* l, int llen);
+void _EVP_PKEY_CTX_set_rsa_oaep_label(EVP_PKEY_CTX *ctx, unsigned char *l, int llen);
 
 /**
  * Returns the size of an RSA Key
  */
-int _RSA_size(const RSA* r);
+int _RSA_size(const RSA *r);
 
 /**
  * Returns the size of a message digest
  */
-int _EVP_MD_size(const EVP_MD* md);
+int _EVP_MD_size(const EVP_MD *md);
 
 /**
  * Allocates memory
  */
-void* _OPENSSL_malloc(int num);
+void *_OPENSSL_malloc(int num);
 
 /**
  * Generate random data.
  *
  * RAND_bytes() puts num cryptographically strong pseudo-random bytes into buf.
  */
-void _RAND_bytes(unsigned char* buf, int num);
+void _RAND_bytes(unsigned char *buf, int num);
 
 void _CRYPTO_malloc_init();
 
@@ -1425,39 +1425,39 @@ enum class EllipticCurvePointConversionForm {
 
 };
 
-EC_KEY* _EVP_PKEY_get0_EC_KEY(EVP_PKEY* pkey);
+EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey);
 
 void _PKCS5_PBKDF2_HMAC(const std::vector<uint8_t> pass,
                         const std::vector<uint8_t> salt,
                         int iter,
-                        const EVP_MD* digest,
-                        std::vector<uint8_t>& out);
+                        const EVP_MD *digest,
+                        std::vector<uint8_t> &out);
 
-void _ECDH_KDF_X9_63(std::vector<uint8_t>& out,
-                     const std::vector<uint8_t>& Z,
-                     const std::vector<uint8_t>& sinfo,
-                     const EVP_MD* md);
+void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
+                     const std::vector<uint8_t> &Z,
+                     const std::vector<uint8_t> &sinfo,
+                     const EVP_MD *md);
 
 /* HMAC */
-void _HMAC_Init_ex(HMAC_CTX* ctx, const std::vector<uint8_t>& key, const EVP_MD* md, ENGINE* impl);
-std::vector<uint8_t> _HMAC_Final(HMAC_CTX* ctx);
-void _HMAC_Update(HMAC_CTX* ctx, const std::vector<uint8_t>& data);
+void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl);
+std::vector<uint8_t> _HMAC_Final(HMAC_CTX *ctx);
+void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data);
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
 
 /* CMAC */
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void);
-void _CMAC_Init(CMAC_CTX* ctx,
-                const std::vector<uint8_t>& key,
-                const EVP_CIPHER* cipher,
-                ENGINE* impl);
-void _CMAC_Update(CMAC_CTX* ctx, const std::vector<uint8_t>& data);
-std::vector<uint8_t> _CMAC_Final(CMAC_CTX* ctx);
-const EVP_CIPHER* _getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType);
+void _CMAC_Init(CMAC_CTX *ctx,
+                const std::vector<uint8_t> &key,
+                const EVP_CIPHER *cipher,
+                ENGINE *impl);
+void _CMAC_Update(CMAC_CTX *ctx, const std::vector<uint8_t> &data);
+std::vector<uint8_t> _CMAC_Final(CMAC_CTX *ctx);
+const EVP_CIPHER *_getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType);
 
-SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t>& buf);
-void _EVP_PKEY_set1_EC_KEY(EVP_PKEY* pkey, EC_KEY* key);
+SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf);
+void _EVP_PKEY_set1_EC_KEY(EVP_PKEY *pkey, EC_KEY *key);
 
-std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_t form);
+std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY *evp, point_conversion_form_t form);
 /**
  * @brief _EVP_derive_key calculates a new public key P_new
  *
@@ -1470,33 +1470,33 @@ std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY* evp, point_conversion_form_
  * @param key The private key
  * @return The new public key
  */
-std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY* peerkey, const EVP_PKEY* key);
+std::vector<uint8_t> _EVP_derive_key(const EVP_PKEY *peerkey, const EVP_PKEY *key);
 
 /* ECDSA Special */
 /**
  * Set the r and s signature components from r and s a bignums
  */
-void _ECDSA_SIG_set0(ECDSA_SIG* sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s);
+void _ECDSA_SIG_set0(ECDSA_SIG *sig, SSL_BIGNUM_Ptr r, SSL_BIGNUM_Ptr s);
 
 /**
  * Get the r signature component as bignum
  */
-const BIGNUM* _ECDSA_SIG_get0_r(const ECDSA_SIG* sig);
+const BIGNUM *_ECDSA_SIG_get0_r(const ECDSA_SIG *sig);
 
 /**
  * Get the s signature component as bignum
  */
-const BIGNUM* _ECDSA_SIG_get0_s(const ECDSA_SIG* sig);
+const BIGNUM *_ECDSA_SIG_get0_s(const ECDSA_SIG *sig);
 
 /**
  * Get the serialized ECDSA signature in ASN.1 format from ECDSA_SIG object
  */
-std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG*);
+std::vector<uint8_t> _i2d_ECDSA_SIG(const ECDSA_SIG *);
 
 /**
  * Create ECDSA_SIG object from serialized ECDSA signature.
  */
-SSL_ECDSA_SIG_Ptr _d2i_ECDSA_SIG(const std::vector<uint8_t>& signature);
+SSL_ECDSA_SIG_Ptr _d2i_ECDSA_SIG(const std::vector<uint8_t> &signature);
 
 /* Bignum related */
 
@@ -1507,7 +1507,7 @@ SSL_ECDSA_SIG_Ptr _d2i_ECDSA_SIG(const std::vector<uint8_t>& signature);
  * @return A smart pointer to the bignum object
  * @throw OpenSSLException is a problem occurs during the conversion
  */
-SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen);
+SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t *data, size_t dataLen);
 
 /**
  * Write an OpenSSL bignum in big-endian plain bytes representation of an
@@ -1518,24 +1518,24 @@ SSL_BIGNUM_Ptr _BN_bin2bn(const uint8_t* data, size_t dataLen);
  * @return Vector containing serialized number
  * @throw OpenSSLException if tolen bytes cannot hold bignum
  */
-std::vector<uint8_t> _BN_bn2binpad(const BIGNUM* bignum, int tolen);
+std::vector<uint8_t> _BN_bn2binpad(const BIGNUM *bignum, int tolen);
 
 /* Engine related */
 
 /**
  * Loads an engine based on the passed ID \p engineId.
  */
-SSL_ENGINE_Ptr _ENGINE_by_id(const std::string& engineId);
+SSL_ENGINE_Ptr _ENGINE_by_id(const std::string &engineId);
 
 /**
  * Initialises engine \p e.
  */
-void _ENGINE_init(ENGINE* e);
+void _ENGINE_init(ENGINE *e);
 
 /**
  * Issues a command \p cmdName to the engine \p e. Takes a string \p cmdArg as input data.
  */
-void _ENGINE_ctrl_cmd_string(ENGINE* e, const std::string& cmdName, const std::string& cmdArg);
+void _ENGINE_ctrl_cmd_string(ENGINE *e, const std::string &cmdName, const std::string &cmdArg);
 
 /**
  * Load private key via Engine \p e. Mainly used with HSMs which are modelled as
@@ -1544,7 +1544,7 @@ void _ENGINE_ctrl_cmd_string(ENGINE* e, const std::string& cmdName, const std::s
  * @param e The engine for loading the private key.
  * @param keyId The ID of the key.
  */
-SSL_EVP_PKEY_Ptr _ENGINE_load_private_key(ENGINE* e, const std::string& keyId);
+SSL_EVP_PKEY_Ptr _ENGINE_load_private_key(ENGINE *e, const std::string &keyId);
 
 /**
  * Load private key via Engine \p e. Mainly used with HSMs which are modelled as
@@ -1553,12 +1553,12 @@ SSL_EVP_PKEY_Ptr _ENGINE_load_private_key(ENGINE* e, const std::string& keyId);
  * @param e The engine for loading the private key.
  * @param keyId The ID of the key.
  */
-SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE* e, const std::string& keyId);
+SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE *e, const std::string &keyId);
 
 /**
  * Clear engine's functional reference.
  */
-void _ENGINE_finish(ENGINE* e);
+void _ENGINE_finish(ENGINE *e);
 
 }  // namespace openssl
 }  // namespace mococrw

@@ -33,10 +33,10 @@ namespace mococrw
 class X509Certificate
 {
 public:
-    static X509Certificate fromPEM(const std::string& pem);
-    static X509Certificate fromPEMFile(const std::string& filename);
-    static X509Certificate fromDER(const std::vector<uint8_t>& derData);
-    static X509Certificate fromDERFile(const std::string& filename);
+    static X509Certificate fromPEM(const std::string &pem);
+    static X509Certificate fromPEMFile(const std::string &filename);
+    static X509Certificate fromDER(const std::vector<uint8_t> &derData);
+    static X509Certificate fromDERFile(const std::string &filename);
 
     /**
      * Return a PEM representation of this certificate.
@@ -132,8 +132,8 @@ public:
      * OpenSSL's native methods is necessary for some
      * reason.
      */
-    const X509* internal() const { return _x509.get(); }
-    X509* internal() { return _x509.get(); }
+    const X509 *internal() const { return _x509.get(); }
+    X509 *internal() { return _x509.get(); }
 
     /**
      * This helper class represents a context of an X509 certificate in which it might be valid
@@ -160,7 +160,7 @@ public:
          * Adds a number of trusted certificates to this VerificationContext.
          */
         template <typename Container = std::initializer_list<X509Certificate>>
-        VerificationContext& addTrustedCertificates(Container&& trustedCerts)
+        VerificationContext &addTrustedCertificates(Container &&trustedCerts)
         {
             _addAll(_trustedCerts, std::forward<Container>(trustedCerts));
             return *this;
@@ -169,7 +169,7 @@ public:
         /**
          * Adds a single trusted certificate to this context.
          */
-        VerificationContext& addTrustedCertificate(X509Certificate trustedCert)
+        VerificationContext &addTrustedCertificate(X509Certificate trustedCert)
         {
             _trustedCerts.emplace_back(std::move(trustedCert));
             return *this;
@@ -179,7 +179,7 @@ public:
          * Adds a number of intermediate certificates to this VerificationContext.
          */
         template <typename Container = std::initializer_list<X509Certificate>>
-        VerificationContext& addIntermediateCertificates(Container&& intermediateCerts)
+        VerificationContext &addIntermediateCertificates(Container &&intermediateCerts)
         {
             _addAll(_intermediateCerts, std::forward<Container>(intermediateCerts));
             return *this;
@@ -188,7 +188,7 @@ public:
         /**
          * Adds a single intermediate certificate to this VerificationContext.
          */
-        VerificationContext& addIntermediateCertificate(X509Certificate intermediateCert)
+        VerificationContext &addIntermediateCertificate(X509Certificate intermediateCert)
         {
             _intermediateCerts.emplace_back(std::move(intermediateCert));
             return *this;
@@ -199,7 +199,7 @@ public:
          * Unless the given container contains no elements, this activates CRL checking.
          */
         template <typename Container = std::initializer_list<CertificateRevocationList>>
-        VerificationContext& addCertificateRevocationLists(Container&& revocationLists)
+        VerificationContext &addCertificateRevocationLists(Container &&revocationLists)
         {
             _addAll(_crls, std::forward<Container>(revocationLists));
             return *this;
@@ -209,7 +209,7 @@ public:
          * Adds a single CRL to this VerificationContext.
          * This activates CRL checking.
          */
-        VerificationContext& addCertificateRevocationList(CertificateRevocationList revocationList)
+        VerificationContext &addCertificateRevocationList(CertificateRevocationList revocationList)
         {
             _crls.emplace_back(std::move(revocationList));
             return *this;
@@ -218,7 +218,7 @@ public:
         /**
          * Sets a flag that the root certificate should be self signed.
          */
-        VerificationContext& enforceSelfSignedRootCertificate()
+        VerificationContext &enforceSelfSignedRootCertificate()
         {
             _enforceSelfSignedRootCertificate = true;
             return *this;
@@ -229,7 +229,7 @@ public:
          * This also requires setting enforceSelfSignedRootCertificate since OpenSSL doesn't support
          * checking CRLs for all CAs without having a self signed root certificate present.
          */
-        VerificationContext& enforceCrlsForAllCAs()
+        VerificationContext &enforceCrlsForAllCAs()
         {
             _enforceCrlForWholeChain = true;
             return *this;
@@ -241,7 +241,7 @@ public:
          * This only supports times that are within range of std::time_t.
          * @throw MoCOCrWException if a time was passed that is outside of std::time_t range.
          */
-        VerificationContext& setVerificationCheckTime(Asn1Time checkTime);
+        VerificationContext &setVerificationCheckTime(Asn1Time checkTime);
 
         /**
          * Does a check to see if the current context is in a good state to verify certificates.
@@ -263,10 +263,10 @@ public:
         boost::optional<std::time_t> _verificationCheckTime;
 
         template <typename Container1, typename Container2>
-        void _addAll(Container1& addTo, Container2&& addThese)
+        void _addAll(Container1 &addTo, Container2 &&addThese)
         {
             using Iterator =
-                    typename std::conditional<std::is_rvalue_reference<Container2&&>::value,
+                    typename std::conditional<std::is_rvalue_reference<Container2 &&>::value,
                                               decltype(std::make_move_iterator(addThese.begin())),
                                               decltype(addThese.begin())>::type;
 
@@ -296,8 +296,8 @@ public:
      *                        used to construct the chain.
      * @throw MoCOCrWException if the validation fails.
      */
-    void verify(const std::vector<X509Certificate>& trustStore,
-                const std::vector<X509Certificate>& intermediateCAs) const;
+    void verify(const std::vector<X509Certificate> &trustStore,
+                const std::vector<X509Certificate> &intermediateCAs) const;
 
     /**
      * @brief Verify the validity of a certificate
@@ -326,13 +326,13 @@ public:
      *                        should be verified.
      * @throw MoCOCrWException if the validation fails.
      */
-    void verify(const VerificationContext& ctx) const;
+    void verify(const VerificationContext &ctx) const;
 
     /**
      * Create a new X509 certificate from an existing openssl certificate.
      * @param ptr a unique pointer to the existing openssl certificate.
      */
-    explicit X509Certificate(openssl::SSL_X509_Ptr&& ptr) : _x509{std::move(ptr)} {}
+    explicit X509Certificate(openssl::SSL_X509_Ptr &&ptr) : _x509{std::move(ptr)} {}
 
 private:
     openssl::SSL_X509_SharedPtr _x509;
@@ -349,7 +349,7 @@ namespace util
  *         PEM string
  * @throw MoCOCrWException if the input or one of the included certificates is invalid
  */
-std::vector<X509Certificate> loadPEMChain(const std::string& pemChain);
+std::vector<X509Certificate> loadPEMChain(const std::string &pemChain);
 }  // namespace util
 
 }  // namespace mococrw
