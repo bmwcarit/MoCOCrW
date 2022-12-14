@@ -1,0 +1,163 @@
+From 1677215832baa8dc6a519e650ed10dd212456da4 Mon Sep 17 00:00:00 2001
+From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
+Date: Mon, 28 Nov 2022 16:21:01 +0100
+Subject: [PATCH 3/3] Add function for pub key extraction
+
+Add a function to extract the public key from
+a given private key.
+---
+ ref/api.h                 |  6 ++++++
+ ref/sign.c                | 43 +++++++++++++++++++++++++++++++++++++++
+ ref/sign.h                |  3 +++
+ ref/test/test_dilithium.c |  9 ++++++++
+ 4 files changed, 61 insertions(+)
+
+diff --git a/ref/api.h b/ref/api.h
+index ceeef10..af7d673 100644
+--- a/ref/api.h
++++ b/ref/api.h
+@@ -13,6 +13,7 @@
+ #define pqcrystals_dilithium2_ref_BYTES pqcrystals_dilithium2_BYTES
+ 
+ int pqcrystals_dilithium2_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium2_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium2_ref_signature(uint8_t *sig, size_t *siglen,
+                                         const uint8_t *m, size_t mlen,
+@@ -35,6 +36,7 @@ int pqcrystals_dilithium2_ref_open(uint8_t *m, size_t *mlen,
+ #define pqcrystals_dilithium2aes_ref_BYTES pqcrystals_dilithium2_ref_BYTES
+ 
+ int pqcrystals_dilithium2aes_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium2aes_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium2aes_ref_signature(uint8_t *sig, size_t *siglen,
+                                            const uint8_t *m, size_t mlen,
+@@ -61,6 +63,7 @@ int pqcrystals_dilithium2aes_ref_open(uint8_t *m, size_t *mlen,
+ #define pqcrystals_dilithium3_ref_BYTES pqcrystals_dilithium3_BYTES
+ 
+ int pqcrystals_dilithium3_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium3_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium3_ref_signature(uint8_t *sig, size_t *siglen,
+                                         const uint8_t *m, size_t mlen,
+@@ -83,6 +86,7 @@ int pqcrystals_dilithium3_ref_open(uint8_t *m, size_t *mlen,
+ #define pqcrystals_dilithium3aes_ref_BYTES pqcrystals_dilithium3_ref_BYTES
+ 
+ int pqcrystals_dilithium3aes_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium3aes_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium3aes_ref_signature(uint8_t *sig, size_t *siglen,
+                                            const uint8_t *m, size_t mlen,
+@@ -109,6 +113,7 @@ int pqcrystals_dilithium3aes_ref_open(uint8_t *m, size_t *mlen,
+ #define pqcrystals_dilithium5_ref_BYTES pqcrystals_dilithium5_BYTES
+ 
+ int pqcrystals_dilithium5_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium5_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium5_ref_signature(uint8_t *sig, size_t *siglen,
+                                         const uint8_t *m, size_t mlen,
+@@ -131,6 +136,7 @@ int pqcrystals_dilithium5_ref_open(uint8_t *m, size_t *mlen,
+ #define pqcrystals_dilithium5aes_ref_BYTES pqcrystals_dilithium5_ref_BYTES
+ 
+ int pqcrystals_dilithium5aes_ref_keypair(uint8_t *pk, uint8_t *sk);
++int pqcrystals_dilithium5aes_ref_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
+ 
+ int pqcrystals_dilithium5aes_ref_signature(uint8_t *sig, size_t *siglen,
+                                            const uint8_t *m, size_t mlen,
+diff --git a/ref/sign.c b/ref/sign.c
+index 5d0455c..09eff79 100644
+--- a/ref/sign.c
++++ b/ref/sign.c
+@@ -8,6 +8,49 @@
+ #include "symmetric.h"
+ #include "fips202.h"
+ 
++/*************************************************
++* Name:        crypto_sign_keypair_public_from_private
++*
++* Description: Returns the public for a provided private key.
++*
++* Arguments:   - uint8_t *pk: pointer to output public key (allocated
++*                             array of CRYPTO_PUBLICKEYBYTES bytes)
++*              - uint8_t *sk: pointer to existing private key
++*
++* Returns 0 (success)
++**************************************************/
++int crypto_sign_keypair_public_from_private(uint8_t *pk, const uint8_t *sk) {
++  uint8_t seedbuf[3*SEEDBYTES + 2*CRHBYTES];
++  uint8_t *rho, *tr, *key;
++  polyvecl mat[K], s1, s1hat;
++  polyveck t0, t1, s2;
++
++  rho = seedbuf;
++  tr = rho + SEEDBYTES;
++  key = tr + SEEDBYTES;
++  unpack_sk(rho, tr, key, &t0, &s1, &s2, sk);
++
++  /* Expand matrix */
++  polyvec_matrix_expand(mat, rho);
++
++  /* Matrix-vector multiplication */
++  s1hat = s1;
++  polyvecl_ntt(&s1hat);
++  polyvec_matrix_pointwise_montgomery(&t1, mat, &s1hat);
++  polyveck_reduce(&t1);
++  polyveck_invntt_tomont(&t1);
++
++  /* Add error vector s2 */
++  polyveck_add(&t1, &t1, &s2);
++
++  /* Extract t1 and write public key */
++  polyveck_caddq(&t1);
++  polyveck_power2round(&t1, &t0, &t1);
++  pack_pk(pk, rho, &t1);
++
++  return 0;
++}
++
+ /*************************************************
+ * Name:        crypto_sign_keypair
+ *
+diff --git a/ref/sign.h b/ref/sign.h
+index 295f378..0b0d325 100644
+--- a/ref/sign.h
++++ b/ref/sign.h
+@@ -10,6 +10,9 @@
+ #define challenge DILITHIUM_NAMESPACE(challenge)
+ void challenge(poly *c, const uint8_t seed[SEEDBYTES]);
+ 
++#define crypto_sign_keypair_public_from_private DILITHIUM_NAMESPACE(keypair_public_from_private)
++int crypto_sign_keypair_public_from_private(uint8_t *pk, const uint8_t *sk);
++
+ #define crypto_sign_keypair DILITHIUM_NAMESPACE(keypair)
+ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk);
+ 
+diff --git a/ref/test/test_dilithium.c b/ref/test/test_dilithium.c
+index bd2c425..a941826 100644
+--- a/ref/test/test_dilithium.c
++++ b/ref/test/test_dilithium.c
+@@ -17,12 +17,21 @@ int main(void)
+   uint8_t m2[MLEN + CRYPTO_BYTES];
+   uint8_t sm[MLEN + CRYPTO_BYTES];
+   uint8_t pk[CRYPTO_PUBLICKEYBYTES];
++  uint8_t pk2[CRYPTO_PUBLICKEYBYTES];
+   uint8_t sk[CRYPTO_SECRETKEYBYTES];
+ 
+   for(i = 0; i < NTESTS; ++i) {
+     randombytes(m, MLEN);
+ 
+     crypto_sign_keypair(pk, sk);
++    crypto_sign_keypair_public_from_private(pk2, sk);
++    for (int k = 0; k < CRYPTO_PUBLICKEYBYTES; ++k) {
++      if (pk[k] != pk2[k]) {
++        fprintf(stderr, "Derived public key differs from generated one\n");
++        fprintf(stderr, "pos: %i, orig/derived: 0x%x/0x%x", k, pk[k], pk2[k]);
++        return -1;
++      }
++    }
+     crypto_sign(sm, &smlen, m, MLEN, sk);
+     ret = crypto_sign_open(m2, &mlen, sm, smlen, pk);
+ 
+-- 
+2.38.1
+

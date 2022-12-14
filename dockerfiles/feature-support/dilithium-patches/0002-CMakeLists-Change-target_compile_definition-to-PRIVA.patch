@@ -1,0 +1,57 @@
+From 06e59f5ed86cfba85e3df4df95620dc1aa9b09ed Mon Sep 17 00:00:00 2001
+From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
+Date: Tue, 13 Dec 2022 13:21:41 +0100
+Subject: [PATCH 2/3] CMakeLists: Change target_compile_definition to PRIVATE
+
+Otherwise it is not possible to link multiple dilithium variants at the
+same time without getting compilation warnings like:
+
+[22/258] Building CXX object tests/unit/CMakeFiles/......
+<command-line>: warning: "DILITHIUM_MODE" redefined
+<command-line>: note: this is the location of the previous definition
+<command-line>: warning: "DILITHIUM_MODE" redefined
+<command-line>: note: this is the location of the previous definition
+---
+ ref/CMakeLists.txt | 12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/ref/CMakeLists.txt b/ref/CMakeLists.txt
+index a856ebd..c3381e9 100644
+--- a/ref/CMakeLists.txt
++++ b/ref/CMakeLists.txt
+@@ -35,8 +35,8 @@ add_library(aes256ctr_ref STATIC ${AES256CTR_SRCS})
+ # Dilithium 2
+ add_library(dilithium2_ref STATIC ${DILITHIUM_FIPS202_SRCS})
+ add_library(dilithium2aes_ref STATIC ${DILITHIUM_AES_SRCS})
+-target_compile_definitions(dilithium2_ref PUBLIC DILITHIUM_MODE=2)
+-target_compile_definitions(dilithium2aes_ref PUBLIC DILITHIUM_MODE=2
++target_compile_definitions(dilithium2_ref PRIVATE DILITHIUM_MODE=2)
++target_compile_definitions(dilithium2aes_ref PRIVATE DILITHIUM_MODE=2
+                                                     DILITHIUM_USE_AES)
+ target_link_libraries(dilithium2_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium2aes_ref INTERFACE fips202_ref aes256ctr_ref)
+@@ -59,8 +59,8 @@ endif()
+ # Dilithium 3
+ add_library(dilithium3_ref STATIC ${DILITHIUM_FIPS202_SRCS})
+ add_library(dilithium3aes_ref STATIC ${DILITHIUM_AES_SRCS})
+-target_compile_definitions(dilithium3_ref PUBLIC DILITHIUM_MODE=3)
+-target_compile_definitions(dilithium3aes_ref PUBLIC DILITHIUM_MODE=3
++target_compile_definitions(dilithium3_ref PRIVATE DILITHIUM_MODE=3)
++target_compile_definitions(dilithium3aes_ref PRIVATE DILITHIUM_MODE=3
+                                                     DILITHIUM_USE_AES)
+ target_link_libraries(dilithium3_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium3aes_ref INTERFACE fips202_ref aes256ctr_ref)
+@@ -81,8 +81,8 @@ endif()
+ # Dilithium 5
+ add_library(dilithium5_ref STATIC ${DILITHIUM_FIPS202_SRCS})
+ add_library(dilithium5aes_ref STATIC ${DILITHIUM_AES_SRCS})
+-target_compile_definitions(dilithium5_ref PUBLIC DILITHIUM_MODE=5)
+-target_compile_definitions(dilithium5aes_ref PUBLIC DILITHIUM_MODE=5
++target_compile_definitions(dilithium5_ref PRIVATE DILITHIUM_MODE=5)
++target_compile_definitions(dilithium5aes_ref PRIVATE DILITHIUM_MODE=5
+                                                     DILITHIUM_USE_AES)
+ target_link_libraries(dilithium5_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium5aes_ref INTERFACE fips202_ref aes256ctr_ref)
+-- 
+2.38.1
+

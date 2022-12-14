@@ -129,18 +129,32 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     	${REAL_SOURCES})
 
     add_executable(eciestests test_ecies.cpp
-	"${SRC_DIR}/ecies.cpp"
-	"${SRC_DIR}/key.cpp"
-	"${SRC_DIR}/x509.cpp"
-	"${SRC_DIR}/asn1time.cpp"
-	"${SRC_DIR}/crl.cpp"
-	"${SRC_DIR}/symmetric_crypto.cpp"
-	"${SRC_DIR}/symmetric_memory.cpp"
-	"${SRC_DIR}/util.cpp"
-	"${SRC_DIR}/mac.cpp"
-	"${SRC_DIR}/hash.cpp"
-	"${SRC_DIR}/kdf.cpp"
-	${REAL_SOURCES})
+        "${SRC_DIR}/ecies.cpp"
+        "${SRC_DIR}/key.cpp"
+        "${SRC_DIR}/x509.cpp"
+        "${SRC_DIR}/asn1time.cpp"
+        "${SRC_DIR}/crl.cpp"
+        "${SRC_DIR}/symmetric_crypto.cpp"
+        "${SRC_DIR}/symmetric_memory.cpp"
+        "${SRC_DIR}/util.cpp"
+        "${SRC_DIR}/mac.cpp"
+        "${SRC_DIR}/hash.cpp"
+        "${SRC_DIR}/kdf.cpp"
+        ${REAL_SOURCES})
+
+    if(DILITHIUM_ENABLED)
+        add_executable(dilithiumtests test_dilithium.cpp
+            "${SRC_DIR}/asymmetric_crypto_ctx.cpp"
+            "${SRC_DIR}/hash.cpp"
+            "${SRC_DIR}/x509.cpp"
+            "${SRC_DIR}/asn1time.cpp"
+            "${SRC_DIR}/key.cpp"
+            "${SRC_DIR}/crl.cpp"
+            "${SRC_DIR}/util.cpp"
+            ${REAL_SOURCES})
+    endif()
+
+    set(DEFAULT_LINK_LIBRARIES ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
     target_link_libraries(openssltest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     # Cannot link to imported OpenSSL and leverage implicit include-dir-propagation, as openssltest uses mocks.
@@ -151,46 +165,32 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         target_include_directories(hsmtest PUBLIC ${OPENSSL_INCLUDE_DIR})
     endif()
 
-    target_link_libraries(asn1timetests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(keytests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(csrtests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(biotests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(hashtests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(utiltests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(x509tests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(crltests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(verificationtests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(dntests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(catests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(signaturetests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(asymencryptiontests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(rsa_padding_mode_tests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(symmencryptiontests
-        ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    if(DILITHIUM_ENABLED)
+        set(DEFAULT_LINK_LIBRARIES ${DEFAULT_LINK_LIBRARIES} dilithium2_ref dilithium3_ref dilithium5_ref aes256ctr_ref fips202_ref)
+        target_link_libraries(dilithiumtests ${DEFAULT_LINK_LIBRARIES})
+    endif()
+
+    target_link_libraries(asn1timetests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(keytests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(csrtests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(biotests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(hashtests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(utiltests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(x509tests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(crltests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(verificationtests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(dntests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(catests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(signaturetests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(asymencryptiontests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(rsa_padding_mode_tests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(symmencryptiontests ${DEFAULT_LINK_LIBRARIES})
     target_link_libraries(symmmemorytests
         ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT}  Boost::boost)
-    target_link_libraries(kdftests
-	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(hmactests
-	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(cmactests
-	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
-    target_link_libraries(eciestests
-	${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+    target_link_libraries(kdftests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(hmactests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(cmactests ${DEFAULT_LINK_LIBRARIES})
+    target_link_libraries(eciestests ${DEFAULT_LINK_LIBRARIES})
 
     if(HSM_ENABLED)
         target_compile_definitions(keytests PUBLIC HSM_ENABLED)
@@ -296,6 +296,13 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	NAME EciesSchemesTest
 	COMMAND eciestests
     )
+
+    if(DILITHIUM_ENABLED)
+        add_test(
+            NAME DilithiumSignatureTests
+            COMMAND dilithiumtests
+        )
+    endif()
 
     # Configure valgrind
     find_program(MEMORYCHECK_COMMAND NAMES valgrind)

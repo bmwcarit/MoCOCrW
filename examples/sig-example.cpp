@@ -21,6 +21,10 @@
 #include <mococrw/hash.h>
 #include <iostream>
 
+#ifdef DILITHIUM_ENABLED
+#include <mococrw/dilithium.h>
+#endif
+
 using namespace mococrw;
 
 std::vector<uint8_t> rsaSign(const AsymmetricPrivateKey &privKey,
@@ -200,6 +204,47 @@ void edDsaVerify(const AsymmetricPublicKey &pubKey,
     }
 }
 
+#ifdef DILITHIUM_ENABLED
+
+std::vector<uint8_t> dilithiumSign(const DilithiumAsymmetricPrivateKey &privKey,
+                                   const std::vector<uint8_t> &message)
+{
+    auto signingCtx = DilithiumSigningCtx(privKey);
+    try {
+        return signingCtx.signMessage(message);
+    } catch (MoCOCrWException &e) {
+        /* Posible reason:
+         * - Error in libdilithium
+         * - Invalid key type (not a dilithium key)
+         */
+        std::cerr << "Verification failed!" << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+void dilithiumVerify(const DilithiumAsymmetricPublicKey &pubKey,
+                     const std::vector<uint8_t> &signature,
+                     const std::vector<uint8_t> &message)
+{
+    auto verifyCtx = DilithiumVerificationCtx(pubKey);
+
+    try {
+        verifyCtx.verifyMessage(signature, message);
+    } catch (MoCOCrWException &e) {
+        /* Posible reason:
+         * - error in libdilithium
+         * - Invalid signature
+         * - Invalid key type (not a dilithium key)
+         */
+        std::cerr << "Verification failed!" << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+}
+
+#endif  // DILITHIUM_ENABLED
+
 int main(void)
 {
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
@@ -252,4 +297,21 @@ int main(void)
      */
     edDsaVerify(edPrivKey, signature, message);
     /*********************************************/
+
+#ifdef DILITHIUM_ENABLED
+    /************** dilithium signature **********/
+    /* Please note that the interface might change slightly once openssl officially supports
+     * dilithium
+     */
+    auto keySpec = DilithiumSpec(AsymmetricKey::KeyTypes::DILITHIUM3);
+    auto dilithiumKeypair = DilithiumAsymmetricPrivateKey::generate(keySpec);
+
+    signature = dilithiumSign(dilithiumKeypair, message);
+    /* we can use here the private key, as it also contains the public key.
+     * In MoCOCrW the AsymmetricPrivateKey is a specialisation of AsymmetricPublicKey. Thus
+     * we do an implicit upcast here.
+     */
+    dilithiumVerify(dilithiumKeypair, signature, message);
+    /*********************************************/
+#endif  // DILITHIUM_ENABLED
 }

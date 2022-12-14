@@ -10,8 +10,9 @@ env:
   DOCKER_TAG: buildenv
   DOCKER_FOLDER_PATH: ./dockerfiles/base
 
-  DOCKER_WITH_HSM_TAG: buildenv_with_hsm
-  DOCKER_WITH_HSM_FOLDER_PATH: ./dockerfiles/hsm-support
+  # This buildenv contains libp11/softhsm and libdilithium
+  DOCKER_WITH_FEATURE_TAG: buildenv_with_features
+  DOCKER_WITH_FEATURE_FOLDER_PATH: ./dockerfiles/feature-support
 
   TOKEN_LABEL: token-label
   USER_PIN: 1234
@@ -45,6 +46,7 @@ jobs:
         compiler: ["g++", "clang++"]
         build_type: ["", "ASAN"]
         hsm_flag: ["HSM_ENABLED=ON", "HSM_ENABLED=OFF"]
+        dilithium_flag: ["DILITHIUM_ENABLED=ON", "DILITHIUM_ENABLED=OFF"]
 
         include:
           - build_type: "ASAN"
@@ -58,11 +60,15 @@ jobs:
             LSAN_OPTIONS: ""
 
           - hsm_flag: "HSM_ENABLED=ON"
-            docker_tag: "buildenv_with_hsm"
+            docker_tag: "buildenv_with_features"
             softhsm2_conf: "/usr/share/softhsm/softhsm2.conf"
             softhsm2_grp: ":softhsm"
 
+          - dilithium_flag: "DILITHIUM_ENABLED=ON"
+            docker_tag: "buildenv_with_features"
+
           - hsm_flag: "HSM_ENABLED=OFF"
+            dilithium_flag: "DILITHIUM_ENABLED=OFF"
             docker_tag: "buildenv"
             softhsm2_conf: ""
             softhsm2_grp:
@@ -81,8 +87,8 @@ jobs:
         if: ${{ matrix.hsm_flag == 'HSM_ENABLED=ON' }}
         uses: ./.github/actions/build-docker
         with:
-          docker_tag: ${{ env.DOCKER_WITH_HSM_TAG }}
-          docker_folder_path: ${{ env.DOCKER_WITH_HSM_FOLDER_PATH }}
+          docker_tag: ${{ env.DOCKER_WITH_FEATURE_TAG }}
+          docker_folder_path: ${{ env.DOCKER_WITH_FEATURE_FOLDER_PATH }}
 
       - name: "Build MoCOCrW"
         run: |
@@ -94,6 +100,7 @@ jobs:
               -DCMAKE_CXX_COMPILER=${{ matrix.compiler }} \
               -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
               -D${{ matrix.hsm_flag }} \
+              -D${{ matrix.dilithium_flag }} \
               -DBUILD_TESTING=True \
               -GNinja \
               /src \
@@ -114,4 +121,3 @@ jobs:
             && if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
                 softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi'
-

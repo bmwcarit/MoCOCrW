@@ -1,0 +1,683 @@
+From 27665e99259449c6ed43a10e27c6f6a5e1f5130a Mon Sep 17 00:00:00 2001
+From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
+Date: Mon, 28 Nov 2022 11:25:08 +0100
+Subject: [PATCH 1/3] Add code to enable cmake to install static libraries and
+ api.h as a header.
+
+The CMakeLists.txt in avx is not adapted. This still needs to be improved.
+
+When dilithium shall be used in a production environment using cmake the
+necessary files shall be installed using the install target.
+
+This patch adds an install target for the static libraries and the header.
+Furthermore it creates the cmake config files, so that libdilithium can be
+easily added as dependency to projects and adds AdressSANitzier and Undefined
+Behaviour SANitizer targets.
+
+ASAN and UBSAN can be used by setting the CMAKE_BUILD_TYPE to UBSAN and ASAN.
+`-DCMAKE_BUILD_TYPE=ASAN`.
+
+For building tests BUILD_TESTING needs to be enabled. This can be done in
+conjunction with ASAN and UBSAN.
+`-DBUILD_TESTING=True`
+
+For using libdilithium in a cmake-based project you can use the following lines:
+
+-  `find_package(dilithium 3.1 REQUIRED)`
+- ` target_link_libraries(${TARGET} PRIVATE dilithium2_ref dilithium3_ref
+  dilithium5_ref aes256ctr_ref fips202_ref)`
+- Additionally the header file needs to be included in the source file `extern
+  "C" { #include <dilithium-3.1/api.h> }`
+
+The changes are also tested in yocto/bitbake.
+
+Furthermore a dependency for the hash-sum-test was added, so that ctest
+can execute the tests in parallel. (e.g. `ctest -j$(nproc)` ).
+---
+ CMakeLists.txt                |  24 +++-
+ Config.cmake.in               |   5 +
+ LICENSE                       |   9 +-
+ cmake/ASanitizerTarget.cmake  | 130 +++++++++++++++++
+ cmake/UBSanitizerTarget.cmake | 125 +++++++++++++++++
+ ref/CMakeLists.txt            | 257 ++++++++++++++++++++++++++--------
+ 6 files changed, 482 insertions(+), 68 deletions(-)
+ create mode 100644 Config.cmake.in
+ create mode 100644 cmake/ASanitizerTarget.cmake
+ create mode 100644 cmake/UBSanitizerTarget.cmake
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 17b9f75..345ad68 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,14 +1,32 @@
+ cmake_minimum_required(VERSION 3.10)
+ 
+-project(dilithium C ASM)
++project(dilithium LANGUAGES C ASM VERSION 3.1.0)
+ 
+ set(CMAKE_C_STANDARD 99)
+ set(CMAKE_C_STANDARD_REQUIRED ON)
+ 
+-enable_testing()
+-
+ #find_package(OpenSSL REQUIRED)
+ #include_directories(${OPENSSL_INCLUDE_DIR})
+ 
++set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++
++# CMake modules provided by the project
++set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
++
++if(BUILD_TESTING)
++    message(STATUS "Testing enabled.")
++    enable_testing()
++endif()
++
++if(CMAKE_BUILD_TYPE STREQUAL ASAN)
++    message(STATUS "Address sanitizing enabled.")
++    include(ASanitizerTarget)
++endif()
++
++if(CMAKE_BUILD_TYPE STREQUAL UBSAN)
++    message(STATUS "Undefined behaviour sanitizing enabled.")
++    include(UBSanitizerTarget)
++endif()
++
+ add_subdirectory(ref)
+ #add_subdirectory(avx2)
+diff --git a/Config.cmake.in b/Config.cmake.in
+new file mode 100644
+index 0000000..9a3da7a
+--- /dev/null
++++ b/Config.cmake.in
+@@ -0,0 +1,5 @@
++@PACKAGE_INIT@
++
++include("${CMAKE_CURRENT_LIST_DIR}/dilithiumTargets.cmake")
++
++check_required_components(dilithium)
+\ No newline at end of file
+diff --git a/LICENSE b/LICENSE
+index cddfe61..b40bd28 100644
+--- a/LICENSE
++++ b/LICENSE
+@@ -1,7 +1,10 @@
+ Public Domain (https://creativecommons.org/share-your-work/public-domain/cc0/);
+ or Apache 2.0 License (https://www.apache.org/licenses/LICENSE-2.0.html).
+ 
+-For Keccak and the random number generator 
+-we are using public-domain code from sources 
+-and by authors listed in comments on top of 
++For Keccak and the random number generator
++we are using public-domain code from sources
++and by authors listed in comments on top of
+ the respective files.
++
++The cmake files for ASAN and UBSAN are published using
++Apache 2.0 License.
+diff --git a/cmake/ASanitizerTarget.cmake b/cmake/ASanitizerTarget.cmake
+new file mode 100644
+index 0000000..30be837
+--- /dev/null
++++ b/cmake/ASanitizerTarget.cmake
+@@ -0,0 +1,130 @@
++#
++# #%L
++# %%
++# Copyright (C) 2018 BMW Car IT GmbH
++# %%
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++# #L%
++#
++
++# AddressSanitizerTarget
++# ======================
++#
++# Sets up an ``asan`` target that automates executing tests with
++# `AddressSanitizer <https://github.com/google/sanitizers/wiki/AddressSanitizer>`_
++# (ASan) - a memory error detector for C/C++.
++#
++# Usage
++# -----
++#
++# Add the following lines to your project's ``CMakeLists.txt``:
++#
++# .. code-block:: cmake
++#
++#  if(CMAKE_BUILD_TYPE STREQUAL ASAN)
++#      include(AddressSanitizerTarget)
++#  endif()
++#
++# Then execute CMake with:
++#
++# .. code-block:: sh
++#
++#  CXX=clang++ cmake -DCMAKE_BUILD_TYPE=ASAN $SOURCE_DIR
++#
++# and generate the ASan report for CTest based tests with:
++#
++# .. code-block:: sh
++#
++#  cmake --build . --target asan
++#
++# If necessary CTest parameters can be passed in the ARGS env variable:
++#
++# .. code-block:: sh
++#
++#  ARGS="-VV --repeat-until-fail 10" cmake --build . --target asan
++#
++# Configuration
++# -------------
++#
++# This module reads the following configuration variables:
++#
++# ``ASAN_OPTIONS``
++#  `Run-time flags <https://github.com/google/sanitizers/wiki/AddressSanitizerFlags#run-time-flags>`__
++#  for the AddressSanitizer.
++#
++# ``LSAN_OPTIONS``
++#  `Run-time flags <https://github.com/google/sanitizers/wiki/AddressSanitizerLeakSanitizer#flags>`__
++#  for the LeakSanitizer (LSan).
++#
++
++if(NOT CMAKE_BUILD_TYPE STREQUAL ASAN)
++    message(FATAL_ERROR "AddressSanitizerTarget.cmake requires CMake to be "
++                        "called with -DCMAKE_BUILD_TYPE=ASAN")
++endif()
++
++# ASAN build type
++set(_ASAN_FLAGS "-fsanitize=address -fno-omit-frame-pointer")
++set(_ASAN_FLAGS "${_ASAN_FLAGS} -fsanitize-address-use-after-scope")
++set(_ASAN_FLAGS "${_ASAN_FLAGS} -g -O1")
++set(CMAKE_CXX_FLAGS_ASAN ${_ASAN_FLAGS} CACHE STRING
++    "Flags used by the C++ compiler during ASAN builds." FORCE
++)
++set(CMAKE_C_FLAGS_ASAN ${_ASAN_FLAGS} CACHE STRING
++    "Flags used by the C compiler during ASAN builds." FORCE
++)
++set(CMAKE_EXE_LINKER_FLAGS_ASAN ${_ASAN_FLAGS} CACHE STRING
++    "Flags used for linking binaries during ASAN builds." FORCE
++)
++set(CMAKE_SHARED_LINKER_FLAGS_ASAN ${_ASAN_FLAGS} CACHE STRING
++    "Flags used for linking shared libraries during ASAN builds." FORCE
++)
++mark_as_advanced(
++    CMAKE_CXX_FLAGS_ASAN CMAKE_C_FLAGS_ASAN CMAKE_EXE_LINKER_FLAGS_ASAN
++    CMAKE_SHARED_LINKER_FLAGS_ASAN CMAKE_STATIC_LINKER_FLAGS_ASAN
++)
++unset(_ASAN_FLAGS)
++
++if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
++    find_library(ASAN_LIBRARY NAMES asan libasan.so.6 libasan.so.5)
++
++    set(ASAN_FIND_REQUIRED TRUE)
++    include(FindPackageHandleStandardArgs)
++    find_package_handle_standard_args(ASAN
++        REQUIRED_VARS ASAN_LIBRARY
++    )
++    mark_as_advanced(ASAN_LIBRARY)
++elseif(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
++    # TODO: Setup proper check for the asan lib (part of compiler-rt-staticdev)
++    set(ASAN_FOUND TRUE)
++endif()
++
++# Add asan target.
++string(CONCAT _asan_options
++    "detect_odr_violation=0,max_free_fill_size=65535,"
++    "detect_stack_use_after_return=true,"
++    "${ASAN_OPTIONS}"
++)
++add_custom_target(asan
++    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
++
++    # working escaping for make: \${ARGS} \$\${ARGS}
++    # working escaping for ninja: \$\${ARGS}
++    # No luck with VERBATIM option.
++    COMMAND ${CMAKE_COMMAND} -E env
++                ASAN_OPTIONS=${_asan_options} LSAN_OPTIONS=${LSAN_OPTIONS}
++            ${CMAKE_CTEST_COMMAND} --output-on-failure "\$\${ARGS}"
++
++    COMMENT "Generate ASan report"
++    USES_TERMINAL # Ensure ninja outputs to stdout.
++)
++unset(_asan_options)
+\ No newline at end of file
+diff --git a/cmake/UBSanitizerTarget.cmake b/cmake/UBSanitizerTarget.cmake
+new file mode 100644
+index 0000000..07f3cf3
+--- /dev/null
++++ b/cmake/UBSanitizerTarget.cmake
+@@ -0,0 +1,125 @@
++#
++# #%L
++# %%
++# Copyright (C) 2018 BMW Car IT GmbH
++# %%
++# Licensed under the Apache License, Version 2.0 (the "License");
++# you may not use this file except in compliance with the License.
++# You may obtain a copy of the License at
++#
++#      http://www.apache.org/licenses/LICENSE-2.0
++#
++# Unless required by applicable law or agreed to in writing, software
++# distributed under the License is distributed on an "AS IS" BASIS,
++# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++# See the License for the specific language governing permissions and
++# limitations under the License.
++# #L%
++#
++
++# UBSanitizerTarget
++# ======================
++#
++# Sets up an ``ubsan`` target that automates executing tests with
++# `UndefinedBehaviorSanitizer <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`_
++# (UBSan) - a fast undefined behavior detector for C/C++.
++#
++# Usage
++# -----
++#
++# Add the following lines to your project's ``CMakeLists.txt``:
++#
++# .. code-block:: cmake
++#
++#  if(CMAKE_BUILD_TYPE STREQUAL UBSAN)
++#      include(UBSanitizerTarget)
++#  endif()
++#
++# Then execute CMake with:
++#
++# .. code-block:: sh
++#
++#  CXX=clang++ cmake -DCMAKE_BUILD_TYPE=UBSAN $SOURCE_DIR
++#
++# and generate the UBSan report for CTest based tests with:
++#
++# .. code-block:: sh
++#
++#  cmake --build . --target ubsan
++#
++# If necessary CTest parameters can be passed in the ARGS env variable:
++#
++# .. code-block:: sh
++#
++#  ARGS="-VV --repeat-until-fail 10" cmake --build . --target ubsan
++#
++# Configuration
++# -------------
++#
++# This module reads the following configuration variables:
++#
++# ``UBSAN_OPTIONS``
++#  `Run-time flags <https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html>`__
++#  for the UndefinedBehaviorSanitizer.
++#
++
++if(NOT CMAKE_BUILD_TYPE STREQUAL UBSAN)
++    message(FATAL_ERROR "UBSanitizerTarget.cmake requires CMake to be "
++                        "called with -DCMAKE_BUILD_TYPE=UBSAN")
++endif()
++
++# UBSAN build type
++set(_UBSAN_FLAGS "-fsanitize=undefined -fno-omit-frame-pointer")
++set(_UBSAN_FLAGS "${_UBSAN_FLAGS} -fno-sanitize-recover=all")
++set(_UBSAN_FLAGS "${_UBSAN_FLAGS} -g -O1")
++set(CMAKE_CXX_FLAGS_UBSAN ${_UBSAN_FLAGS} CACHE STRING
++    "Flags used by the C++ compiler during UBSAN builds." FORCE
++)
++set(CMAKE_C_FLAGS_UBSAN ${_UBSAN_FLAGS} CACHE STRING
++    "Flags used by the C compiler during UBSAN builds." FORCE
++)
++set(CMAKE_EXE_LINKER_FLAGS_UBSAN ${_UBSAN_FLAGS} CACHE STRING
++    "Flags used for linking binaries during UBSAN builds." FORCE
++)
++set(CMAKE_SHARED_LINKER_FLAGS_UBSAN ${_UBSAN_FLAGS} CACHE STRING
++    "Flags used for linking shared libraries during UBSAN builds." FORCE
++)
++mark_as_advanced(
++    CMAKE_CXX_FLAGS_UBSAN CMAKE_C_FLAGS_UBSAN CMAKE_EXE_LINKER_FLAGS_UBSAN
++    CMAKE_SHARED_LINKER_FLAGS_UBSAN CMAKE_STATIC_LINKER_FLAGS_UBSAN
++)
++unset(_UBSAN_FLAGS)
++
++if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
++    find_library(UBSAN_LIBRARY ubsan)
++
++    set(UBSAN_FIND_REQUIRED TRUE)
++    include(FindPackageHandleStandardArgs)
++    find_package_handle_standard_args(UBSAN
++        REQUIRED_VARS UBSAN_LIBRARY
++    )
++    mark_as_advanced(UBSAN_LIBRARY)
++elseif(CMAKE_CXX_COMPILER_ID STREQUAL Clang)
++    # TODO: Setup proper check for the ubsan lib (part of compiler-rt-staticdev)
++    set(UBSAN_FOUND TRUE)
++endif()
++
++# Add ubsan target.
++string(CONCAT _ubsan_options
++    "print_stacktrace=1,"
++    "${UBSAN_OPTIONS}"
++)
++add_custom_target(ubsan
++    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}
++
++    # working escaping for make: \${ARGS} \$\${ARGS}
++    # working escaping for ninja: \$\${ARGS}
++    # No luck with VERBATIM option.
++    COMMAND ${CMAKE_COMMAND} -E env
++                UBSAN_OPTIONS=${_ubsan_options}
++            ${CMAKE_CTEST_COMMAND} --output-on-failure "\$\${ARGS}"
++
++    COMMENT "Generate UBSan report"
++    USES_TERMINAL # Ensure ninja outputs to stdout.
++)
++unset(_ubsan_options)
+diff --git a/ref/CMakeLists.txt b/ref/CMakeLists.txt
+index b6f76e0..a856ebd 100644
+--- a/ref/CMakeLists.txt
++++ b/ref/CMakeLists.txt
+@@ -1,95 +1,228 @@
+-set(DILITHIUM_SRCS sign.c packing.c polyvec.c poly.c ntt.c reduce.c rounding.c)
++set(DILITHIUM_SRCS
++    sign.c
++    packing.c
++    polyvec.c
++    poly.c
++    ntt.c
++    reduce.c
++    rounding.c
++    randombytes.c)
+ set(DILITHIUM_FIPS202_SRCS ${DILITHIUM_SRCS} symmetric-shake.c)
+ set(DILITHIUM_AES_SRCS ${DILITHIUM_SRCS} symmetric-aes.c)
+ set(FIPS202_SRCS fips202.c)
+ set(AES256CTR_SRCS aes256ctr.c)
+-set(TEST_DILITHIUM_SRCS test/test_dilithium.c randombytes.c)
++set(TEST_DILITHIUM_SRCS test/test_dilithium.c)
+ set(TEST_VECTORS_SRCS test/test_vectors.c)
+-set(TEST_SPEED_SRCS test/test_speed.c test/speed_print.c test/cpucycles.c randombytes.c)
++set(TEST_SPEED_SRCS test/test_speed.c test/speed_print.c test/cpucycles.c
++                    randombytes.c)
++
++set(DILITHIUM_SOVERSION "3.1")
++set(DILITHIUM_INSTALL_INCLUDEDIR include/dilithium-${DILITHIUM_SOVERSION})
+ 
+ if(MSVC)
+   add_compile_options(/nologo /O2 /W4 /wd4146 /wd4244)
+ else()
+   add_compile_options(-Wall -Wextra -Wpedantic -Werror)
+-  add_compile_options(-Wmissing-prototypes -Wredundant-decls -Wshadow -Wpointer-arith)
++  add_compile_options(-Wmissing-prototypes -Wredundant-decls -Wshadow
++                      -Wpointer-arith)
+   add_compile_options(-O3 -fomit-frame-pointer)
++  add_compile_options(-fstack-protector-strong)
+ endif()
+ 
+-add_library(fips202_ref ${FIPS202_SRCS})
+-add_library(aes256ctr_ref ${AES256CTR_SRCS})
++add_library(fips202_ref STATIC ${FIPS202_SRCS})
++add_library(aes256ctr_ref STATIC ${AES256CTR_SRCS})
+ 
+ # Dilithium 2
+-add_library(dilithium2_ref ${DILITHIUM_FIPS202_SRCS})
+-add_library(dilithium2aes_ref ${DILITHIUM_AES_SRCS})
++add_library(dilithium2_ref STATIC ${DILITHIUM_FIPS202_SRCS})
++add_library(dilithium2aes_ref STATIC ${DILITHIUM_AES_SRCS})
+ target_compile_definitions(dilithium2_ref PUBLIC DILITHIUM_MODE=2)
+-target_compile_definitions(dilithium2aes_ref PUBLIC DILITHIUM_MODE=2 DILITHIUM_USE_AES)
++target_compile_definitions(dilithium2aes_ref PUBLIC DILITHIUM_MODE=2
++                                                    DILITHIUM_USE_AES)
+ target_link_libraries(dilithium2_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium2aes_ref INTERFACE fips202_ref aes256ctr_ref)
+ 
+-add_executable(test_dilithium2_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors2_ref ${TEST_VECTORS_SRCS})
+-add_executable(test_dilithium2aes_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors2aes_ref ${TEST_VECTORS_SRCS})
+-target_link_libraries(test_dilithium2_ref dilithium2_ref)
+-target_link_libraries(test_vectors2_ref dilithium2_ref)
+-target_link_libraries(test_dilithium2aes_ref dilithium2aes_ref)
+-target_link_libraries(test_vectors2aes_ref dilithium2aes_ref)
++if(BUILD_TESTING)
++  add_executable(test_dilithium2_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors2_ref ${TEST_VECTORS_SRCS})
++  add_executable(test_dilithium2aes_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors2aes_ref ${TEST_VECTORS_SRCS})
++
++  target_link_libraries(test_dilithium2_ref dilithium2_ref)
++  target_link_libraries(test_vectors2_ref dilithium2_ref)
++  target_link_libraries(test_dilithium2aes_ref dilithium2aes_ref)
++  target_link_libraries(test_vectors2aes_ref dilithium2aes_ref)
++
++  add_test(NAME dilithium2_ref COMMAND test_dilithium2_ref)
++  add_test(NAME dilithium2aes_ref COMMAND test_dilithium2aes_ref)
++endif()
+ 
+ # Dilithium 3
+-add_library(dilithium3_ref ${DILITHIUM_FIPS202_SRCS})
+-add_library(dilithium3aes_ref ${DILITHIUM_AES_SRCS})
++add_library(dilithium3_ref STATIC ${DILITHIUM_FIPS202_SRCS})
++add_library(dilithium3aes_ref STATIC ${DILITHIUM_AES_SRCS})
+ target_compile_definitions(dilithium3_ref PUBLIC DILITHIUM_MODE=3)
+-target_compile_definitions(dilithium3aes_ref PUBLIC DILITHIUM_MODE=3 DILITHIUM_USE_AES)
++target_compile_definitions(dilithium3aes_ref PUBLIC DILITHIUM_MODE=3
++                                                    DILITHIUM_USE_AES)
+ target_link_libraries(dilithium3_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium3aes_ref INTERFACE fips202_ref aes256ctr_ref)
+ 
+-add_executable(test_dilithium3_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors3_ref ${TEST_VECTORS_SRCS})
+-add_executable(test_dilithium3aes_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors3aes_ref ${TEST_VECTORS_SRCS})
+-target_link_libraries(test_dilithium3_ref dilithium3_ref)
+-target_link_libraries(test_vectors3_ref dilithium3_ref)
+-target_link_libraries(test_dilithium3aes_ref dilithium3aes_ref)
+-target_link_libraries(test_vectors3aes_ref dilithium3aes_ref)
++if(BUILD_TESTING)
++  add_executable(test_dilithium3_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors3_ref ${TEST_VECTORS_SRCS})
++  add_executable(test_dilithium3aes_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors3aes_ref ${TEST_VECTORS_SRCS})
++  target_link_libraries(test_dilithium3_ref dilithium3_ref)
++  target_link_libraries(test_vectors3_ref dilithium3_ref)
++  target_link_libraries(test_dilithium3aes_ref dilithium3aes_ref)
++  target_link_libraries(test_vectors3aes_ref dilithium3aes_ref)
++  add_test(NAME dilithium3_ref COMMAND test_dilithium3_ref)
++  add_test(NAME dilithium3aes_ref COMMAND test_dilithium3aes_ref)
++endif()
+ 
+ # Dilithium 5
+-add_library(dilithium5_ref ${DILITHIUM_FIPS202_SRCS})
+-add_library(dilithium5aes_ref ${DILITHIUM_AES_SRCS})
++add_library(dilithium5_ref STATIC ${DILITHIUM_FIPS202_SRCS})
++add_library(dilithium5aes_ref STATIC ${DILITHIUM_AES_SRCS})
+ target_compile_definitions(dilithium5_ref PUBLIC DILITHIUM_MODE=5)
+-target_compile_definitions(dilithium5aes_ref PUBLIC DILITHIUM_MODE=5 DILITHIUM_USE_AES)
++target_compile_definitions(dilithium5aes_ref PUBLIC DILITHIUM_MODE=5
++                                                    DILITHIUM_USE_AES)
+ target_link_libraries(dilithium5_ref INTERFACE fips202_ref)
+ target_link_libraries(dilithium5aes_ref INTERFACE fips202_ref aes256ctr_ref)
+ 
+-add_executable(test_dilithium5_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors5_ref ${TEST_VECTORS_SRCS})
+-add_executable(test_dilithium5aes_ref ${TEST_DILITHIUM_SRCS})
+-add_executable(test_vectors5aes_ref ${TEST_VECTORS_SRCS})
+-target_link_libraries(test_dilithium5_ref dilithium5_ref)
+-target_link_libraries(test_vectors5_ref dilithium5_ref)
+-target_link_libraries(test_dilithium5aes_ref dilithium5aes_ref)
+-target_link_libraries(test_vectors5aes_ref dilithium5aes_ref)
+-
+-add_test(NAME dilithium2_ref COMMAND test_dilithium2_ref)
+-add_test(NAME dilithium2aes_ref COMMAND test_dilithium2aes_ref)
+-add_test(NAME dilithium3_ref COMMAND test_dilithium3_ref)
+-add_test(NAME dilithium3aes_ref COMMAND test_dilithium3aes_ref)
+-add_test(NAME dilithium5_ref COMMAND test_dilithium5_ref)
+-add_test(NAME dilithium5aes_ref COMMAND test_dilithium5aes_ref)
+-
+-if(WIN32)
+-  add_test(NAME vectors2_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors2_ref> | dos2unix > tvecs2")
+-  add_test(NAME vectors2aes_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors2aes_ref> | dos2unix > tvecs2aes")
+-  add_test(NAME vectors3_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors3_ref> | dos2unix > tvecs3")
+-  add_test(NAME vectors3aes_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors3aes_ref> | dos2unix > tvecs3aes")
+-  add_test(NAME vectors5_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors5_ref> | dos2unix > tvecs5")
+-  add_test(NAME vectors5aes_ref COMMAND PowerShell -Command "$<TARGET_FILE:test_vectors5aes_ref> | dos2unix > tvecs5aes")
+-else()
+-  add_test(NAME vectors2_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors2_ref>\" > tvecs2")
+-  add_test(NAME vectors2aes_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors2aes_ref>\" > tvecs2aes")
+-  add_test(NAME vectors3_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors3_ref>\" > tvecs3")
+-  add_test(NAME vectors3aes_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors3aes_ref>\" > tvecs3aes")
+-  add_test(NAME vectors5_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors5_ref>\" > tvecs5")
+-  add_test(NAME vectors5aes_ref COMMAND sh -c "\"$<TARGET_FILE:test_vectors5aes_ref>\" > tvecs5aes")
++if(BUILD_TESTING)
++  add_executable(test_dilithium5_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors5_ref ${TEST_VECTORS_SRCS})
++  add_executable(test_dilithium5aes_ref ${TEST_DILITHIUM_SRCS})
++  add_executable(test_vectors5aes_ref ${TEST_VECTORS_SRCS})
++  target_link_libraries(test_dilithium5_ref dilithium5_ref)
++  target_link_libraries(test_vectors5_ref dilithium5_ref)
++  target_link_libraries(test_dilithium5aes_ref dilithium5aes_ref)
++  target_link_libraries(test_vectors5aes_ref dilithium5aes_ref)
++
++  add_test(NAME dilithium5_ref COMMAND test_dilithium5_ref)
++  add_test(NAME dilithium5aes_ref COMMAND test_dilithium5aes_ref)
++endif()
++
++# include_directories(PUBLIC
++# "$<INSTALL_INTERFACE:${DILITHIUM_INSTALL_INCLUDEDIR}>")
++
++set_target_properties(
++  dilithium2_ref dilithium2aes_ref dilithium3_ref dilithium3aes_ref
++  dilithium5_ref dilithium5aes_ref PROPERTIES PUBLIC_HEADER api.h)
++
++# Install all static libraries
++install(
++  TARGETS aes256ctr_ref
++          fips202_ref
++          dilithium2_ref
++          dilithium2aes_ref
++          dilithium3_ref
++          dilithium3aes_ref
++          dilithium5_ref
++          dilithium5aes_ref
++  EXPORT dilithiumTargets
++  ARCHIVE DESTINATION lib/dilithium-${DILITHIUM_SOVERSION}
++  INCLUDES
++  DESTINATION include/dilithium-${DILITHIUM_SOVERSION}
++  PUBLIC_HEADER DESTINATION include/dilithium-${DILITHIUM_SOVERSION})
++
++# Vector Tests
++if(BUILD_TESTING)
++  if(WIN32)
++    add_test(NAME vectors2_ref
++             COMMAND PowerShell -Command
++                     "$<TARGET_FILE:test_vectors2_ref> | dos2unix > tvecs2")
++    add_test(
++      NAME vectors2aes_ref
++      COMMAND PowerShell -Command
++              "$<TARGET_FILE:test_vectors2aes_ref> | dos2unix > tvecs2aes")
++    add_test(NAME vectors3_ref
++             COMMAND PowerShell -Command
++                     "$<TARGET_FILE:test_vectors3_ref> | dos2unix > tvecs3")
++    add_test(
++      NAME vectors3aes_ref
++      COMMAND PowerShell -Command
++              "$<TARGET_FILE:test_vectors3aes_ref> | dos2unix > tvecs3aes")
++    add_test(NAME vectors5_ref
++             COMMAND PowerShell -Command
++                     "$<TARGET_FILE:test_vectors5_ref> | dos2unix > tvecs5")
++    add_test(
++      NAME vectors5aes_ref
++      COMMAND PowerShell -Command
++              "$<TARGET_FILE:test_vectors5aes_ref> | dos2unix > tvecs5aes")
++  else()
++    add_test(NAME vectors2_ref
++             COMMAND sh -c "\"$<TARGET_FILE:test_vectors2_ref>\" > tvecs2")
++    add_test(NAME vectors2aes_ref
++             COMMAND sh -c
++                     "\"$<TARGET_FILE:test_vectors2aes_ref>\" > tvecs2aes")
++    add_test(NAME vectors3_ref
++             COMMAND sh -c "\"$<TARGET_FILE:test_vectors3_ref>\" > tvecs3")
++    add_test(NAME vectors3aes_ref
++             COMMAND sh -c
++                     "\"$<TARGET_FILE:test_vectors3aes_ref>\" > tvecs3aes")
++    add_test(NAME vectors5_ref
++             COMMAND sh -c "\"$<TARGET_FILE:test_vectors5_ref>\" > tvecs5")
++    add_test(NAME vectors5aes_ref
++             COMMAND sh -c
++                     "\"$<TARGET_FILE:test_vectors5aes_ref>\" > tvecs5aes")
++  endif()
++
++  add_test(NAME hashes COMMAND sha256sum -c ../../SHA256SUMS)
++  set_tests_properties(
++    vectors2_ref vectors2aes_ref vectors3_ref vectors3aes_ref vectors5_ref
++    vectors5aes_ref PROPERTIES FIXTURES_SETUP createVectorFiles)
++  set_tests_properties(hashes PROPERTIES FIXTURES_REQUIRED createVectorFiles)
++endif()
++
++if(SHARED)
++  # set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--export-all-symbols")
++
++  add_library(libpqcrystals_fips202_ref SHARED $<TARGET_OBJECTS:fips202_ref>)
++  add_library(libpqcrystals_aes256ctr_ref SHARED
++              $<TARGET_OBJECTS:aes256ctr_ref>)
++
++  add_library(libpqcrystals_dilithium2_ref SHARED
++              $<TARGET_OBJECTS:dilithium2_ref>)
++  add_library(libpqcrystals_dilithium2aes_ref SHARED
++              $<TARGET_OBJECTS:dilithium2aes_ref>)
++  add_library(libpqcrystals_dilithium3_ref SHARED
++              $<TARGET_OBJECTS:dilithium3_ref>)
++  add_library(libpqcrystals_dilithium3aes_ref SHARED
++              $<TARGET_OBJECTS:dilithium3aes_ref>)
++  add_library(libpqcrystals_dilithium5_ref SHARED
++              $<TARGET_OBJECTS:dilithium5_ref>)
++  add_library(libpqcrystals_dilithium5aes_ref SHARED
++              $<TARGET_OBJECTS:dilithium5aes_ref>)
++  install(
++  TARGETS libpqcrystals_fips202_ref
++     libpqcrystals_aes256ctr_ref
++     libpqcrystals_dilithium2_ref
++     libpqcrystals_dilithium2aes_ref
++     libpqcrystals_dilithium3_ref
++     libpqcrystals_dilithium3aes_ref
++     libpqcrystals_dilithium5_ref
++     libpqcrystals_dilithium5aes_ref
++  EXPORT dilithiumTargets
++  LIBRARY DESTINATION lib/dilithium-${DILITHIUM_SOVERSION}
++  INCLUDES
++  DESTINATION include/dilithium-${DILITHIUM_SOVERSION}
++  PUBLIC_HEADER DESTINATION include/dilithium-${DILITHIUM_SOVERSION})
+ endif()
+ 
+-add_test(NAME hashes COMMAND sha256sum -c ../../SHA256SUMS)
++include(CMakePackageConfigHelpers)
++configure_package_config_file(
++  ${CMAKE_SOURCE_DIR}/Config.cmake.in "dilithiumConfig.cmake"
++  INSTALL_DESTINATION lib/cmake/dilithium-${DILITHIUM_SOVERSION})
++
++write_basic_package_version_file(
++  "dilithiumConfigVersion.cmake"
++  VERSION ${DILITHIUM_SOVERSION}
++  COMPATIBILITY SameMajorVersion)
++
++install(
++  EXPORT dilithiumTargets
++  FILE dilithiumTargets.cmake
++  DESTINATION lib/cmake/dilithium-${DILITHIUM_SOVERSION})
++
++install(FILES "${CMAKE_CURRENT_BINARY_DIR}/dilithiumConfig.cmake"
++              "${CMAKE_CURRENT_BINARY_DIR}/dilithiumConfigVersion.cmake"
++        DESTINATION lib/cmake/dilithium-${DILITHIUM_SOVERSION})
+-- 
+2.38.1
+

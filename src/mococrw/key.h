@@ -34,7 +34,6 @@ class AsymmetricKey
 {
 public:
     class Spec;
-
     /**
      * Constructs a wrapper object for OpenSSL EVP_PKEY objects
      */
@@ -43,7 +42,7 @@ public:
     /**
      * Supported asymmetric key types.
      */
-    enum class KeyTypes : int { RSA, ECC, ECC_ED };
+    enum class KeyTypes : int { RSA, ECC, ECC_ED, DILITHIUM2, DILITHIUM3, DILITHIUM5 };
 
     KeyTypes getType() const;
 
