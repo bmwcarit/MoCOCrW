@@ -88,16 +88,16 @@ void HsmEngine::genKey(const RSASpec &spec,
                        const std::string &tokenLabel,
                        const std::string &keyLabel)
 {
-    PKCS11_RSA_KGEN rsa;
-    rsa.bits = spec.numberOfBits();
-    PKCS11_KGEN_ATTRS kg;
-    kg.type = EVP_PKEY_RSA;
-    kg.kgen.rsa = &rsa;
-    kg.key_id = keyID.c_str();
-    kg.token_label = tokenLabel.c_str();
-    kg.key_label = keyLabel.c_str();
+    PKCS11_RSA_KGEN pkcs11_rsa_spec;
+    pkcs11_rsa_spec.bits = spec.numberOfBits();
+    PKCS11_KGEN_ATTRS pkcs11_rsa_kg;
+    pkcs11_rsa_kg.type = EVP_PKEY_RSA;
+    pkcs11_rsa_kg.kgen.rsa = &pkcs11_rsa_spec;
+    pkcs11_rsa_kg.key_id = keyID.c_str();
+    pkcs11_rsa_kg.token_label = tokenLabel.c_str();
+    pkcs11_rsa_kg.key_label = keyLabel.c_str();
 
-    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &kg);
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11_rsa_kg);
 }
 
 void HsmEngine::genKey(const ECCSpec &spec,
@@ -105,17 +105,17 @@ void HsmEngine::genKey(const ECCSpec &spec,
                        const std::string &tokenLabel,
                        const std::string &keyLabel)
 {
-    PKCS11_EC_KGEN ec;
+    PKCS11_EC_KGEN pkcs11_ec_spec;
     auto curve = _EC_curve_nid2nist(int(spec.curve()));
-    ec.curve = curve.c_str();
-    PKCS11_KGEN_ATTRS kg;
-    kg.type = EVP_PKEY_EC;
-    kg.kgen.ec = &ec;
-    kg.key_id = keyID.c_str();
-    kg.token_label = tokenLabel.c_str();
-    kg.key_label = keyLabel.c_str();
+    pkcs11_ec_spec.curve = curve.c_str();
+    PKCS11_KGEN_ATTRS pkcs11_ec_kg;
+    pkcs11_ec_kg.type = EVP_PKEY_EC;
+    pkcs11_ec_kg.kgen.ec = &pkcs11_ec_spec;
+    pkcs11_ec_kg.key_id = keyID.c_str();
+    pkcs11_ec_kg.token_label = tokenLabel.c_str();
+    pkcs11_ec_kg.key_label = keyLabel.c_str();
 
-    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &kg);
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11_ec_kg);
 }
 
 }  // namespace mococrw

@@ -89,32 +89,61 @@ void ecdsaVerify(const AsymmetricPublicKey &pubKey,
         exit(EXIT_FAILURE);
     }
 }
+
 int main(void)
 {
     // Information for engine loading and key management.
     std::string id("pkcs11");
     std::string modulePath("/usr/lib/softhsm/libsofthsm2.so");
     std::string pin("1234");
-    std::string keyID("1001");
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
     HsmEngine hsmEngine(id, modulePath, pin);
 
+
     /************** ECDSA signature **************/
+    std::string keyIDEcc("5567");
     auto ecdsaDigestType = DigestTypes::SHA512;
     ECCSpec ecspec;
     auto eccPrivKey = AsymmetricPrivateKey::genKeyOnHsmGetPrivate(
-            hsmEngine, ecspec, "5567", "token-label", "DobarKey");
+            hsmEngine, ecspec, keyIDEcc, "token-label", "DobarKey");
     auto ecdsaSigFormat = ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS;
 
     /* The argument hashFunction is optional. Default is SHA256
      * The default signature format is ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS */
     auto signature = ecdsaSign(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, message);
 
-    /* we can use here the private key, as it also contains the public key.
+    /* Use-Case 1: You want to check your own signature:
+     * we can use here the private key, as it also contains the public key.
      * In MoCOCrW the AsymmetricPrivateKey is a specialisation of AsymmetricPublicKey. Thus
      * we do an implicit upcast here.
      */
     ecdsaVerify(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, signature, message);
+
+    /* Use-Case 2: The public key used for verification is stored in the HSM */
+    auto pubKeyEcc = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyIDEcc);
+    ecdsaVerify(pubKeyEcc, ecdsaDigestType, ecdsaSigFormat, signature, message);
+
+    /* Use-Case 3: You want to write the public key to a PEM file and use it later
+     * for verification
+     */
+    auto pubKeyPem = eccPrivKey.publicKeyToPem();
+    /* Omitted: Write PEM data to a file and read it again */
+    auto pubKeyEccFromPEm = mococrw::AsymmetricPublicKey::readPublicKeyFromPEM(pubKeyPem);
+    ecdsaVerify(pubKeyEccFromPEm, ecdsaDigestType, ecdsaSigFormat, signature, message);
+    /*********************************************/
+
+    /************** RSA key generation **************/
+    std::string keyIDRsa("8890");
+    mococrw::RSASpec rsaSpec;
+    auto rsaPrivKey = AsymmetricPrivateKey::genKeyOnHsmGetPrivate(
+            hsmEngine, rsaSpec, keyIDRsa, "token-label", "BarfoKey");
+
+    /* Read public key from HSM */
+    auto pubKeyRsa = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyIDRsa);
+
+    /* Do whatever you want using the private and public key. See rsa-example.cpp or
+     * sig-example.cpp for further examples.
+     */
     /*********************************************/
 
     return 0;

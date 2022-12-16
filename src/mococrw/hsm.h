@@ -56,21 +56,44 @@ protected:
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) = 0;
 
+    /**
+     * @brief Generate a key pair in the HSM, return the public key
+     *
+     * @param spec The RSA specification, which shall be used for key generation
+     * @param keyID The key identifier
+     * @param tokenLabel The token label
+     * @param keyLabel The key label
+     * @return openssl::SSL_EVP_PKEY_Ptr
+     */
     virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const RSASpec &spec,
                                                       const std::string &keyID,
                                                       const std::string &tokenLabel,
                                                       const std::string &keyLabel) = 0;
-
+    /**
+     * @brief Overloaded for ECC specs
+     */
     virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const ECCSpec &spec,
                                                       const std::string &keyID,
                                                       const std::string &tokenLabel,
                                                       const std::string &keyLabel) = 0;
 
+    /**
+     * @brief Generate a key pair in the HSM, return the private key
+     *
+     * @param spec The RSA specification, which shall be used for key generation
+     * @param keyID The key identifier
+     * @param tokenLabel The token label
+     * @param keyLabel The key label
+     * @return openssl::SSL_EVP_PKEY_Ptr
+     */
     virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const RSASpec &spec,
                                                        const std::string &keyID,
                                                        const std::string &tokenLabel,
                                                        const std::string &keyLabel) = 0;
 
+    /**
+     * @brief Overloaded for ECC specs
+     */
     virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const ECCSpec &spec,
                                                        const std::string &keyID,
                                                        const std::string &tokenLabel,
