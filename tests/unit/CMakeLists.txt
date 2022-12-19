@@ -301,6 +301,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         add_test(
             NAME DilithiumSignatureTests
             COMMAND dilithiumtests
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/dilithium-keys"
         )
     endif()
 

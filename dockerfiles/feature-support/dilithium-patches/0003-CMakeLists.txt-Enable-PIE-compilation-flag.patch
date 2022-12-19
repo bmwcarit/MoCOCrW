@@ -1,0 +1,26 @@
+From 015984614f20d574b05576064daa7d75024b1a5e Mon Sep 17 00:00:00 2001
+From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
+Date: Tue, 13 Dec 2022 14:39:48 +0100
+Subject: [PATCH 3/8] CMakeLists.txt: Enable PIE compilation flag
+
+Compile the libraries with Position Independent Executable (PIE) enabled.
+---
+ CMakeLists.txt | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 60cb20e..f56a1bf 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -8,6 +8,8 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
+ #find_package(OpenSSL REQUIRED)
+ #include_directories(${OPENSSL_INCLUDE_DIR})
+ 
++set(CMAKE_POSITION_INDEPENDENT_CODE ON)
++
+ if(BUILD_TESTING)
+     message(STATUS "Testing enabled.")
+     enable_testing()
+-- 
+2.38.1
+

@@ -42,7 +42,7 @@ public:
     /**
      * Supported asymmetric key types.
      */
-    enum class KeyTypes : int { RSA, ECC, ECC_ED, DILITHIUM2, DILITHIUM3, DILITHIUM5 };
+    enum class KeyTypes : int { RSA, ECC, ECC_ED, DILITHIUM };
 
     KeyTypes getType() const;
 

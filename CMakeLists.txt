@@ -31,7 +31,7 @@ set(SECURITY_COMPILER_FLAGS
 # By default, we do not build MoCOCrW with LibP11.
 option(HSM_ENABLED "Enable HSM features" OFF)
 
-# By default, we do not build MoCOCrW with LibP11.
+# By default, we do not build MoCOCrW with dilithium support.
 option(DILITHIUM_ENABLED "Enable Dilithium features" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

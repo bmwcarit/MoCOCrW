@@ -1,10 +1,11 @@
-From 1677215832baa8dc6a519e650ed10dd212456da4 Mon Sep 17 00:00:00 2001
+From 0457621c322ddc0e49b453d9ce107498e0e51573 Mon Sep 17 00:00:00 2001
 From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
 Date: Mon, 28 Nov 2022 16:21:01 +0100
-Subject: [PATCH 3/3] Add function for pub key extraction
+Subject: [PATCH 8/8] Add function for pub key extraction
 
-Add a function to extract the public key from
-a given private key.
+There was no function to retreive the public key from the private key.
+
+This change adds this functionality and a test for it.
 ---
  ref/api.h                 |  6 ++++++
  ref/sign.c                | 43 +++++++++++++++++++++++++++++++++++++++

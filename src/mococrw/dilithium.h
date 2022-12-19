@@ -36,22 +36,39 @@ namespace mococrw
  * version used by MoCOCrW. It stores the key as std::vector<uint8_t> and the key type.
  * Addittionally some convenient functions are added.
  */
-// Rename DilithiumKeyImplementation
 class DilithiumKeyImpl
 {
 public:
-    DilithiumKeyImpl(const std::vector<uint8_t> key_data, AsymmetricKey::KeyTypes key_type)
-            : _keyType(key_type), _key_data{std::move(key_data)}
+    enum class DilithiumParameterSet : int { DILITHIUM2, DILITHIUM3, DILITHIUM5 };
+
+    DilithiumKeyImpl(const std::vector<uint8_t> key_data,
+                     DilithiumKeyImpl::DilithiumParameterSet paramSet,
+                     bool is_private_key)
+            : _key_data{std::move(key_data)}, _is_private_key(is_private_key), _paramSet(paramSet)
     {
         if (!hasValidKeySize()) {
             throw MoCOCrWException("Key data does not match the expected size.");
         }
     }
 
-    static std::shared_ptr<DilithiumKeyImpl> parseAsn1PublicKey(
+    /**
+     * @brief Parses a ASN.1 X509 public key object (see RFC5280)
+     *
+     * @param x509PubKey The public key object as defined in RFC5280
+     * @return A shared pointer to a dilithium implementation object
+     */
+    static std::shared_ptr<DilithiumKeyImpl> readPublicKeyFromDER(
             const std::vector<uint8_t> &x509PubKey);
-    static std::shared_ptr<DilithiumKeyImpl> parseAsn1PrivateKey(
+
+    /**
+     * @brief Parses a ASN.1 PKCS#8 private key object (see RFC5208)
+     *
+     * @param x509PubKey The private key object as defined in RFC5208
+     * @return A shared pointer to a dilithium implementation object
+     */
+    static std::shared_ptr<DilithiumKeyImpl> readPrivateKeyFromDER(
             const std::vector<uint8_t> &pkcs8PrivKey);
+
     /**
      * @returns The key type
      */
@@ -60,7 +77,7 @@ public:
     /**
      * @returns The size of the raw key data
      */
-    uint getKeySize() const noexcept { return _key_data.size(); }
+    uint getKeySize() const { return _key_data.size(); }
 
     /**
      * Returns the raw key data
@@ -74,7 +91,7 @@ public:
      *
      * @return The public key
      * @throws If the stored key size doesn't match the size of a private or public key
-     * @throws If the extraction functin to get the public key from a private key returns an error
+     * @throws If the extraction function to get the public key from a private key returns an error
      * @throws If the key type is not supported
      */
     DilithiumKeyImpl getPublicKey() const;
@@ -98,11 +115,24 @@ public:
      */
     bool isPrivateKey() const;
 
-    inline bool operator==(DilithiumKeyImpl &key) { return _key_data == key.getKeyData(); }
+    /**
+     * @brief Get the selected dilithium parameter set (one of DILITHIUM{2,3,5})
+     *
+     * @return The parameter set chosen
+     */
+    DilithiumParameterSet getDilithiumParameterSet() const { return _paramSet; }
+
+    inline bool operator==(const DilithiumKeyImpl &rhs) const
+    {
+        return _key_data == rhs.getKeyData() && _is_private_key == rhs.isPrivateKey() &&
+               _paramSet == rhs.getDilithiumParameterSet();
+    }
 
 private:
-    const AsymmetricKey::KeyTypes _keyType;
+    const AsymmetricKey::KeyTypes _keyType = AsymmetricKey::KeyTypes::DILITHIUM;
     const std::vector<uint8_t> _key_data;
+    const bool _is_private_key;
+    const DilithiumParameterSet _paramSet;
 };
 
 /**
@@ -151,7 +181,14 @@ class DilithiumAsymmetricPublicKey
 public:
     DilithiumAsymmetricPublicKey(std::shared_ptr<DilithiumKeyImpl> key) : _key{std::move(key)} {}
 
-    static DilithiumAsymmetricPublicKey fromDER(std::vector<uint8_t> &asn1Data);
+    /**
+     * @brief Parses an ASN.1 struct in DER format at returns a public key object
+     *
+     * @param asn1Data The ASN.1 struct in DER format
+     * @return the DilithiumAsymmetricPublicKey object created form the DER data
+     * @throws MoCOCrWException if the struct cannot be parsed or if the key is invalid
+     */
+    static DilithiumAsymmetricPublicKey readPublicKeyfromDER(const std::vector<uint8_t> &asn1Data);
 
     /**
      * Getters for the internal dilithium implementation objet.
@@ -183,9 +220,7 @@ public:
 
     inline bool operator==(const DilithiumAsymmetricPublicKey &rhs) const
     {
-        auto lhs_data = _internal()->getKeyData();
-        auto rhs_data = rhs._internal()->getKeyData();
-        return lhs_data == rhs_data;
+        return *_internal() == *rhs._internal();
     }
     inline bool operator!=(const DilithiumAsymmetricPublicKey &rhs) const
     {
@@ -216,6 +251,15 @@ public:
             : DilithiumAsymmetricPublicKey{std::move(keypair)}
     {
     }
+
+    /**
+     * @brief Parses an ASN.1 struct in DER format at returns a private key object
+     *
+     * @param asn1Data The ASN.1 struct in DER format
+     * @return the DilithiumAsymmetricKeypair object created form the DER data
+     * @throws MoCOCrWException if the struct cannot be parsed or if the key is invalid
+     */
+    static DilithiumAsymmetricKeypair readPrivateKeyfromDER(const std::vector<uint8_t> &asn1Data);
 
     /**
      * Generate an asymmetric keypair with given Spec.
@@ -271,16 +315,21 @@ public:
 class DilithiumSpec final : public DilithiumAsymmetricKey::Spec
 {
 public:
-    static constexpr AsymmetricKey::KeyTypes defaultDilithiumType =
-            AsymmetricKey::KeyTypes::DILITHIUM5;
+    /* According to https://pq-crystals.org/dilithium/ DILITHIUM3 shall be used
+     * as default parameter set.
+     */
+    static const DilithiumKeyImpl::DilithiumParameterSet defaultDilithiumParamSet =
+            DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM3;
 
-    explicit DilithiumSpec(AsymmetricKey::KeyTypes keyType) : _keyType{keyType} {}
+    explicit DilithiumSpec(DilithiumKeyImpl::DilithiumParameterSet paramSet) : _paramSet{paramSet}
+    {
+    }
 
-    DilithiumSpec() : DilithiumSpec{defaultDilithiumType} {}
+    DilithiumSpec() : DilithiumSpec{defaultDilithiumParamSet} {}
     DilithiumAsymmetricKey generate() const;
 
 private:
-    AsymmetricKey::KeyTypes _keyType;
+    DilithiumKeyImpl::DilithiumParameterSet _paramSet;
 };
 
 class DilithiumSigningCtx : public MessageSignatureCtx

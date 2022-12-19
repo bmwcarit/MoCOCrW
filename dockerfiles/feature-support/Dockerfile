@@ -31,15 +31,26 @@ RUN cd /tmp/libp11 && \
 
 # Install patched libdilithium
 RUN mkdir /tmp/libdilithium
-ADD dilithium-patches/0001-Add-code-to-enable-cmake-to-install-static-libraries.patch /tmp/libdilithium
-ADD dilithium-patches/0002-CMakeLists-Change-target_compile_definition-to-PRIVA.patch /tmp/libdilithium
-ADD dilithium-patches/0003-Add-function-for-pub-key-extraction.patch                  /tmp/libdilithium
+ADD dilithium-patches/0001-CMakeLists.txt-Add-BUILD_TESTING-compile-flag.patch   /tmp/libdilithium
+ADD dilithium-patches/0002-CMakeLists.txt-Enable-parallel-test-execution.patch   /tmp/libdilithium
+ADD dilithium-patches/0003-CMakeLists.txt-Enable-PIE-compilation-flag.patch      /tmp/libdilithium
+ADD dilithium-patches/0004-CMakeLists.txt-Add-UBSAN-and-ASAN-build-types.patch   /tmp/libdilithium
+ADD dilithium-patches/0005-CMakeLists.txt-Add-cmake-install-target.patch         /tmp/libdilithium
+ADD dilithium-patches/0006-CMakelists.txt-Add-stack-protector-strong-flag.patch  /tmp/libdilithium
+ADD dilithium-patches/0007-CMakeLists.txt-Change-target_compile_definition.patch /tmp/libdilithium
+ADD dilithium-patches/0008-Add-function-for-pub-key-extraction.patch             /tmp/libdilithium
+
 RUN cd /tmp/libdilithium && \
     git clone https://github.com/pq-crystals/dilithium && \
     cd dilithium && \
-    git apply /tmp/libdilithium/0001-Add-code-to-enable-cmake-to-install-static-libraries.patch && \
-    git apply /tmp/libdilithium/0002-CMakeLists-Change-target_compile_definition-to-PRIVA.patch && \
-    git apply /tmp/libdilithium/0003-Add-function-for-pub-key-extraction.patch                  && \
+    git apply /tmp/libdilithium/0001-CMakeLists.txt-Add-BUILD_TESTING-compile-flag.patch   && \
+    git apply /tmp/libdilithium/0002-CMakeLists.txt-Enable-parallel-test-execution.patch   && \
+    git apply /tmp/libdilithium/0003-CMakeLists.txt-Enable-PIE-compilation-flag.patch      && \
+    git apply /tmp/libdilithium/0004-CMakeLists.txt-Add-UBSAN-and-ASAN-build-types.patch   && \
+    git apply /tmp/libdilithium/0005-CMakeLists.txt-Add-cmake-install-target.patch         && \
+    git apply /tmp/libdilithium/0006-CMakelists.txt-Add-stack-protector-strong-flag.patch  && \
+    git apply /tmp/libdilithium/0007-CMakeLists.txt-Change-target_compile_definition.patch && \
+    git apply /tmp/libdilithium/0008-Add-function-for-pub-key-extraction.patch             && \
     mkdir build && \
     cd build && \
     cmake -GNinja .. && \

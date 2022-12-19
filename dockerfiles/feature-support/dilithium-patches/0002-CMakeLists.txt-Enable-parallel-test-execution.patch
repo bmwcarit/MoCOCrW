@@ -1,0 +1,33 @@
+From 8855c95176ccf5086aa21d2eaa9815f4426e3385 Mon Sep 17 00:00:00 2001
+From: Tobias Kaufmann <Tobias.KA.Kaufmann@bmw.de>
+Date: Tue, 13 Dec 2022 14:55:26 +0100
+Subject: [PATCH 2/8] CMakeLists.txt: Enable parallel test execution
+
+The last test depends on the execution of the previos test_vector*
+tests as these tests create data, which is hashed and compared to an existing
+hash value.
+
+This change adds a dependency for hashes on the test_vector* tests, so that the
+test hashes is executed after all of these test_vector tests have been
+successfully executed.
+---
+ ref/CMakeLists.txt | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+diff --git a/ref/CMakeLists.txt b/ref/CMakeLists.txt
+index c246b1e..9c30fa4 100644
+--- a/ref/CMakeLists.txt
++++ b/ref/CMakeLists.txt
+@@ -129,5 +129,9 @@ if(BUILD_TESTING)
+   endif()
+ 
+   add_test(NAME hashes COMMAND sha256sum -c ../../SHA256SUMS)
++  set_tests_properties(
++    vectors2_ref vectors2aes_ref vectors3_ref vectors3aes_ref vectors5_ref
++    vectors5aes_ref PROPERTIES FIXTURES_SETUP createVectorFiles)
++  set_tests_properties(hashes PROPERTIES FIXTURES_REQUIRED createVectorFiles)
+ endif()
+ 
+-- 
+2.38.1
+
