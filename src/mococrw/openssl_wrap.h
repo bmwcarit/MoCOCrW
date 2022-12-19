@@ -367,7 +367,7 @@ void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid);
 void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc);
 
 /**
- * @brief Parses a private key ASN.1 structure (see RFC 5958 )
+ * @brief Parses a DER-encoded private key ASN.1 structure (see RFC 5958)
  *
  * @param buf The data to parse
  * @param length  The size of the data
@@ -1217,7 +1217,7 @@ SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO *bp);
 SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO *bp);
 
 /**
- * Reads a DER encoded CRL from a BIO object.
+ * Reads a DER encoded x509 pubkey from a buffer.
  */
 SSL_X509_PUBKEY_Ptr _d2i_X509_PUBKEY(const unsigned char *pin, long length);
 
