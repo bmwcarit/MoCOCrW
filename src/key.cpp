@@ -107,29 +107,10 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string 
 }
 
 #ifdef HSM_ENABLED
-AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(HSM &hsm, const std::string &keyID)
+AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(const HSM &hsm,
+                                                              const std::string &keyID)
 {
     auto key = hsm.loadPublicKey(keyID);
-    return AsymmetricPublicKey{std::move(key)};
-}
-
-AsymmetricPublicKey AsymmetricPublicKey::genKeyOnHsmGetPublic(HSM &hsm,
-                                                              const ECCSpec &spec,
-                                                              const std::string &keyID,
-                                                              const std::string &tokenLabel,
-                                                              const std::string &keyLabel)
-{
-    auto key = hsm.genKeyGetPublic(spec, keyID, tokenLabel, keyLabel);
-    return AsymmetricPublicKey{std::move(key)};
-}
-
-AsymmetricPublicKey AsymmetricPublicKey::genKeyOnHsmGetPublic(HSM &hsm,
-                                                              const RSASpec &spec,
-                                                              const std::string &keyID,
-                                                              const std::string &tokenLabel,
-                                                              const std::string &keyLabel)
-{
-    auto key = hsm.genKeyGetPublic(spec, keyID, tokenLabel, keyLabel);
     return AsymmetricPublicKey{std::move(key)};
 }
 #endif
@@ -206,30 +187,46 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
 }
 
 #ifdef HSM_ENABLED
-AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID)
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm, const std::string &keyID)
 {
     auto key = hsm.loadPrivateKey(keyID);
     return AsymmetricKeypair{std::move(key)};
 }
 
-AsymmetricKeypair AsymmetricKeypair::genKeyOnHsmGetPrivate(HSM &hsm,
-                                                           const ECCSpec &spec,
-                                                           const std::string &keyID,
-                                                           const std::string &tokenLabel,
-                                                           const std::string &keyLabel)
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(const HSM &hsm,
+                                                      const ECCSpec &spec,
+                                                      const std::string &keyID,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel)
 {
-    auto key = hsm.genKeyGetPrivate(spec, keyID, tokenLabel, keyLabel);
-    return AsymmetricKeypair{std::move(key)};
+    try {
+        auto key = hsm.generateKey(spec, keyID, tokenLabel, keyLabel);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const OpenSSLException &e) {
+        throw MoCOCrWException(
+                std::string("Key generation failed for unknown reason. Likely reasons: invalid "
+                            "spec, keyID containing non-hex chars, wrong tokenLabel, broken HSM "
+                            "module implementation. OpenSSL error: ") +
+                e.what());
+    }
 }
 
-AsymmetricKeypair AsymmetricKeypair::genKeyOnHsmGetPrivate(HSM &hsm,
-                                                           const RSASpec &spec,
-                                                           const std::string &keyID,
-                                                           const std::string &tokenLabel,
-                                                           const std::string &keyLabel)
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(const HSM &hsm,
+                                                      const RSASpec &spec,
+                                                      const std::string &keyID,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel)
 {
-    auto key = hsm.genKeyGetPrivate(spec, keyID, tokenLabel, keyLabel);
-    return AsymmetricKeypair{std::move(key)};
+    try {
+        auto key = hsm.generateKey(spec, keyID, tokenLabel, keyLabel);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const OpenSSLException &e) {
+        throw MoCOCrWException(
+                std::string("Key generation failed for unknown reason. Likely reasons: invalid "
+                            "spec, keyID containing non-hex chars, wrong tokenLabel, broken HSM "
+                            "module implementation. OpenSSL error: ") +
+                e.what());
+    }
 }
 #endif
 

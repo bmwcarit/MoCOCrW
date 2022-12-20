@@ -99,12 +99,11 @@ int main(void)
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
     HsmEngine hsmEngine(id, modulePath, pin);
 
-
-    /************** ECDSA signature **************/
+    /************** ECC key generation and ECDSA **************/
     std::string keyIDEcc("5567");
     auto ecdsaDigestType = DigestTypes::SHA512;
     ECCSpec ecspec;
-    auto eccPrivKey = AsymmetricPrivateKey::genKeyOnHsmGetPrivate(
+    auto eccPrivKey = AsymmetricPrivateKey::generateKeyOnHsm(
             hsmEngine, ecspec, keyIDEcc, "token-label", "DobarKey");
     auto ecdsaSigFormat = ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS;
 
@@ -119,6 +118,7 @@ int main(void)
      */
     ecdsaVerify(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, signature, message);
 
+    /************** Get pubkey from HSM, store it in PEM file for later use **************/
     /* Use-Case 2: The public key used for verification is stored in the HSM */
     auto pubKeyEcc = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyIDEcc);
     ecdsaVerify(pubKeyEcc, ecdsaDigestType, ecdsaSigFormat, signature, message);
@@ -132,10 +132,10 @@ int main(void)
     ecdsaVerify(pubKeyEccFromPEm, ecdsaDigestType, ecdsaSigFormat, signature, message);
     /*********************************************/
 
-    /************** RSA key generation **************/
+    /************** RSA key generation and loading **************/
     std::string keyIDRsa("8890");
     mococrw::RSASpec rsaSpec;
-    auto rsaPrivKey = AsymmetricPrivateKey::genKeyOnHsmGetPrivate(
+    auto rsaPrivKey = AsymmetricPrivateKey::generateKeyOnHsm(
             hsmEngine, rsaSpec, keyIDRsa, "token-label", "BarfoKey");
 
     /* Read public key from HSM */

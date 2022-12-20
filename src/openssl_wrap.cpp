@@ -1605,7 +1605,8 @@ void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p)
 
 std::string _EC_curve_nid2nist(int nid)
 {
-    return std::string{lib::OpenSSLLib::SSL_EC_curve_nid2nist(nid)};
+    auto nist = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_curve_nid2nist, nid);
+    return std::string(nist);
 }
 
 }  // namespace openssl

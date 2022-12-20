@@ -1566,7 +1566,7 @@ void _ENGINE_finish(ENGINE *e);
 void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p);
 
 /**
- *
+ * Convert integer nid to curve name
  */
 std::string _EC_curve_nid2nist(int nid);
 

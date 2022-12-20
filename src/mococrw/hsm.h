@@ -43,71 +43,46 @@ public:
 
 protected:
     /**
+     * @brief Generate a RSA key pair on the HSM
+     *
+     * @param spec The RSA specification @ref RSASpec
+     * @param keyID The key identifier
+     * @param tokenLabel The token label
+     * @param keyLabel The key label
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                                  const std::string &keyID,
+                                                  const std::string &tokenLabel,
+                                                  const std::string &keyLabel) const = 0;
+
+    /**
+     * @brief Generate a ECC key pair on the HSM
+     *
+     * @param spec The ECC specification @ref ECCSpec
+     * @param keyID The key identifier
+     * @param tokenLabel The token label
+     * @param keyLabel The key label
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                                  const std::string &keyID,
+                                                  const std::string &tokenLabel,
+                                                  const std::string &keyLabel) const = 0;
+
+    /**
      *  Loads public key from HSM.
      *
      *  @param keyID The ID of the public key to load.
      */
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) = 0;
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) const = 0;
 
     /**
      * Loads private key from HSM.
      *
      * @param keyID The ID of the private key to load.
      */
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) = 0;
-
-    /**
-     * @brief Generate a key pair in the HSM, return the public key
-     *
-     * @param spec The RSA specification, which shall be used for key generation
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return openssl::SSL_EVP_PKEY_Ptr
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const RSASpec &spec,
-                                                      const std::string &keyID,
-                                                      const std::string &tokenLabel,
-                                                      const std::string &keyLabel) = 0;
-    /**
-     * @brief Overloaded for ECC specs
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const ECCSpec &spec,
-                                                      const std::string &keyID,
-                                                      const std::string &tokenLabel,
-                                                      const std::string &keyLabel) = 0;
-
-    /**
-     * @brief Generate a key pair in the HSM, return the private key
-     *
-     * @param spec The RSA specification, which shall be used for key generation
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return openssl::SSL_EVP_PKEY_Ptr
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const RSASpec &spec,
-                                                       const std::string &keyID,
-                                                       const std::string &tokenLabel,
-                                                       const std::string &keyLabel) = 0;
-
-    /**
-     * @brief Overloaded for ECC specs
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const ECCSpec &spec,
-                                                       const std::string &keyID,
-                                                       const std::string &tokenLabel,
-                                                       const std::string &keyLabel) = 0;
-
-    virtual void genKey(const RSASpec &spec,
-                        const std::string &keyID,
-                        const std::string &tokenLabel,
-                        const std::string &keyLabel) = 0;
-
-    virtual void genKey(const ECCSpec &spec,
-                        const std::string &keyID,
-                        const std::string &tokenLabel,
-                        const std::string &keyLabel) = 0;
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const = 0;
 };
 
 /**
@@ -119,6 +94,16 @@ public:
     HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin);
     virtual ~HsmEngine();
 
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                          const std::string &keyID,
+                                          const std::string &tokenLabel,
+                                          const std::string &keyLabel) const override;
+
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                          const std::string &keyID,
+                                          const std::string &tokenLabel,
+                                          const std::string &keyLabel) const override;
+
 protected:
     /** Pointer to OpenSSL ENGINE. */
     openssl::SSL_ENGINE_Ptr _engine;
@@ -129,39 +114,9 @@ protected:
     /** Pin to access PKCS11 Engine. */
     const std::string _pin;
 
-    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) override;
+    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) const override;
 
-    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) override;
-
-    openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const RSASpec &spec,
-                                              const std::string &keyID,
-                                              const std::string &tokenLabel,
-                                              const std::string &keyLabel) override;
-
-    openssl::SSL_EVP_PKEY_Ptr genKeyGetPublic(const ECCSpec &spec,
-                                              const std::string &keyID,
-                                              const std::string &tokenLabel,
-                                              const std::string &keyLabel) override;
-
-    openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const RSASpec &spec,
-                                               const std::string &keyID,
-                                               const std::string &tokenLabel,
-                                               const std::string &keyLabel) override;
-
-    openssl::SSL_EVP_PKEY_Ptr genKeyGetPrivate(const ECCSpec &spec,
-                                               const std::string &keyID,
-                                               const std::string &tokenLabel,
-                                               const std::string &keyLabel) override;
-
-    void genKey(const RSASpec &spec,
-                const std::string &keyID,
-                const std::string &tokenLabel,
-                const std::string &keyLabel) override;
-
-    void genKey(const ECCSpec &spec,
-                const std::string &keyID,
-                const std::string &tokenLabel,
-                const std::string &keyLabel) override;
+    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const override;
 };
 
 }  // namespace mococrw

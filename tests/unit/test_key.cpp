@@ -310,6 +310,15 @@ TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
     EXPECT_CALL(hsmMock, loadPrivateKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
     EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
 }
+
+TEST_F(KeyHandlingTests, testHSMKeyGeneration)
+{
+    ECCSpec ecc_spec;
+    HSMMock hsmMock;
+    // TODO: Find a more meaningful way to test this
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
+            hsmMock, ecc_spec, "1000", "token-label", "key-label"));
+}
 #endif
 
 TEST_F(KeyHandlingTests, testBothGeneratedKeysNotTheSame)

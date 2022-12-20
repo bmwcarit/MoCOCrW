@@ -22,7 +22,6 @@
 #include <cstring>
 #include <string>
 
-// #include "key.cpp"
 #include "mococrw/hsm.h"
 #include "openssl_lib_mock.h"
 
