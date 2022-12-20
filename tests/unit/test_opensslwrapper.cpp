@@ -263,7 +263,7 @@ TEST_F(OpenSSLWrapperTest, testEngineInitThrowsException)
     EXPECT_THROW(_ENGINE_init(engine), OpenSSLException);
 }
 
-TEST_F(OpenSSLWrapperTest, testEngineCtrlCmd)
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmdString)
 {
     auto engine = ::testutils::someEnginePtr();
     std::string cmd = "command";
@@ -275,7 +275,7 @@ TEST_F(OpenSSLWrapperTest, testEngineCtrlCmd)
     EXPECT_NO_THROW(_ENGINE_ctrl_cmd_string(engine, cmd, cmdArg));
 }
 
-TEST_F(OpenSSLWrapperTest, testEngineCtrlCmdiThrowsException)
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmdStringThrowsException)
 {
     auto engine = ::testutils::someEnginePtr();
     std::string cmd = "command";
@@ -339,4 +339,42 @@ TEST_F(OpenSSLWrapperTest, testEngineFinishThrowsException)
     auto engine = ::testutils::someEnginePtr();
     EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(0));
     EXPECT_THROW(_ENGINE_finish(engine), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmd)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string cmd = "command";
+    void *randomVoidPointer = (void *)0x424244;
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd(
+                        engine, cmd.c_str(), 0 /*non-optional*/, randomVoidPointer, nullptr, 1))
+            .WillOnce(Return(1));
+    EXPECT_NO_THROW(_ENGINE_ctrl_cmd(engine, cmd, randomVoidPointer));
+}
+
+TEST_F(OpenSSLWrapperTest, testEngineCtrlCmdThrowsException)
+{
+    auto engine = ::testutils::someEnginePtr();
+    std::string cmd = "command";
+    void *randomVoidPointer = (void *)0x424244;
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd(
+                        engine, cmd.c_str(), 0 /*non-optional*/, randomVoidPointer, nullptr, 1))
+            .WillOnce(Return(0));
+    EXPECT_THROW(_ENGINE_ctrl_cmd(engine, cmd, randomVoidPointer), OpenSSLException);
+}
+
+TEST_F(OpenSSLWrapperTest, testECP256Nid2Nist)
+{
+    int c = int(ellipticCurveNid::PRIME_256v1);
+    EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(c)).WillOnce(Return("P-256"));
+    EXPECT_NO_THROW(_EC_curve_nid2nist(int(ellipticCurveNid::PRIME_256v1)));
+}
+
+TEST_F(OpenSSLWrapperTest, testECSantaClausNid2Nist)
+{
+    int bogusCurve = 25120000;
+    EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(bogusCurve)).WillOnce(Return(nullptr));
+    EXPECT_THROW(_EC_curve_nid2nist(bogusCurve), OpenSSLException);
 }
