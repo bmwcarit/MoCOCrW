@@ -73,9 +73,13 @@ add_test(
 
 add_executable(sig-example sig-example.cpp)
 target_link_libraries(sig-example PUBLIC MoCOCrW::mococrw)
+if(DILITHIUM_ENABLED)
+    target_compile_definitions(sig-example PUBLIC DILITHIUM_ENABLED)
+endif()
 add_test(
     NAME sigExample
     COMMAND sig-example
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/dilithium-keys"
 )
 
 add_executable(cert-validation cert-validation.cpp)

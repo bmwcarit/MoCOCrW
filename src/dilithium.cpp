@@ -332,16 +332,6 @@ DilithiumAsymmetricKey DilithiumSpec::generate() const
     return DilithiumAsymmetricKey(std::make_shared<DilithiumKeyImpl>(privateKey, _paramSet, true));
 }
 
-template <class Key>
-class DilithiumSignatureImpl
-{
-public:
-    DilithiumSignatureImpl(const Key &key) : _key(key) {}
-
-protected:
-    Key _key;
-};
-
 class DilithiumSigningCtx::Impl
 {
 public:

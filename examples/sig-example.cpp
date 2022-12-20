@@ -20,6 +20,7 @@
 #include <mococrw/asymmetric_crypto_ctx.h>
 #include <mococrw/hash.h>
 #include <iostream>
+#include "mococrw/util.h"
 
 #ifdef DILITHIUM_ENABLED
 #include <mococrw/dilithium.h>
@@ -303,7 +304,7 @@ int main(void)
     /* Please note that the interface might change slightly once openssl officially supports
      * dilithium
      */
-    auto keySpec = DilithiumSpec(AsymmetricKey::KeyTypes::DILITHIUM3);
+    auto keySpec = DilithiumSpec(DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM3);
     auto dilithiumKeypair = DilithiumAsymmetricPrivateKey::generate(keySpec);
 
     signature = dilithiumSign(dilithiumKeypair, message);
@@ -312,6 +313,15 @@ int main(void)
      * we do an implicit upcast here.
      */
     dilithiumVerify(dilithiumKeypair, signature, message);
+
+    /* Now the public key, the message and the signature are read from files */
+    auto pubKeyData = utility::bytesFromFile<uint8_t>("dilithium3-public-key.der");
+    auto dilithiumPubKey = DilithiumAsymmetricPublicKey::readPublicKeyfromDER(pubKeyData);
+
+    message = utility::bytesFromFile<uint8_t>("message.raw");
+    signature = utility::bytesFromFile<uint8_t>("dilithium3-test-signature.raw");
+
+    dilithiumVerify(dilithiumPubKey, signature, message);
     /*********************************************/
 #endif  // DILITHIUM_ENABLED
 }

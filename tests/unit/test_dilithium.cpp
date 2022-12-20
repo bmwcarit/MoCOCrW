@@ -112,7 +112,7 @@ struct DerTestData
     std::string privateKeyRawPath;
     std::string publicKeyDerPath;
     std::string publicKeyRawPath;
-    std::string message;
+    std::string messagePath;
     std::string signaturePath;
 };
 
@@ -120,45 +120,39 @@ class DilithiumTestDerData : public testing::TestWithParam<DerTestData>
 {
 };
 
-INSTANTIATE_TEST_SUITE_P(
-        BackendData,
-        DilithiumTestDerData,
-        testing::Values(
-                DerTestData{
+INSTANTIATE_TEST_SUITE_P(TestData,
+                         DilithiumTestDerData,
+                         testing::Values(
+                                 DerTestData{// DILITHIUM 3
+                                             "dilithium3-private-key.der",
+                                             "dilithium3-private-key.raw",
+                                             "dilithium3-public-key.der",
+                                             "dilithium3-public-key.raw",
+                                             "message.raw",
+                                             "dilithium3-test-signature.raw"},
+                                 DerTestData{
+                                         // DILITHIUM 5
+                                         "dilithium5-private-key.der",
+                                         "dilithium5-private-key.raw",
+                                         "dilithium5-public-key.der",
+                                         "dilithium5-public-key.raw",
+                                         "message.raw",
+                                         "dilithium5-test-signature.raw",
+                                 }
 
-                        // DILITHIUM 3
-                        "dilithium3-private-key.der",
-                        "dilithium3-private-key.raw",
-                        "dilithium3-public-key.der",
-                        "dilithium3-public-key.raw",
-                        "1E350C2F58ED35E63F821A689A8AD3F05DA34E18877B9908C41060ADFB15A4E5273AF7E39C"
-                        "43282B99BB3C5055F6E8032870E54A5190B49F811318DC7E7A4B7F",
-                        "dilithium3-test-signature.raw"},
-                DerTestData{
-                        // DILITHIUM 5
-                        "dilithium5-private-key.der",
-                        "dilithium5-private-key.raw",
-                        "dilithium5-public-key.der",
-                        "dilithium5-public-key.raw",
-                        "1E350C2F58ED35E63F821A689A8AD3F05DA34E18877B9908C41060ADFB15A4E5273AF7E39C"
-                        "43282B99BB3C5055F6E8032870E54A5190B49F811318DC7E7A4B7F",
-                        "dilithium5-test-signature.raw",
-                }
-
-                ));
+                                 ));
 
 TEST_P(DilithiumTestDerData, DerTestData)
 {
     auto testData = GetParam();
-    auto privKeyPkcs8 = bytesFromFile<uint8_t>(testData.privateKeyDerPath);
-    // auto privKeyPkcs8 = utility::fromHex(testData.privateKeyDer);
-    auto privKeyRaw = bytesFromFile<uint8_t>(testData.privateKeyRawPath);
+    auto privKeyPkcs8 = utility::bytesFromFile<uint8_t>(testData.privateKeyDerPath);
+    auto privKeyRaw = utility::bytesFromFile<uint8_t>(testData.privateKeyRawPath);
 
-    auto pubKeyX509 = bytesFromFile<uint8_t>(testData.publicKeyDerPath);
-    auto pubKeyRaw = bytesFromFile<uint8_t>(testData.publicKeyRawPath);
+    auto pubKeyX509 = utility::bytesFromFile<uint8_t>(testData.publicKeyDerPath);
+    auto pubKeyRaw = utility::bytesFromFile<uint8_t>(testData.publicKeyRawPath);
 
-    auto message = utility::fromHex(testData.message);
-    auto signature = bytesFromFile<uint8_t>(testData.signaturePath);
+    auto message = utility::bytesFromFile<uint8_t>(testData.messagePath);
+    auto signature = utility::bytesFromFile<uint8_t>(testData.signaturePath);
 
     // Check private key parsing
     auto privKey = DilithiumKeyImpl::readPrivateKeyFromDER(privKeyPkcs8);

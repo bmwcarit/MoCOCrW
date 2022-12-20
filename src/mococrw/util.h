@@ -18,6 +18,7 @@
  */
 #pragma once
 
+#include <fstream>
 #include <memory>
 #include <vector>
 
@@ -31,6 +32,28 @@ namespace utility
 {
 template <class T>
 using SharedPtrTypeFromUniquePtr = std::shared_ptr<typename T::element_type>;
+
+template <class T>
+std::vector<T> bytesFromFile(const std::string &filename)
+{
+    static_assert(sizeof(T) == sizeof(char), "bytesFromFile only works with 1 byte data types");
+
+    std::ifstream file{filename};
+    if (!file.good()) {
+        std::string errorMsg{"Cannot load key/certificate from file "};
+        errorMsg = errorMsg + filename;
+        throw std::runtime_error(errorMsg);
+    }
+
+    file.seekg(0, std::ios::end);
+    auto size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    std::vector<T> buffer;
+    buffer.resize(size);
+    file.read(reinterpret_cast<char *>(buffer.data()), size);
+    return buffer;
+}
 
 std::string toHex(const std::vector<uint8_t> &data);
 

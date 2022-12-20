@@ -106,12 +106,8 @@ public:
     bool hasValidKeySize() const;
 
     /**
-     * Checks if the key size matches the size of a private key. Does not do any validity checks.
-     * The key size is dependent on the selected key type (Dilithium3 or Dilithium5).
+     * @brief Returns true if the stored key is a private key.
      *
-     * @return True if the key size matches the size of private keys.
-     * @throws If the key size neither matches a private or public key size.
-     * @throws if the key type is not supported
      */
     bool isPrivateKey() const;
 
