@@ -48,11 +48,10 @@ namespace mococrw
 using KeyTypes = AsymmetricKey::KeyTypes;
 
 /*
- * The dilithium private key struct (see RFC5208 and iaik:
- * http://javadoc.iaik.tugraz.at/iaik_jce/current/iaik/pkcs/pkcs8/PrivateKeyInfo.html)
+ * The dilithium private key struct (see RFC5208 )
  *
  * This is the internal structure contained in the PrivateKey element of the PrivateKeyInfo
- * structure
+ * structure (not standardized yet):
  * privKey: contains the private key
  * pubKey: contains the public key
  * dilithiumParameterSet: 3 for Dilithium3 and 5 for Dilithum5
@@ -86,11 +85,10 @@ using DILITHIUM_PRIV_SharedPtr = utility::SharedPtrTypeFromUniquePtr<DILITHIUM_P
 // clang-format on
 
 /*
- * The dilithium public key struct (see RFC5280 and iaik:
- * http://javadoc.iaik.tugraz.at/iaik_jce/current/iaik/pkcs/pkcs8/PrivateKeyInfo.html)
+ * The dilithium public key struct (see RFC5280)
  *
  * This is the internal structure contained in the PrivateKey element of the SubjectPublicKeyInfo
- * structure:
+ * structure (not standardized yet):
  * pubKey: contains the public key
  * dilithiumParameterSet: 3 for Dilithium3 and 5 for Dilithum5
  * bool1/bool2: The need/usage of bool1 and bool2 remains unknown
@@ -119,7 +117,7 @@ using DILITHIUM_PUB_Ptr = std::unique_ptr<DILITHIUM_PUB,
 using DILITHIUM_PUB_SharedPtr = utility::SharedPtrTypeFromUniquePtr<DILITHIUM_PUB_Ptr>;
 // clang-format on
 
-DilithiumKeyImpl::DilithiumParameterSet getKeyTypeFromDilithiumParameterSet(
+DilithiumKeyImpl::DilithiumParameterSet _getKeyTypeFromDilithiumParameterSet(
         const ASN1_INTEGER *asn1Int)
 {
     int64_t dilithiumParameterSet = openssl::_SSL_ASN1_INTEGER_get_int64(asn1Int);
@@ -136,7 +134,7 @@ DilithiumKeyImpl::DilithiumParameterSet getKeyTypeFromDilithiumParameterSet(
     }
 }
 
-uint getPubKeySize(DilithiumKeyImpl::DilithiumParameterSet paramSet)
+uint _getPubKeySize(DilithiumKeyImpl::DilithiumParameterSet paramSet)
 {
     switch (paramSet) {
         case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2:
@@ -151,7 +149,7 @@ uint getPubKeySize(DilithiumKeyImpl::DilithiumParameterSet paramSet)
     }
 }
 
-uint getPrivKeySize(DilithiumKeyImpl::DilithiumParameterSet paramSet)
+uint _getPrivKeySize(DilithiumKeyImpl::DilithiumParameterSet paramSet)
 {
     switch (paramSet) {
         case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2:
@@ -190,13 +188,14 @@ std::shared_ptr<DilithiumKeyImpl> DilithiumKeyImpl::readPublicKeyFromDER(
     }
 
     DilithiumKeyImpl::DilithiumParameterSet paramSet =
-            getKeyTypeFromDilithiumParameterSet(nestedPubKey->dilithiumParameterSet);
+            _getKeyTypeFromDilithiumParameterSet(nestedPubKey->dilithiumParameterSet);
 
     return std::make_shared<DilithiumKeyImpl>(
-            std::vector<uint8_t>(nestedPubKey->pubKey->data,
-                                 nestedPubKey->pubKey->data + nestedPubKey->pubKey->length),
+            std::make_shared<std::vector<uint8_t>>(
+                    nestedPubKey->pubKey->data,
+                    nestedPubKey->pubKey->data + nestedPubKey->pubKey->length),
             paramSet,
-            false);
+            DilithiumKeyImpl::AsymmetricType::PUBLIC);
 }
 
 std::shared_ptr<DilithiumKeyImpl> DilithiumKeyImpl::readPrivateKeyFromDER(
@@ -224,34 +223,35 @@ std::shared_ptr<DilithiumKeyImpl> DilithiumKeyImpl::readPrivateKeyFromDER(
     }
 
     DilithiumKeyImpl::DilithiumParameterSet paramSet =
-            getKeyTypeFromDilithiumParameterSet(nestedPrivKey->dilithiumParameterSet);
+            _getKeyTypeFromDilithiumParameterSet(nestedPrivKey->dilithiumParameterSet);
 
     return std::make_shared<DilithiumKeyImpl>(
-            std::vector<uint8_t>(nestedPrivKey->privKey->data,
-                                 nestedPrivKey->privKey->data + nestedPrivKey->privKey->length),
+            std::make_shared<std::vector<uint8_t>>(
+                    nestedPrivKey->privKey->data,
+                    nestedPrivKey->privKey->data + nestedPrivKey->privKey->length),
             paramSet,
-            true);
+            DilithiumKeyImpl::AsymmetricType::PRIVATE);
 }
 
 DilithiumKeyImpl DilithiumKeyImpl::getPublicKey() const
 {
-    if (!isPrivateKey()) {
+    if (_asymType == AsymmetricType::PUBLIC) {
         return *this;
     }
-    std::vector<uint8_t> public_key(getPubKeySize(_paramSet));
+    std::vector<uint8_t> public_key(_getPubKeySize(_paramSet));
     int ret = -1;
     switch (_paramSet) {
         case DilithiumParameterSet::DILITHIUM2:
             ret = pqcrystals_dilithium2_ref_keypair_public_from_private(public_key.data(),
-                                                                        _key_data.data());
+                                                                        _keyData->data());
             break;
         case DilithiumParameterSet::DILITHIUM3:
             ret = pqcrystals_dilithium3_ref_keypair_public_from_private(public_key.data(),
-                                                                        _key_data.data());
+                                                                        _keyData->data());
             break;
         case DilithiumParameterSet::DILITHIUM5:
             ret = pqcrystals_dilithium5_ref_keypair_public_from_private(public_key.data(),
-                                                                        _key_data.data());
+                                                                        _keyData->data());
             break;
         default:
             throw MoCOCrWException("Unsupported parameter set");
@@ -259,26 +259,26 @@ DilithiumKeyImpl DilithiumKeyImpl::getPublicKey() const
     if (ret) {
         throw MoCOCrWException("Dilithium: Cannot get public key from private key.");
     }
-    return DilithiumKeyImpl(public_key, _paramSet, false);
+    return DilithiumKeyImpl(std::make_shared<std::vector<uint8_t>>(public_key),
+                            _paramSet,
+                            DilithiumKeyImpl::AsymmetricType::PUBLIC);
 }
 
 bool DilithiumKeyImpl::hasValidKeySize() const
 {
-    if (_is_private_key) {
-        if (getKeySize() == getPrivKeySize(_paramSet)) {
+    if (_asymType == AsymmetricType::PRIVATE) {
+        if (getKeySize() == _getPrivKeySize(_paramSet)) {
             return true;
         }
     } else {
-        if (getKeySize() == getPubKeySize(_paramSet)) {
+        if (getKeySize() == _getPubKeySize(_paramSet)) {
             return true;
         }
     }
     return false;
 }
 
-bool DilithiumKeyImpl::isPrivateKey() const { return _is_private_key; }
-
-std::unique_ptr<DilithiumAsymmetricKey::Spec> DilithiumAsymmetricKey::getKeySpec() const
+std::unique_ptr<DilithiumSpec> DilithiumAsymmetricKey::getKeySpec() const
 {
     return std::make_unique<DilithiumSpec>(_internal()->getDilithiumParameterSet());
 }
@@ -295,20 +295,19 @@ DilithiumAsymmetricKeypair DilithiumAsymmetricKeypair::readPrivateKeyfromDER(
     return DilithiumAsymmetricKeypair(DilithiumKeyImpl::readPrivateKeyFromDER(asn1Data));
 }
 
-DilithiumAsymmetricKeypair DilithiumAsymmetricKeypair::generate(
-        const DilithiumAsymmetricKey::Spec &spec)
+DilithiumAsymmetricKeypair DilithiumAsymmetricKeypair::generate(const DilithiumSpec &spec)
 {
     return DilithiumAsymmetricKeypair(spec.generate());
 }
 
 DilithiumAsymmetricKey DilithiumSpec::generate() const
 {
-    std::vector<uint8_t> privateKey(getPrivKeySize(_paramSet));
+    std::vector<uint8_t> privateKey(_getPrivKeySize(_paramSet));
     // The dilithium implementation returns both the public and the private key
     // on generation. If a nullptr is provided as public key, this will lead to
     // an error.
     // So we need to create a vector although we throw away the value later.
-    std::vector<uint8_t> publicKey(getPubKeySize(_paramSet));
+    std::vector<uint8_t> publicKey(_getPubKeySize(_paramSet));
 
     int ret = -1;
     switch (_paramSet) {
@@ -329,7 +328,10 @@ DilithiumAsymmetricKey DilithiumSpec::generate() const
         throw MoCOCrWException("Cannot create dilithium keypair.");
     }
 
-    return DilithiumAsymmetricKey(std::make_shared<DilithiumKeyImpl>(privateKey, _paramSet, true));
+    return DilithiumAsymmetricKey(
+            std::make_shared<DilithiumKeyImpl>(std::make_shared<std::vector<uint8_t>>(privateKey),
+                                               _paramSet,
+                                               DilithiumKeyImpl::AsymmetricType::PRIVATE));
 }
 
 class DilithiumSigningCtx::Impl
@@ -351,7 +353,7 @@ public:
                                                           &signatureLength,
                                                           message.data(),
                                                           message.size(),
-                                                          _key._internal()->getKeyData().data());
+                                                          _key._internal()->getKeyData()->data());
                 break;
             case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM3:
                 signature.resize(pqcrystals_dilithium3_BYTES);
@@ -359,7 +361,7 @@ public:
                                                           &signatureLength,
                                                           message.data(),
                                                           message.size(),
-                                                          _key._internal()->getKeyData().data());
+                                                          _key._internal()->getKeyData()->data());
                 break;
             case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM5:
                 signature.resize(pqcrystals_dilithium5_BYTES);
@@ -367,7 +369,7 @@ public:
                                                           &signatureLength,
                                                           message.data(),
                                                           message.size(),
-                                                          _key._internal()->getKeyData().data());
+                                                          _key._internal()->getKeyData()->data());
                 break;
             default:
                 throw MoCOCrWException("Invalid parameter set for dilithium");
@@ -425,7 +427,7 @@ public:
                         signature.size(),
                         message.data(),
                         message.size(),
-                        _key._internal()->getPublicKey().getKeyData().data());
+                        _key._internal()->getPublicKey().getKeyData()->data());
                 break;
             case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM3:
                 ret = pqcrystals_dilithium3_ref_verify(
@@ -433,7 +435,7 @@ public:
                         signature.size(),
                         message.data(),
                         message.size(),
-                        _key._internal()->getPublicKey().getKeyData().data());
+                        _key._internal()->getPublicKey().getKeyData()->data());
                 break;
             case DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM5:
                 ret = pqcrystals_dilithium5_ref_verify(
@@ -441,7 +443,7 @@ public:
                         signature.size(),
                         message.data(),
                         message.size(),
-                        _key._internal()->getPublicKey().getKeyData().data());
+                        _key._internal()->getPublicKey().getKeyData()->data());
                 break;
             default:
                 throw MoCOCrWException("Invalid parameter set for dilithium");

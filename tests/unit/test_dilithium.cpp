@@ -156,13 +156,13 @@ TEST_P(DilithiumTestDerData, DerTestData)
 
     // Check private key parsing
     auto privKey = DilithiumKeyImpl::readPrivateKeyFromDER(privKeyPkcs8);
-    EXPECT_EQ(privKey->getKeyData(), privKeyRaw);
+    EXPECT_EQ(*privKey->getKeyData(), privKeyRaw);
     auto privKeyCtx = DilithiumAsymmetricPrivateKey(privKey);
     EXPECT_EQ(privKeyCtx, DilithiumAsymmetricPrivateKey::readPrivateKeyfromDER(privKeyPkcs8));
 
     // Check public key parsing
     auto pubKey = DilithiumKeyImpl::readPublicKeyFromDER(pubKeyX509);
-    EXPECT_EQ(pubKey->getKeyData(), pubKeyRaw);
+    EXPECT_EQ(*pubKey->getKeyData(), pubKeyRaw);
     auto pubKeyCtx = DilithiumAsymmetricPublicKey(pubKey);
     EXPECT_EQ(pubKeyCtx, DilithiumAsymmetricPublicKey::readPublicKeyfromDER(pubKeyX509));
 
@@ -179,9 +179,11 @@ TEST_P(DilithiumTestDerData, DerTestData)
 
 TEST(DilithiumTests, TestInvalidKeyLength)
 {
-    std::vector<uint8_t> key{'h', 'e', 'l', 'l', 'o'};
+    auto key = std::vector<uint8_t>{'h', 'e', 'l', 'l', 'o'};
     // The constructor throws if key data with invalid length is passed as argument
-    EXPECT_THROW(DilithiumKeyImpl(key, DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2, true),
+    EXPECT_THROW(DilithiumKeyImpl(std::make_shared<std::vector<uint8_t>>(key),
+                                  DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2,
+                                  DilithiumKeyImpl::AsymmetricType::PRIVATE),
                  MoCOCrWException);
 }
 

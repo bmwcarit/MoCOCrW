@@ -40,19 +40,22 @@ class DilithiumKeyImpl
 {
 public:
     enum class DilithiumParameterSet : int { DILITHIUM2, DILITHIUM3, DILITHIUM5 };
+    enum class AsymmetricType { PRIVATE, PUBLIC };
 
-    DilithiumKeyImpl(const std::vector<uint8_t> key_data,
-                     DilithiumKeyImpl::DilithiumParameterSet paramSet,
-                     bool is_private_key)
-            : _key_data{std::move(key_data)}, _is_private_key(is_private_key), _paramSet(paramSet)
+    DilithiumKeyImpl(const std::shared_ptr<std::vector<uint8_t>> keyData,
+                     DilithiumParameterSet paramSet,
+                     AsymmetricType is_private_key)
+            : _keyData{std::move(keyData)}, _asymType(is_private_key), _paramSet(paramSet)
     {
         if (!hasValidKeySize()) {
             throw MoCOCrWException("Key data does not match the expected size.");
         }
     }
 
+    ~DilithiumKeyImpl() { utility::vectorCleanse<uint8_t>(*_keyData.get()); };
+
     /**
-     * @brief Parses a ASN.1 X509 public key object (see RFC5280)
+     * @brief Parses an ASN.1 X509 public key object (see RFC5280)
      *
      * @param x509PubKey The public key object as defined in RFC5280
      * @return A shared pointer to a dilithium implementation object
@@ -61,7 +64,7 @@ public:
             const std::vector<uint8_t> &x509PubKey);
 
     /**
-     * @brief Parses a ASN.1 PKCS#8 private key object (see RFC5208)
+     * @brief Parses an ASN.1 PKCS#8 private key object (see RFC5208)
      *
      * @param x509PubKey The private key object as defined in RFC5208
      * @return A shared pointer to a dilithium implementation object
@@ -77,14 +80,14 @@ public:
     /**
      * @returns The size of the raw key data
      */
-    uint getKeySize() const { return _key_data.size(); }
+    uint getKeySize() const { return _keyData->size(); }
 
     /**
      * Returns the raw key data
      *
      * @returns The raw key data
      */
-    const std::vector<uint8_t> getKeyData() const { return _key_data; };
+    std::shared_ptr<const std::vector<uint8_t>> getKeyData() const { return _keyData; };
 
     /**
      * Returns the public key. If a private key is stored the public key is extracted and returned
@@ -109,7 +112,7 @@ public:
      * @brief Returns true if the stored key is a private key.
      *
      */
-    bool isPrivateKey() const;
+    AsymmetricType getAsymmetricType() const { return _asymType; };
 
     /**
      * @brief Get the selected dilithium parameter set (one of DILITHIUM{2,3,5})
@@ -120,16 +123,18 @@ public:
 
     inline bool operator==(const DilithiumKeyImpl &rhs) const
     {
-        return _key_data == rhs.getKeyData() && _is_private_key == rhs.isPrivateKey() &&
-               _paramSet == rhs.getDilithiumParameterSet();
+        return *_keyData == *rhs._keyData && _asymType == rhs._asymType &&
+               _paramSet == rhs._paramSet;
     }
 
 private:
     const AsymmetricKey::KeyTypes _keyType = AsymmetricKey::KeyTypes::DILITHIUM;
-    const std::vector<uint8_t> _key_data;
-    const bool _is_private_key;
+    std::shared_ptr<std::vector<uint8_t>> _keyData;
+    const AsymmetricType _asymType;
     const DilithiumParameterSet _paramSet;
 };
+
+class DilithiumSpec;
 
 /**
  * @brief Dilithium representation of AsymmetricKey
@@ -145,14 +150,13 @@ private:
 class DilithiumAsymmetricKey
 {
 public:
-    class Spec;
     DilithiumAsymmetricKey(std::shared_ptr<DilithiumKeyImpl> keyData) : _key{std::move(keyData)} {}
 
     AsymmetricKey::KeyTypes getType() const { return _key->getType(); }
 
     int getKeySize() const noexcept;
 
-    std::unique_ptr<Spec> getKeySpec() const;
+    std::unique_ptr<DilithiumSpec> getKeySpec() const;
 
     inline const std::shared_ptr<const DilithiumKeyImpl> _internal() const { return _key; }
     inline std::shared_ptr<DilithiumKeyImpl> _internal() { return _key; }
@@ -206,7 +210,7 @@ public:
      * @return the specification of the key in use.
      * @throws This method may throw an OpenSSLException if OpenSSL indicates an error
      */
-    std::unique_ptr<DilithiumAsymmetricKey::Spec> getKeySpec() const { return _key.getKeySpec(); }
+    std::unique_ptr<DilithiumSpec> getKeySpec() const { return _key.getKeySpec(); }
 
     /**
      * Gets the size of the Asymmetric key in bits
@@ -249,7 +253,7 @@ public:
     }
 
     /**
-     * @brief Parses an ASN.1 struct in DER format at returns a private key object
+     * @brief Parses an ASN.1 struct in DER format and returns a private key object
      *
      * @param asn1Data The ASN.1 struct in DER format
      * @return the DilithiumAsymmetricKeypair object created form the DER data
@@ -262,10 +266,10 @@ public:
      *
      * @see DilithiumSpec
      *
-     * @throws This method may throw an OpenSSLException if OpenSSL
-     *      indicates an error
+     * @throws This method may throw an MoCOCrWException if dilithium
+     *      indicates an error or an invalid parameter set is used.
      */
-    static DilithiumAsymmetricKeypair generate(const DilithiumAsymmetricKey::Spec &spec);
+    static DilithiumAsymmetricKeypair generate(const DilithiumSpec &spec);
 
 private:
     DilithiumAsymmetricKeypair(DilithiumAsymmetricKey &&key)
@@ -280,35 +284,15 @@ private:
 using DilithiumAsymmetricPrivateKey = DilithiumAsymmetricKeypair;
 
 /**
- * @brief Specification class for Dilithium keys (clone of AsymmetricKey::Spec)
- *
- * @see AsymmetricKey::Spec for mor information
- *
- */
-class DilithiumAsymmetricKey::Spec
-{
-public:
-    virtual ~Spec() = default;
-
-    /**
-     * Generate an AsymmetricKey from this
-     * spec instance.
-     *
-     * Implementations should override this method
-     * to encapsulate the specifics of how to generate
-     * the various types of keys (RSA and ECC).
-     *
-     */
-    virtual DilithiumAsymmetricKey generate() const = 0;
-};
-
-/**
  * @brief Specification for Dilithium keys
  *
  * This class allows to generate Dilithium keypairs.
+ * It shall inherit from AsymmetricKey class once openssl supports dilithium.
+ * To support this the class implements the same functions as required by
+ * AsymmetricKey.
  *
  */
-class DilithiumSpec final : public DilithiumAsymmetricKey::Spec
+class DilithiumSpec
 {
 public:
     /* According to https://pq-crystals.org/dilithium/ DILITHIUM3 shall be used
