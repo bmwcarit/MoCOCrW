@@ -135,6 +135,7 @@ private:
 };
 
 class DilithiumSpec;
+class DilithiumAsymmetricPublicKey;
 
 /**
  * @brief Dilithium representation of AsymmetricKey
@@ -150,8 +151,8 @@ class DilithiumSpec;
 class DilithiumAsymmetricKey
 {
 public:
-    DilithiumAsymmetricKey(std::shared_ptr<DilithiumKeyImpl> keyData) : _key{std::move(keyData)} {}
-
+    friend DilithiumAsymmetricPublicKey;
+    friend DilithiumSpec;
     AsymmetricKey::KeyTypes getType() const { return _key->getType(); }
 
     int getKeySize() const noexcept;
@@ -162,6 +163,7 @@ public:
     inline std::shared_ptr<DilithiumKeyImpl> _internal() { return _key; }
 
 private:
+    DilithiumAsymmetricKey(std::shared_ptr<DilithiumKeyImpl> keyData) : _key{std::move(keyData)} {}
     std::shared_ptr<DilithiumKeyImpl> _key;
 };
 
