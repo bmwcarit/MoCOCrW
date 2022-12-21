@@ -24,7 +24,7 @@
 
 template <class F, typename... Args>
 std::result_of_t<F && (const std::string &, Args...)> openSSLObjectFromFile(
-        F &&f, const std::string &filename, Args &&...args)
+        F &&f, const std::string &filename, Args &&... args)
 {
     auto buffer = mococrw::utility::bytesFromFile<char>(filename);
     return f({buffer.data(), buffer.size()}, std::forward<Args>(args)...);
