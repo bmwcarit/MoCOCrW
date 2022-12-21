@@ -377,6 +377,7 @@ public:
     explicit ECCSpec(openssl::ellipticCurveNid curveNid) : _curveNid{curveNid} {}
     ECCSpec() : ECCSpec{defaultCurveNid} {}
     inline openssl::ellipticCurveNid curve() const { return _curveNid; }
+    inline std::string curveName() const { return openssl::_EC_curve_nid2nist(int(_curveNid)); }
     AsymmetricKey generate() const override;
 
 private:
