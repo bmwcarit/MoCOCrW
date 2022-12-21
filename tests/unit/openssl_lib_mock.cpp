@@ -1203,6 +1203,10 @@ const char *OpenSSLLib::SSL_EC_curve_nid2nist(int nid) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_curve_nid2nist(nid);
 }
+int OpenSSLLib::SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_bits(pkey);
+}
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw

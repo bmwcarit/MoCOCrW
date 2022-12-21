@@ -315,7 +315,6 @@ TEST_F(KeyHandlingTests, testHSMKeyGeneration)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
-    // TODO: Find a more meaningful way to test this
     EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), "1000", "token-label", "key-label"));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
             hsmMock, eccSpec, "1000", "token-label", "key-label"));

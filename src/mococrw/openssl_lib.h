@@ -59,6 +59,7 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static int SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept;
     static const char *SSL_EC_curve_nid2nist(int nid) noexcept;
     static int SSL_ENGINE_ctrl_cmd(ENGINE *e,
                                    const char *cmd_name,

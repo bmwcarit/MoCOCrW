@@ -35,6 +35,7 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual int SSL_EVP_PKEY_bits(EVP_PKEY *pkey) = 0;
     virtual const char *SSL_EC_curve_nid2nist(int nid) = 0;
     virtual int SSL_ENGINE_ctrl_cmd(ENGINE *e,
                                     const char *cmd_name,
@@ -420,6 +421,7 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD1(SSL_EVP_PKEY_bits, int(EVP_PKEY *));
     MOCK_METHOD1(SSL_EC_curve_nid2nist, const char *(int));
     MOCK_METHOD6(SSL_ENGINE_ctrl_cmd, int(ENGINE *, const char *, long, void *, void (*)(), int));
     MOCK_METHOD1(SSL_ENGINE_free, int(ENGINE *));

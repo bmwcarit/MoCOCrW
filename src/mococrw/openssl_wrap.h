@@ -1570,5 +1570,10 @@ void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p);
  */
 std::string _EC_curve_nid2nist(int nid);
 
+/**
+ * Get number of bits key has from EVP_PKEY data structure
+ */
+int _EVP_PKEY_bits(EVP_PKEY *);
+
 }  // namespace openssl
 }  // namespace mococrw

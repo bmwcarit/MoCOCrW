@@ -1609,5 +1609,10 @@ std::string _EC_curve_nid2nist(int nid)
     return std::string(nist);
 }
 
+int _EVP_PKEY_bits(EVP_PKEY *pkey)
+{
+    return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_bits, pkey);
+}
+
 }  // namespace openssl
 }  // namespace mococrw

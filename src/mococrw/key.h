@@ -47,7 +47,7 @@ public:
 
     KeyTypes getType() const;
 
-    int getKeySize() const { return EVP_PKEY_bits(_key.get()); }
+    int getKeySize() const { return openssl::_EVP_PKEY_bits(_key.get()); }
 
     std::unique_ptr<Spec> getKeySpec() const;
 

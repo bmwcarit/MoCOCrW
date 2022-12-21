@@ -28,12 +28,14 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 
     find_package(Threads)
 
-    add_executable(openssltest test_opensslwrapper.cpp ${MOCK_SOURCES})
+    add_executable(openssltest test_opensslwrapper.cpp
+                             ${MOCK_SOURCES})
 
     if(HSM_ENABLED)
         add_executable(hsmtest test_hsm.cpp
-                               "${SRC_DIR}/hsm.cpp"
-                               ${MOCK_SOURCES})
+                            "${SRC_DIR}/key.cpp"
+                            "${SRC_DIR}/hsm.cpp"
+                             ${MOCK_SOURCES})
     endif()
 
     add_executable(asn1timetests test_asn1time.cpp ${REAL_SOURCES})
@@ -194,6 +196,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 
     if(HSM_ENABLED)
         target_compile_definitions(keytests PUBLIC HSM_ENABLED)
+        target_compile_definitions(hsmtest PUBLIC HSM_ENABLED)
     endif()
 
     add_test(

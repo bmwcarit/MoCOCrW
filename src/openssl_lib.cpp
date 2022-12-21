@@ -1031,6 +1031,7 @@ int OpenSSLLib::SSL_ENGINE_ctrl_cmd(ENGINE *e,
     return ENGINE_ctrl_cmd(e, cmd_name, i, p, f, cmd_optional);
 }
 const char *OpenSSLLib::SSL_EC_curve_nid2nist(int nid) noexcept { return EC_curve_nid2nist(nid); }
+int OpenSSLLib::SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept { return EVP_PKEY_bits(pkey); }
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw
