@@ -192,42 +192,6 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm, const
     auto key = hsm.loadPrivateKey(keyID);
     return AsymmetricKeypair{std::move(key)};
 }
-
-AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(const HSM &hsm,
-                                                      const ECCSpec &spec,
-                                                      const std::string &keyID,
-                                                      const std::string &tokenLabel,
-                                                      const std::string &keyLabel)
-{
-    try {
-        auto key = hsm.generateKey(spec, keyID, tokenLabel, keyLabel);
-        return AsymmetricKeypair{std::move(key)};
-    } catch (const OpenSSLException &e) {
-        throw MoCOCrWException(
-                std::string("Key generation failed for unknown reason. Likely reasons: invalid "
-                            "spec, keyID containing non-hex chars, wrong tokenLabel, broken HSM "
-                            "module implementation. OpenSSL error: ") +
-                e.what());
-    }
-}
-
-AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(const HSM &hsm,
-                                                      const RSASpec &spec,
-                                                      const std::string &keyID,
-                                                      const std::string &tokenLabel,
-                                                      const std::string &keyLabel)
-{
-    try {
-        auto key = hsm.generateKey(spec, keyID, tokenLabel, keyLabel);
-        return AsymmetricKeypair{std::move(key)};
-    } catch (const OpenSSLException &e) {
-        throw MoCOCrWException(
-                std::string("Key generation failed for unknown reason. Likely reasons: invalid "
-                            "spec, keyID containing non-hex chars, wrong tokenLabel, broken HSM "
-                            "module implementation. OpenSSL error: ") +
-                e.what());
-    }
-}
 #endif
 
 AsymmetricKey RSASpec::generate() const
