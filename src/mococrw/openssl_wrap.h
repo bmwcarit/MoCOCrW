@@ -1566,14 +1566,14 @@ void _ENGINE_finish(ENGINE *e);
 void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p);
 
 /**
- * Convert integer nid to curve name
+ * Convert integer \p nid to curve name
  */
 std::string _EC_curve_nid2nist(int nid);
 
 /**
- * Get number of bits key has from EVP_PKEY data structure
+ * Get number of bits key has from \p pkey data structure
  */
-int _EVP_PKEY_bits(EVP_PKEY *);
+int _EVP_PKEY_bits(EVP_PKEY *pkey);
 
 }  // namespace openssl
 }  // namespace mococrw

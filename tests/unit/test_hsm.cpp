@@ -47,6 +47,14 @@ protected:
     {
         return openssl::OpenSSLLibMockManager::getMockInterface();
     }
+    void initialiseEngine();
+    /**
+     * We have to work with raw pointers because otherwise HsmObject
+     * gets destroyed after TearDown() function which destroys the
+     * mock manager which should be present to handle a call to
+     * SSL_ENGINE_finish() function.
+     */
+    HsmEngine *hsm;
 };
 
 namespace testutils
@@ -79,68 +87,44 @@ void HSMTest::SetUp()
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 
-void HSMTest::TearDown() { openssl::OpenSSLLibMockManager::destroy(); }
+void HSMTest::TearDown()
+{
+    ON_CALL(_mock(), SSL_ENGINE_finish(::testutils::someEnginePtr())).WillByDefault(Return(1));
+    delete hsm;
+    openssl::OpenSSLLibMockManager::destroy();
+}
 
-TEST_F(HSMTest, testHSMEngine)
+void HSMTest::initialiseEngine()
 {
     std::string engineID("engine_id");
     std::string modulePath("/test_path.so");
     std::string pin("1234");
+    auto engine = ::testutils::someEnginePtr();
 
-    EXPECT_CALL(_mock(), SSL_ENGINE_by_id(StrEq(engineID.c_str())))
-            .WillOnce(Return(::testutils::someEnginePtr()));
+    EXPECT_CALL(_mock(), SSL_ENGINE_by_id(StrEq(engineID.c_str()))).WillOnce(Return(engine));
 
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_ctrl_cmd_string(::testutils::someEnginePtr(),
-                                           StrEq("MODULE_PATH"),
-                                           StrEq(modulePath.c_str()),
-                                           0 /*non-optional*/))
+    EXPECT_CALL(
+            _mock(),
+            SSL_ENGINE_ctrl_cmd_string(
+                    engine, StrEq("MODULE_PATH"), StrEq(modulePath.c_str()), 0 /*non-optional*/))
             .WillOnce(Return(1));
 
     EXPECT_CALL(_mock(),
-                SSL_ENGINE_ctrl_cmd_string(::testutils::someEnginePtr(),
-                                           StrEq("PIN"),
-                                           StrEq(pin.c_str()),
-                                           0 /*non-optional*/))
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
             .WillOnce(Return(1));
 
-    EXPECT_CALL(_mock(), SSL_ENGINE_init(::testutils::someEnginePtr())).WillOnce(Return(1));
-
-    EXPECT_CALL(_mock(), SSL_ENGINE_finish(::testutils::someEnginePtr())).WillOnce(Return(1));
-
-    EXPECT_NO_THROW((HsmEngine(engineID, modulePath, pin)));
+    EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
+    EXPECT_NO_THROW(hsm = new HsmEngine(engineID, modulePath, pin));
 }
 
 TEST_F(HSMTest, testHSMKeygen)
 {
-    std::string engineID("engine_id");
-    std::string modulePath("/test_path.so");
-    std::string pin("1234");
     ECCSpec eccSpec;
     int curve = int(mococrw::openssl::ellipticCurveNid::PRIME_256v1);
     auto engine = ::testutils::someEnginePtr();
     auto pkey = ::testutils::somePkeyPtr();
-
-    EXPECT_CALL(_mock(), SSL_ENGINE_by_id(StrEq(engineID.c_str())))
-            .WillOnce(Return(::testutils::someEnginePtr()));
-
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_ctrl_cmd_string(::testutils::someEnginePtr(),
-                                           StrEq("MODULE_PATH"),
-                                           StrEq(modulePath.c_str()),
-                                           0 /*non-optional*/))
-            .WillOnce(Return(1));
-
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_ctrl_cmd_string(::testutils::someEnginePtr(),
-                                           StrEq("PIN"),
-                                           StrEq(pin.c_str()),
-                                           0 /*non-optional*/))
-            .WillOnce(Return(1));
-
-    EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
-    EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(1));
-    HsmEngine hsm(engineID, modulePath, pin);
+    initialiseEngine();
     EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
@@ -148,5 +132,5 @@ TEST_F(HSMTest, testHSMKeygen)
     EXPECT_CALL(_mock(), SSL_ENGINE_load_private_key(engine, StrEq("1000"), nullptr, nullptr))
             .WillOnce(Return(pkey));
     EXPECT_NO_THROW(
-            AsymmetricKeypair::generateKeyOnHsm(hsm, eccSpec, "1000", "token-label", "key-label"));
+            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "1000", "token-label", "key-label"));
 }

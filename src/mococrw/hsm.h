@@ -94,16 +94,6 @@ public:
     HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin);
     virtual ~HsmEngine();
 
-    openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                          const std::string &keyID,
-                                          const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
-
-    openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                          const std::string &keyID,
-                                          const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
-
 protected:
     /** Pointer to OpenSSL ENGINE. */
     openssl::SSL_ENGINE_Ptr _engine;
@@ -117,6 +107,16 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const override;
+
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                          const std::string &keyID,
+                                          const std::string &tokenLabel,
+                                          const std::string &keyLabel) const override;
+
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                          const std::string &keyID,
+                                          const std::string &tokenLabel,
+                                          const std::string &keyLabel) const override;
 };
 
 }  // namespace mococrw

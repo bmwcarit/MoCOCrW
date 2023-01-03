@@ -111,8 +111,8 @@ int main(void)
      * The default signature format is ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS */
     auto signature = ecdsaSign(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, message);
 
-    /* Use-Case 1: You want to check your own signature:
-     * we can use here the private key, as it also contains the public key.
+    /* Use-Case 1: You want to check your own signature.
+     * We can use here the private key, as it also contains the public key.
      * In MoCOCrW the AsymmetricPrivateKey is a specialisation of AsymmetricPublicKey. Thus
      * we do an implicit upcast here.
      */

@@ -311,15 +311,6 @@ TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
     EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
 }
 
-TEST_F(KeyHandlingTests, testHSMKeyGeneration)
-{
-    ECCSpec eccSpec;
-    HSMMock hsmMock;
-    EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), "1000", "token-label", "key-label"));
-    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, eccSpec, "1000", "token-label", "key-label"));
-}
-
 TEST_F(KeyHandlingTests, testHSMKeyGenerationInvalidKeyId)
 {
     ECCSpec eccSpec;
@@ -329,7 +320,7 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationInvalidKeyId)
                  MoCOCrWException);
 }
 
-TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyId)
+TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
@@ -339,6 +330,18 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyId)
                     An<const ECCSpec &>(), "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
             hsmMock, eccSpec, "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
+{
+    RSASpec rsaSpec;
+    HSMMock hsmMock;
+    EXPECT_CALL(
+            hsmMock,
+            generateKey(
+                    An<const RSASpec &>(), "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
+            hsmMock, rsaSpec, "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
