@@ -47,14 +47,8 @@ protected:
     {
         return openssl::OpenSSLLibMockManager::getMockInterface();
     }
-    void initialiseEngine();
-    /**
-     * We have to work with raw pointers because otherwise HsmObject
-     * gets destroyed after TearDown() function which destroys the
-     * mock manager which should be present to handle a call to
-     * SSL_ENGINE_finish() function.
-     */
-    HsmEngine *hsm;
+
+    std::unique_ptr<HsmEngine> initialiseEngine();
 };
 
 namespace testutils
@@ -87,14 +81,9 @@ void HSMTest::SetUp()
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 
-void HSMTest::TearDown()
-{
-    ON_CALL(_mock(), SSL_ENGINE_finish(::testutils::someEnginePtr())).WillByDefault(Return(1));
-    delete hsm;
-    openssl::OpenSSLLibMockManager::destroy();
-}
+void HSMTest::TearDown() { openssl::OpenSSLLibMockManager::destroy(); }
 
-void HSMTest::initialiseEngine()
+std::unique_ptr<HsmEngine> HSMTest::initialiseEngine()
 {
     std::string engineID("engine_id");
     std::string modulePath("/test_path.so");
@@ -115,7 +104,9 @@ void HSMTest::initialiseEngine()
             .WillOnce(Return(1));
 
     EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
-    EXPECT_NO_THROW(hsm = new HsmEngine(engineID, modulePath, pin));
+    EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(1));
+
+    return std::make_unique<HsmEngine>(engineID, modulePath, pin);
 }
 
 TEST_F(HSMTest, testHSMKeygen)
@@ -124,7 +115,7 @@ TEST_F(HSMTest, testHSMKeygen)
     int curve = int(mococrw::openssl::ellipticCurveNid::PRIME_256v1);
     auto engine = ::testutils::someEnginePtr();
     auto pkey = ::testutils::somePkeyPtr();
-    initialiseEngine();
+    auto hsm = initialiseEngine();
     EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
