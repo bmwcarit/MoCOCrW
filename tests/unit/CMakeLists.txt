@@ -35,6 +35,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         add_executable(hsmtest test_hsm.cpp
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/hsm.cpp"
+                            "${SRC_DIR}/util.cpp"
                              ${MOCK_SOURCES})
     endif()
 

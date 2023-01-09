@@ -277,7 +277,8 @@ TEST_F(KeyHandlingTests, testPrivKeyFromSavedPemIsSameAsOriginal)
 #ifdef HSM_ENABLED
 TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
 {
-    std::string keyId = "keyId";
+    std::vector<uint8_t> keyID{0x44, 0x22, 0x11};
+    std::string keyLabel{"key-label"};
 
     // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
     // is called. We do this directly using the (wrapped) Bio Api.
@@ -289,13 +290,15 @@ TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
             KeyHandlingTests::_pemEccPubKeyEd25519);
 
     HSMMock hsmMock;
-    EXPECT_CALL(hsmMock, loadPublicKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
-    EXPECT_EQ(eccPubKey, AsymmetricPublicKey::readPublicKeyFromHSM(hsmMock, keyId));
+    EXPECT_CALL(hsmMock, loadPublicKey(keyLabel, keyID))
+            .WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccPubKey, AsymmetricPublicKey::readPublicKeyFromHSM(hsmMock, keyLabel, keyID));
 }
 
 TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
 {
-    std::string keyId = "keyId";
+    std::string keyLabel = "key-label";
+    std::vector<uint8_t> keyID = {0x11, 0x23, 0x33};
     std::string password = "password";
 
     // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
@@ -307,44 +310,32 @@ TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
     auto eccKeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(_pemEccPrivKeyEd25519, password);
 
     HSMMock hsmMock;
-    EXPECT_CALL(hsmMock, loadPrivateKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
-    EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
-}
-
-TEST_F(KeyHandlingTests, testHSMKeyGenerationInvalidKeyId)
-{
-    ECCSpec eccSpec;
-    HSMMock hsmMock;
-    EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
-                         hsmMock, eccSpec, "100z", "token-label", "key-label"),
-                 MoCOCrWException);
+    EXPECT_CALL(hsmMock, loadPrivateKey(keyLabel, keyID))
+            .WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyLabel, keyID));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
-    EXPECT_CALL(
-            hsmMock,
-            generateKey(
-                    An<const ECCSpec &>(), "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+    std::vector<uint8_t> keyID{0x33, 0x33};
+    EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), "token-label", "key-label", keyID));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, eccSpec, "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+            hsmMock, eccSpec, "token-label", "key-label", keyID));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
 {
     RSASpec rsaSpec;
     HSMMock hsmMock;
-    EXPECT_CALL(
-            hsmMock,
-            generateKey(
-                    An<const RSASpec &>(), "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+    std::vector<uint8_t> keyID{0x33, 0x33};
+    EXPECT_CALL(hsmMock, generateKey(An<const RSASpec &>(), "token-label", "key-label", keyID));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, rsaSpec, "100abcdefABCDEFdeadbeef", "token-label", "key-label"));
+            hsmMock, rsaSpec, "token-label", "key-label", keyID));
 }
 
-TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
+TEST_F(KeyHandlingTests, testHSMKeyGenerationKeyIdTooLong)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
@@ -352,10 +343,12 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
     EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
                          hsmMock,
                          eccSpec,
-                         "c556f2b6b5ce40bda73997cbd4d06f7169fdd7a2609774cead74a7d2a6a206a34c1780a49"
-                         "4ae445601314cdf249c1021e33519d715f00539480db87fcd2e6c03",
                          "token-label",
-                         "key-label"),
+                         "key-label",
+                         {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
+                          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
+                          33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+                          49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64}),
                  MoCOCrWException);
 }
 #endif

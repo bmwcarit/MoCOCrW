@@ -43,46 +43,42 @@ public:
 
 protected:
     /**
+     *  Loads public key from HSM.
+     *
+     *  @param keyLabel String based identifer of a key on the token
+     *  @param keyID Vector of raw bytes that identifies a key on the token
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
+                                                    const std::vector<uint8_t> &keyID) const = 0;
+
+    /**
+     * Loads private key from HSM.
+     *
+     * @param keyLabel String based identifer of a key on the token
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
+                                                     const std::vector<uint8_t> &keyID) const = 0;
+
+    /**
      * @brief Generate a RSA key pair on the HSM
      *
      * @param spec The RSA specification @ref RSASpec
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return AsymmetricKeypair @ref AsymmetricKeypair
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                                  const std::string &keyID,
                                                   const std::string &tokenLabel,
-                                                  const std::string &keyLabel) const = 0;
+                                                  const std::string &keyLabel,
+                                                  const std::vector<uint8_t> &keyID) = 0;
 
     /**
      * @brief Generate a ECC key pair on the HSM
      *
      * @param spec The ECC specification @ref ECCSpec
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return AsymmetricKeypair @ref AsymmetricKeypair
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                                  const std::string &keyID,
                                                   const std::string &tokenLabel,
-                                                  const std::string &keyLabel) const = 0;
-
-    /**
-     *  Loads public key from HSM.
-     *
-     *  @param keyID The ID of the public key to load.
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) const = 0;
-
-    /**
-     * Loads private key from HSM.
-     *
-     * @param keyID The ID of the private key to load.
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const = 0;
+                                                  const std::string &keyLabel,
+                                                  const std::vector<uint8_t> &keyID) = 0;
 };
 
 /**
@@ -104,19 +100,30 @@ protected:
     /** Pin to access PKCS11 Engine. */
     const std::string _pin;
 
-    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyID) const override;
+    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
+                                            const std::vector<uint8_t> &keyID) const override;
 
-    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const override;
+    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
+                                             const std::vector<uint8_t> &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                          const std::string &keyID,
                                           const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
+                                          const std::string &keyLabel,
+                                          const std::vector<uint8_t> &keyID) override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                          const std::string &keyID,
                                           const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
+                                          const std::string &keyLabel,
+                                          const std::vector<uint8_t> &keyID) override;
+
+    /**
+     * @brief Transforms given string to a string with percent encoding notation (see RFC 3986)
+     * i.e. "30AFF" -> "%03%0A%FF"
+     * @note This function does not enforce a string to contain only hex characters (only hex digits
+     * are used in percent encoding). If you have a different use case, change this or create your
+     * own function.
+     */
+    std::string stringToPctEncoded(const std::string &&str) const;
 };
 
 }  // namespace mococrw

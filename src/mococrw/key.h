@@ -88,10 +88,14 @@ public:
 
 #ifdef HSM_ENABLED
     /**
-     * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
+     * @brief Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
+     * @param keyLabel string based key identifer
+     * @param keyID raw bytes based key identifer
      */
-    static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm, const std::string &keyID);
+    static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm,
+                                                    const std::string &keyLabel,
+                                                    const std::vector<uint8_t> &keyID);
 #endif
 
     /**
@@ -267,54 +271,58 @@ public:
 
 #ifdef HSM_ENABLED
     /**
-     * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
+     * @brief Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
+     * @param keyLabel string based key identifer
+     * @param keyID raw bytes based key identifer
      */
-    static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm, const std::string &keyID);
+    static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm,
+                                                   const std::string &keyLabel,
+                                                   const std::vector<uint8_t> &keyID);
 
     /**
-     * @brief Generates RSA keypair on HSM token according to the spec given. The keys are fetched
-     * _only_ by key ID so generating multiple keys with the same ID must be avoided!
-     * @param hsm Initialized HSM engine handle
+     * @brief Generates RSA keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys on the same token.
+     * @param hsm HSM engine handle
      * @param spec @ref RSASpec
-     * @param keyID ID of the key on HSM. We use IDs to fetch keys from HSM. _Only_ hex values are
-     * valid! Generating 2 keys with the same ID must be avoided. This is not prohibited by PKCS#11
-     * standard but since we currently only fetch by key ID, there is no way of ensuring that the
-     * correct key is fetched.
-     * @param tokenLabel Label of the token on HSM. This determines where they key shall be stored.
-     * @param keyLabel Arbitrary key label
+     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
+     * are stored. This determines on which token the key shall be stored.
+     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
+     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
+     * to identify keys.
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
-     * libp11 and HSM module implementation, exception's what() tries to list the most common things
-     * that could go wrong. libp11 does log some things to stderr, check if there's more context
-     * there
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
      */
-    template <typename T>
-    static AsymmetricKeypair generateKeyOnHsm(const HSM &hsm,
-                                              const T &spec,
-                                              const std::string &keyID,
+    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+                                              const RSASpec &spec,
                                               const std::string &tokenLabel,
-                                              const std::string &keyLabel)
-    {
-        static_assert(std::is_base_of<AsymmetricKey::Spec, T>::value,
-                      "T must be a subclass of AsymmetricKey::Spec");
-        // libp11 uses 128 byte buffer
-        if (keyID.length() > 127 || !std::all_of(keyID.begin(), keyID.end(), [](unsigned char c) {
-                return std::isxdigit(c);
-            })) {
-            throw MoCOCrWException(std::string("invalid keyID"));
-        }
-        try {
-            auto key = hsm.generateKey(spec, keyID, tokenLabel, keyLabel);
-            return AsymmetricKeypair{std::move(key)};
-        } catch (const openssl::OpenSSLException &e) {
-            throw MoCOCrWException(
-                    std::string("Key generation failed for unknown reason. Likely reasons: invalid "
-                                "spec, wrong tokenLabel, broken HSM "
-                                "module implementation. OpenSSL error: ") +
-                    e.what());
-        }
-    }
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID);
+
+    /**
+     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys on the same token.
+     * @param hsm HSM engine handle
+     * @param spec @ref ECCSpec
+     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
+     * are stored. This determines on which token the key shall be stored.
+     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
+     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
+     * to identify keys.
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+                                              const ECCSpec &spec,
+                                              const std::string &tokenLabel,
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID);
 #endif
 
 private:

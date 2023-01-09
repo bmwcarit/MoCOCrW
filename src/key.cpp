@@ -108,9 +108,10 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string 
 
 #ifdef HSM_ENABLED
 AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(const HSM &hsm,
-                                                              const std::string &keyID)
+                                                              const std::string &keyLabel,
+                                                              const std::vector<uint8_t> &keyID)
 {
-    auto key = hsm.loadPublicKey(keyID);
+    auto key = hsm.loadPublicKey(keyLabel, keyID);
     return AsymmetricPublicKey{std::move(key)};
 }
 #endif
@@ -187,10 +188,54 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
 }
 
 #ifdef HSM_ENABLED
-AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm, const std::string &keyID)
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm,
+                                                           const std::string &keyLabel,
+                                                           const std::vector<uint8_t> &keyID)
 {
-    auto key = hsm.loadPrivateKey(keyID);
+    auto key = hsm.loadPrivateKey(keyLabel, keyID);
     return AsymmetricKeypair{std::move(key)};
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+                                                      const RSASpec &spec,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel,
+                                                      const std::vector<uint8_t> &keyID)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.size() >= 64) {
+        throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
+    }
+    try {
+        auto key = hsm.generateKey(spec, tokenLabel, keyLabel, keyID);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+                                                      const ECCSpec &spec,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyLabel,
+                                                      const std::vector<uint8_t> &keyID)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.size() >= 64) {
+        throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
+    }
+    try {
+        auto key = hsm.generateKey(spec, tokenLabel, keyLabel, keyID);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
 }
 #endif
 

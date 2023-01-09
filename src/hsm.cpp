@@ -37,55 +37,76 @@ HsmEngine::HsmEngine(const std::string &id, const std::string &modulePath, const
 
 HsmEngine::~HsmEngine() { _ENGINE_finish(_engine.get()); }
 
-openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyID) const
+openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
+                                                   const std::vector<uint8_t> &keyID) const
 {
-    return _ENGINE_load_public_key(_engine.get(), keyID);
+    auto keyIDPctEncoded = stringToPctEncoded(utility::toHex(keyID));
+    std::string pkcs11URI = "pkcs11:object=" + keyLabel + ";id=" + keyIDPctEncoded;
+    return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
 }
 
-openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyID) const
+openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
+                                                    const std::vector<uint8_t> &keyID) const
 {
-    return _ENGINE_load_private_key(_engine.get(), keyID);
+    auto keyIDPctEncoded = stringToPctEncoded(utility::toHex(keyID));
+    std::string pkcs11URI = "pkcs11:object=" + keyLabel + ";id=" + keyIDPctEncoded;
+    return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
-                                                 const std::string &keyID,
                                                  const std::string &tokenLabel,
-                                                 const std::string &keyLabel) const
+                                                 const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID)
 {
-    PKCS11_RSA_KGEN pkcs11_rsa_spec;
-    pkcs11_rsa_spec.bits = spec.numberOfBits();
-    PKCS11_KGEN_ATTRS pkcs11_rsa_kg;
-    pkcs11_rsa_kg.type = EVP_PKEY_RSA;
-    pkcs11_rsa_kg.kgen.rsa = &pkcs11_rsa_spec;
-    pkcs11_rsa_kg.key_id = keyID.c_str();
-    pkcs11_rsa_kg.token_label = tokenLabel.c_str();
-    pkcs11_rsa_kg.key_label = keyLabel.c_str();
+    std::string keyIDHexString = utility::toHex(keyID);
+    PKCS11_RSA_KGEN pkcs11RSASpec;
+    pkcs11RSASpec.bits = spec.numberOfBits();
+    PKCS11_KGEN_ATTRS pkcs11RSAKeygen;
+    pkcs11RSAKeygen.type = EVP_PKEY_RSA;
+    pkcs11RSAKeygen.kgen.rsa = &pkcs11RSASpec;
+    pkcs11RSAKeygen.key_id = keyIDHexString.c_str();
+    pkcs11RSAKeygen.token_label = tokenLabel.c_str();
+    pkcs11RSAKeygen.key_label = keyLabel.c_str();
 
-    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11_rsa_kg);
-    return loadPrivateKey(keyID);
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
+    return loadPrivateKey(keyLabel, keyID);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
-                                                 const std::string &keyID,
                                                  const std::string &tokenLabel,
-                                                 const std::string &keyLabel) const
+                                                 const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID)
 {
-    PKCS11_EC_KGEN pkcs11_ec_spec;
-    std::string curve{};
-    try {
-        curve = _EC_curve_nid2nist(int(spec.curve()));
-    } catch (const OpenSSLException &e) {
-        throw MoCOCrWException("Invalid EC NID. Check the ECCSpec.");
-    }
-    pkcs11_ec_spec.curve = curve.c_str();
-    PKCS11_KGEN_ATTRS pkcs11_ec_kg;
-    pkcs11_ec_kg.type = EVP_PKEY_EC;
-    pkcs11_ec_kg.kgen.ec = &pkcs11_ec_spec;
-    pkcs11_ec_kg.key_id = keyID.c_str();
-    pkcs11_ec_kg.token_label = tokenLabel.c_str();
-    pkcs11_ec_kg.key_label = keyLabel.c_str();
+    std::string curve = spec.curveName();
+    std::string keyIDHexString = utility::toHex(keyID);
+    PKCS11_EC_KGEN pkcs11ECCSpec;
+    pkcs11ECCSpec.curve = curve.c_str();
+    PKCS11_KGEN_ATTRS pkcs11ECCKeygen;
+    pkcs11ECCKeygen.type = EVP_PKEY_EC;
+    pkcs11ECCKeygen.kgen.ec = &pkcs11ECCSpec;
+    pkcs11ECCKeygen.key_id = keyIDHexString.c_str();
+    pkcs11ECCKeygen.token_label = tokenLabel.c_str();
+    pkcs11ECCKeygen.key_label = keyLabel.c_str();
 
-    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11_ec_kg);
-    return loadPrivateKey(keyID);
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
+    return loadPrivateKey(keyLabel, keyID);
+}
+
+std::string HsmEngine::stringToPctEncoded(const std::string &&str) const
+{
+    std::string ret = str;
+    auto size = str.length();
+    if (size == 0) {
+        return {};
+    }
+    if (size % 2 != 0) {
+        ret = '0' + ret;
+        size++;
+    }
+    for (size_t i = 0; i < size - 1; i += 3) {
+        ret.insert(i, "%");
+        size++;
+    }
+    return ret;
 }
 }  // namespace mococrw

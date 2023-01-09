@@ -116,12 +116,16 @@ TEST_F(HSMTest, testHSMKeygen)
     auto engine = ::testutils::someEnginePtr();
     auto pkey = ::testutils::somePkeyPtr();
     auto hsm = initialiseEngine();
+    std::string keyLabel{"key-label"};
+    std::vector<uint8_t> keyId{};
     EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
             .WillOnce(Return(1));
-    EXPECT_CALL(_mock(), SSL_ENGINE_load_private_key(engine, StrEq("1000"), nullptr, nullptr))
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_load_private_key(
+                        engine, StrEq("pkcs11:object=key-label;id="), nullptr, nullptr))
             .WillOnce(Return(pkey));
     EXPECT_NO_THROW(
-            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "1000", "token-label", "key-label"));
+            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "token-label", keyLabel, keyId));
 }
