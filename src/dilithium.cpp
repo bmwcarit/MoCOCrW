@@ -170,7 +170,7 @@ std::shared_ptr<DilithiumKeyImpl> DilithiumKeyImpl::readPublicKeyFromDER(
     const uint8_t *p = x509PubKey.data();
     auto pubKey = openssl::_d2i_X509_PUBKEY(p, x509PubKey.size());
 
-    const unsigned char *pk = NULL;
+    const unsigned char *pk = nullptr;
     int ppklen;
     // Get the nested bit string
     // we can use get0 here, as pk is not used outside of this function
@@ -204,7 +204,7 @@ std::shared_ptr<DilithiumKeyImpl> DilithiumKeyImpl::readPrivateKeyFromDER(
     // Parse the RFC 5958 ASN.1 DER form
     auto p8inf = openssl::_SSL_d2i_PKCS8_PRIV_KEY_INFO(pkcs8PrivKey.data(), pkcs8PrivKey.size());
 
-    const unsigned char *pk;
+    const unsigned char *pk = nullptr;
     int ppklen;
     // get the nested octet string
     // we can use get0 here, as pk is not used outside of this function

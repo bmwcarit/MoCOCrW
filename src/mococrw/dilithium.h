@@ -66,7 +66,7 @@ public:
     /**
      * @brief Parses an ASN.1 PKCS#8 private key object (see RFC5208)
      *
-     * @param x509PubKey The private key object as defined in RFC5208
+     * @param pkcs8PrivKey The private key object as defined in RFC5208
      * @return A shared pointer to a dilithium implementation object
      */
     static std::shared_ptr<DilithiumKeyImpl> readPrivateKeyFromDER(

@@ -84,7 +84,7 @@ jobs:
           docker_folder_path: ${{ env.DOCKER_FOLDER_PATH }}
 
       - name: "Build Docker Image With HSM"
-        if: ${{ matrix.hsm_flag == 'HSM_ENABLED=ON' }}
+        if: ${{ matrix.hsm_flag == 'HSM_ENABLED=ON' || matrix.dilithium_flag == 'DILITHIUM_ENABLED=ON' }}
         uses: ./.github/actions/build-docker
         with:
           docker_tag: ${{ env.DOCKER_WITH_FEATURE_TAG }}

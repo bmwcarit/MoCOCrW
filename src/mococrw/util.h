@@ -40,7 +40,7 @@ std::vector<T> bytesFromFile(const std::string &filename)
 
     std::ifstream file{filename};
     if (!file.good()) {
-        std::string errorMsg{"Cannot load key/certificate from file "};
+        std::string errorMsg{"Cannot load bytes/key/certificate from file "};
         errorMsg = errorMsg + filename;
         throw std::runtime_error(errorMsg);
     }
