@@ -123,5 +123,5 @@ TEST_F(HSMTest, testHSMKeygen)
     EXPECT_CALL(_mock(), SSL_ENGINE_load_private_key(engine, StrEq("1000"), nullptr, nullptr))
             .WillOnce(Return(pkey));
     EXPECT_NO_THROW(
-            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "1000", "token-label", "key-label"));
+            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "token-label", "1000", "key-label"));
 }

@@ -210,9 +210,9 @@ int main(void)
      */
     auto mgf1DigestType = DigestTypes::SHA256;
     auto rsaSignatureDigestType = DigestTypes::SHA512;
-    auto mgf1 = std::make_shared<MGF1>(MGF1(mgf1DigestType));
+    auto mgf1 = std::make_shared<MGF1>(mgf1DigestType);
     int saltLength = mococrw::Hash::getDigestSize(rsaSignatureDigestType);
-    auto padding = std::make_shared<PSSPadding>(PSSPadding(mgf1, saltLength));
+    auto padding = std::make_shared<PSSPadding>(mgf1, saltLength);
 
     /* Padding is optional. Default: PSSPadding with MGF1 as mask generation function
      * (both using the same digest type (e.g. SHA-256) */

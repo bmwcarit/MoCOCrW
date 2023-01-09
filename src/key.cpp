@@ -192,6 +192,56 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm, const
     auto key = hsm.loadPrivateKey(keyID);
     return AsymmetricKeypair{std::move(key)};
 }
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+                                                      const RSASpec &spec,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyID,
+                                                      const std::string &keyLabel)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.length() > 127) {
+        throw MoCOCrWException("Invalid keyID - key longer than 127 characters");
+    }
+    if (!std::all_of(
+                keyID.begin(), keyID.end(), [](unsigned char c) { return std::isxdigit(c); })) {
+        throw MoCOCrWException("Invalid keyID - key contains non-hex characters");
+    }
+    try {
+        auto key = hsm.generateKey(spec, tokenLabel, keyID, keyLabel);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+                                                      const ECCSpec &spec,
+                                                      const std::string &tokenLabel,
+                                                      const std::string &keyID,
+                                                      const std::string &keyLabel)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.length() > 127) {
+        throw MoCOCrWException("Invalid keyID - key longer than 127 characters");
+    }
+    if (!std::all_of(
+                keyID.begin(), keyID.end(), [](unsigned char c) { return std::isxdigit(c); })) {
+        throw MoCOCrWException("Invalid keyID - key contains non-hex characters");
+    }
+    try {
+        auto key = hsm.generateKey(spec, tokenLabel, keyID, keyLabel);
+        return AsymmetricKeypair{std::move(key)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
+}
 #endif
 
 AsymmetricKey RSASpec::generate() const

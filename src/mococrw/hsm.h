@@ -43,34 +43,6 @@ public:
 
 protected:
     /**
-     * @brief Generate a RSA key pair on the HSM
-     *
-     * @param spec The RSA specification @ref RSASpec
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return AsymmetricKeypair @ref AsymmetricKeypair
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                                  const std::string &keyID,
-                                                  const std::string &tokenLabel,
-                                                  const std::string &keyLabel) const = 0;
-
-    /**
-     * @brief Generate a ECC key pair on the HSM
-     *
-     * @param spec The ECC specification @ref ECCSpec
-     * @param keyID The key identifier
-     * @param tokenLabel The token label
-     * @param keyLabel The key label
-     * @return AsymmetricKeypair @ref AsymmetricKeypair
-     */
-    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                                  const std::string &keyID,
-                                                  const std::string &tokenLabel,
-                                                  const std::string &keyLabel) const = 0;
-
-    /**
      *  Loads public key from HSM.
      *
      *  @param keyID The ID of the public key to load.
@@ -83,6 +55,26 @@ protected:
      * @param keyID The ID of the private key to load.
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const = 0;
+
+    /**
+     * @brief Generate a RSA key pair on the HSM
+     *
+     * @param spec The RSA specification @ref RSASpec
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                                  const std::string &tokenLabel,
+                                                  const std::string &keyID,
+                                                  const std::string &keyLabel) = 0;
+
+    /**
+     * @brief Generate a ECC key pair on the HSM
+     *
+     * @param spec The ECC specification @ref ECCSpec
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                                  const std::string &tokenLabel,
+                                                  const std::string &keyID,
+                                                  const std::string &keyLabel) = 0;
 };
 
 /**
@@ -109,14 +101,14 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                          const std::string &keyID,
                                           const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
+                                          const std::string &keyID,
+                                          const std::string &keyLabel) override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                          const std::string &keyID,
                                           const std::string &tokenLabel,
-                                          const std::string &keyLabel) const override;
+                                          const std::string &keyID,
+                                          const std::string &keyLabel) override;
 };
 
 }  // namespace mococrw

@@ -1606,7 +1606,7 @@ void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p)
 std::string _EC_curve_nid2nist(int nid)
 {
     auto nist = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EC_curve_nid2nist, nid);
-    return std::string(nist);
+    return nist;
 }
 
 int _EVP_PKEY_bits(EVP_PKEY *pkey)
