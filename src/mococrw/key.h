@@ -47,7 +47,7 @@ public:
 
     KeyTypes getType() const;
 
-    int getKeySize() const { return EVP_PKEY_bits(_key.get()); }
+    int getKeySize() const { return openssl::_EVP_PKEY_bits(_key.get()); }
 
     std::unique_ptr<Spec> getKeySpec() const;
 
@@ -91,7 +91,7 @@ public:
      * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
      */
-    static AsymmetricPublicKey readPublicKeyFromHSM(HSM &hsm, const std::string &keyID);
+    static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm, const std::string &keyID);
 #endif
 
     /**
@@ -270,7 +270,55 @@ public:
      * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
      */
-    static AsymmetricKeypair readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID);
+    static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm, const std::string &keyID);
+
+    /**
+     * @brief Generates RSA keypair on HSM token according to the spec given.
+     * @note libp11 supports fetching the keys only by keyID but generating multiple keys with the
+     * same key is not prohibited by PKCS#11 standard. Care should be taken when generating multiple
+     * keys with the same ID because there are no guarantees the correct one will be fetched given
+     * current libp11 implementation.
+     * @param hsm HSM engine handle
+     * @param spec @ref RSASpec
+     * @param keyID ID of the key on HSM. _Only_ hex values are valid because key IDs are stored as
+     * raw bytes.
+     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
+     * are stored. This determines on which token the key shall be stored.
+     * @param keyLabel Arbitrary key label
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+                                              const RSASpec &spec,
+                                              const std::string &tokenLabel,
+                                              const std::string &keyID,
+                                              const std::string &keyLabel);
+
+    /**
+     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @note libp11 supports fetching the keys only by keyID but generating multiple keys with the
+     * same key is not prohibited by PKCS#11 standard. Care should be taken when generating multiple
+     * keys with the same ID because there are no guarantees the correct one will be fetched given
+     * current libp11 implementation.
+     * @param hsm HSM engine handle
+     * @param spec @ref ECCSpec
+     * @param keyID ID of the key on HSM. _Only_ hex values are valid because key IDs are stored as
+     * raw bytes.
+     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
+     * are stored. This determines on which token the key shall be stored.
+     * @param keyLabel Arbitrary key label
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+                                              const ECCSpec &spec,
+                                              const std::string &tokenLabel,
+                                              const std::string &keyID,
+                                              const std::string &keyLabel);
 #endif
 
 private:
@@ -331,6 +379,7 @@ public:
     explicit ECCSpec(openssl::ellipticCurveNid curveNid) : _curveNid{curveNid} {}
     ECCSpec() : ECCSpec{defaultCurveNid} {}
     inline openssl::ellipticCurveNid curve() const { return _curveNid; }
+    inline std::string curveName() const { return openssl::_EC_curve_nid2nist(int(_curveNid)); }
     AsymmetricKey generate() const override;
 
 private:

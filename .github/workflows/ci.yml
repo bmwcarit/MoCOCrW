@@ -16,8 +16,6 @@ env:
   TOKEN_LABEL: token-label
   USER_PIN: 1234
   SO_PIN: 4321
-  KEY_LABEL: key_label
-  KEY_ID: 1001
 
 jobs:
   check-format:
@@ -107,8 +105,6 @@ jobs:
             -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
             'if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
                 softhsm2-util --init-token --free --label ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
-                pkcs11-tool --module $MY_MOCOCRW_INSTALL/lib/softhsm/libsofthsm2.so -l --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }} \
-                    --token-label ${{ env.TOKEN_LABEL }} -k --key-type EC:prime256v1 --id ${{ env.KEY_ID }} --label ${{ env.KEY_LABEL }};
             fi \
             && ctest --verbose -j $(nproc) \
             && if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \

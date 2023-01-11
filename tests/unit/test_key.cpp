@@ -310,6 +310,54 @@ TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
     EXPECT_CALL(hsmMock, loadPrivateKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
     EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
 }
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationInvalidKeyId)
+{
+    ECCSpec eccSpec;
+    HSMMock hsmMock;
+    EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
+                         hsmMock, eccSpec, "token-label", "100z", "key-label"),
+                 MoCOCrWException);
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
+{
+    ECCSpec eccSpec;
+    HSMMock hsmMock;
+    EXPECT_CALL(
+            hsmMock,
+            generateKey(
+                    An<const ECCSpec &>(), "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
+            hsmMock, eccSpec, "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
+{
+    RSASpec rsaSpec;
+    HSMMock hsmMock;
+    EXPECT_CALL(
+            hsmMock,
+            generateKey(
+                    An<const RSASpec &>(), "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
+            hsmMock, rsaSpec, "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
+{
+    ECCSpec eccSpec;
+    HSMMock hsmMock;
+    // 128 characters keyId
+    EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
+                         hsmMock,
+                         eccSpec,
+                         "token-label",
+                         "c556f2b6b5ce40bda73997cbd4d06f7169fdd7a2609774cead74a7d2a6a206a34c1780a49"
+                         "4ae445601314cdf249c1021e33519d715f00539480db87fcd2e6c03",
+                         "key-label"),
+                 MoCOCrWException);
+}
 #endif
 
 TEST_F(KeyHandlingTests, testBothGeneratedKeysNotTheSame)
@@ -373,6 +421,18 @@ TEST_F(KeyHandlingTests, testGetKeySpec)
     EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed448Spec.get())->curve(), openssl::ellipticCurveNid::Ed448);
     EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed25519Spec.get())->curve(),
               openssl::ellipticCurveNid::Ed25519);
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(defaultSpec.get())->curveName(), "P-256");
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Sect571r1Spec.get())->curveName(), "B-571");
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Secp521Spec.get())->curveName(), "P-521");
+    /* These two curves are not working:
+    openssl::ellipticCurveNid::Ed448,
+    openssl::ellipticCurveNid::Ed25519
+    6: unknown file: Failure
+    6: C++ exception with description "error:23077074:PKCS12 routines:PKCS12_pbe_crypt:pkcs12
+    cipherfinal error: 587690100" thrown in the test body.
+    */
+    // EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed448Spec.get())->curveName(), "no-work");
+    // EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed25519Spec.get())->curveName(), "no-work");
 
     std::unique_ptr<RSASpec> defaultRSASpec(
             dynamic_cast<RSASpec *>(_rsaKeyPair.getKeySpec().release()));

@@ -1560,5 +1560,20 @@ SSL_EVP_PKEY_Ptr _ENGINE_load_public_key(ENGINE *e, const std::string &keyId);
  */
 void _ENGINE_finish(ENGINE *e);
 
+/**
+ * Send control command to an engine and pass arbitrary data through \p p
+ */
+void _ENGINE_ctrl_cmd(ENGINE *e, const std::string &cmdName, void *p);
+
+/**
+ * Convert integer \p nid to curve name
+ */
+std::string _EC_curve_nid2nist(int nid);
+
+/**
+ * Get number of bits key has from \p pkey data structure
+ */
+int _EVP_PKEY_bits(EVP_PKEY *pkey);
+
 }  // namespace openssl
 }  // namespace mococrw
