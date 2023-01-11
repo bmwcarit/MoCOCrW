@@ -218,7 +218,7 @@ std::vector<uint8_t> dilithiumSign(const DilithiumAsymmetricPrivateKey &privKey,
          * - Error in libdilithium
          * - Invalid key type (not a dilithium key)
          */
-        std::cerr << "Verification failed!" << std::endl;
+        std::cerr << "Signing failed!" << std::endl;
         std::cerr << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }

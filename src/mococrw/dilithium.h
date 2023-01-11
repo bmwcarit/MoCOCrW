@@ -52,7 +52,7 @@ public:
         }
     }
 
-    ~DilithiumKeyImpl() { utility::vectorCleanse<uint8_t>(*_keyData.get()); };
+    ~DilithiumKeyImpl() { utility::vectorCleanse<uint8_t>(*_keyData); };
 
     /**
      * @brief Parses an ASN.1 X509 public key object (see RFC5280)
@@ -330,6 +330,22 @@ public:
      */
     DilithiumSigningCtx &operator=(const DilithiumSigningCtx &other);
 
+    /**
+     * @brief See interface defintion for more information.
+     *
+     * NOTE: The implementation of the signature context for dilithium differs to the ones used for
+     * RSA and ECC in the way that no digest algorithm needs to be provided to the constructor.
+     *
+     * The reason for this behavior is that the dilithium signature algorithm can take arbitrary
+     * length inputs and internally digests them to obtain a fixed-length signature. As a
+     * consequence, messages may be directly passed into it or a hash algorithm of choice (e.g.,
+     * SHA3-512) can be used to digest the message and then pass this digest into the signMessage
+     * interface here. This can be an implementation benefit as the dilithium interface doesn't
+     * support streaming for large amounts of data but only to pass all data in one go.
+     *
+     * @param message The message to sign
+     * @return std::vector<uint8_t> The signature
+     */
     std::vector<uint8_t> signMessage(const std::vector<uint8_t> &message);
 
 private:
@@ -360,6 +376,22 @@ public:
      */
     DilithiumVerificationCtx &operator=(const DilithiumVerificationCtx &other);
 
+    /**
+     * @brief See interface defintion for more information.
+     *
+     * NOTE: The implementation of the verification context for dilithium differs to the ones used
+     * for RSA and ECC in the way that no digest algorithm needs to be provided to the constructor.
+     *
+     * The reason for this behavior is that the dilithium signature algorithm can take arbitrary
+     * length inputs and internally digests them to obtain a fixed-length signature. As a
+     * consequence, messages may be directly passed into it or a hash algorithm of choice (e.g.,
+     * SHA3-512) can be used to digest the message and then pass this digest into the verifyMessage
+     * interface here. This can be an implementation benefit as the dilithium interface doesn't
+     * support streaming for large amounts of data but only to pass all data in one go.
+     *
+     * @param signature The signature
+     * @param message The message to verify
+     */
     void verifyMessage(const std::vector<uint8_t> &signature, const std::vector<uint8_t> &message);
 
 private:
