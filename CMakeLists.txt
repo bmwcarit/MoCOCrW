@@ -31,6 +31,9 @@ set(SECURITY_COMPILER_FLAGS
 # By default, we do not build MoCOCrW with LibP11.
 option(HSM_ENABLED "Enable HSM features" OFF)
 
+# By default, we do not build MoCOCrW with dilithium support.
+option(DILITHIUM_ENABLED "Enable Dilithium features" OFF)
+
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 # Note that '-pie' needs to be specified as a linker flag to every executable
@@ -91,6 +94,13 @@ endif()
 
 if(BUILD_DOCUMENTATION)
     add_subdirectory(doc)
+endif()
+
+if(DILITHIUM_ENABLED)
+    message(STATUS "Dilithium support is enabled. Linking libdilithium statically.")
+    find_package(dilithium 3.1 REQUIRED)
+else()
+    message(WARNING "Dilithium support is disabled.")
 endif()
 
 find_package(OpenSSL REQUIRED)

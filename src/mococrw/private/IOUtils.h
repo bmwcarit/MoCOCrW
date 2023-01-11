@@ -18,38 +18,15 @@
  */
 #pragma once
 
-#include <fstream>
-
 #include "mococrw/crl.h"
+#include "mococrw/util.h"
 #include "mococrw/x509.h"
-
-template <class T>
-std::vector<T> bytesFromFile(const std::string &filename)
-{
-    static_assert(sizeof(T) == sizeof(char), "bytesFromFile only works with 1 byte data types");
-
-    std::ifstream file{filename};
-    if (!file.good()) {
-        std::string errorMsg{"Cannot load key/certificate from file "};
-        errorMsg = errorMsg + filename;
-        throw std::runtime_error(errorMsg);
-    }
-
-    file.seekg(0, std::ios::end);
-    auto size = file.tellg();
-    file.seekg(0, std::ios::beg);
-
-    std::vector<T> buffer;
-    buffer.resize(size);
-    file.read(reinterpret_cast<char *>(buffer.data()), size);
-    return buffer;
-}
 
 template <class F, typename... Args>
 std::result_of_t<F && (const std::string &, Args...)> openSSLObjectFromFile(
         F &&f, const std::string &filename, Args &&... args)
 {
-    auto buffer = bytesFromFile<char>(filename);
+    auto buffer = mococrw::utility::bytesFromFile<char>(filename);
     return f({buffer.data(), buffer.size()}, std::forward<Args>(args)...);
 }
 
@@ -60,7 +37,7 @@ mococrw::X509Certificate loadCertFromFile(const std::string &filename)
 
 mococrw::X509Certificate loadCertFromDERFile(const std::string &filename)
 {
-    auto buffer = bytesFromFile<uint8_t>(filename);
+    auto buffer = mococrw::utility::bytesFromFile<uint8_t>(filename);
     return mococrw::X509Certificate::fromDER(buffer);
 }
 
@@ -76,7 +53,7 @@ mococrw::AsymmetricPublicKey loadPubkeyFromFile(const std::string &filename)
 
 mococrw::CertificateRevocationList loadCrlFromDERFile(const std::string &filename)
 {
-    auto buffer = bytesFromFile<uint8_t>(filename);
+    auto buffer = mococrw::utility::bytesFromFile<uint8_t>(filename);
     return mococrw::CertificateRevocationList::fromDER(buffer);
 }
 

@@ -528,7 +528,7 @@ TEST_F(X509Test, testExportDER)
 {
     using ::testing::NotNull;
     ASSERT_NO_THROW({
-        auto bytes = bytesFromFile<uint8_t>("root1.der");
+        auto bytes = utility::bytesFromFile<uint8_t>("root1.der");
         auto cert = X509Certificate::fromDER(bytes);
         ASSERT_THAT(cert.internal(), NotNull());
         auto der = cert.toDER();

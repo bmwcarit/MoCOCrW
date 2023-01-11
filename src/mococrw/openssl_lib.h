@@ -153,6 +153,7 @@ public:
     static BIGNUM *SSL_ASN1_INTEGER_to_BN(const ASN1_INTEGER *ai, BIGNUM *bn) noexcept;
     static int SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y) noexcept;
     static long SSL_ASN1_INTEGER_get(const ASN1_INTEGER *a) noexcept;
+    static int SSL_ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a) noexcept;
     static int SSL_ASN1_INTEGER_set(ASN1_INTEGER *a, long value) noexcept;
     static ASN1_INTEGER *SSL_X509_get_serialNumber(X509 *x) noexcept;
     static int SSL_X509_set_serialNumber(X509 *x, ASN1_INTEGER *serial) noexcept;
@@ -203,6 +204,11 @@ public:
     static int SSL_EVP_PKEY_type(int type) noexcept;
     static int SSL_EVP_PKEY_id(const EVP_PKEY *pkey) noexcept;
     static int SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept;
+
+    static PKCS8_PRIV_KEY_INFO *SSL_d2i_PKCS8_PRIV_KEY_INFO(PKCS8_PRIV_KEY_INFO **a,
+                                                            const unsigned char **ppin,
+                                                            long length) noexcept;
+    static void SSL_PKCS8_PRIV_KEY_INFO_free(PKCS8_PRIV_KEY_INFO *a) noexcept;
 
     /* Error handling */
     static char *SSL_ERR_error_string(unsigned long error, char *buf) noexcept;
@@ -257,6 +263,10 @@ public:
     static EVP_PKEY *SSL_X509_get_pubkey(X509 *x) noexcept;
     static ASN1_TIME *SSL_X509_get_notBefore(X509 *x) noexcept;
     static ASN1_TIME *SSL_X509_get_notAfter(X509 *x) noexcept;
+    static X509_PUBKEY *SSL_d2i_X509_PUBKEY(X509_PUBKEY **a,
+                                            const unsigned char **ppin,
+                                            long length) noexcept;
+    static void SSL_X509_PUBKEY_free(X509_PUBKEY *a) noexcept;
 
     /* ASN1_TIME */
     static void SSL_ASN1_TIME_free(ASN1_TIME *x) noexcept;

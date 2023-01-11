@@ -45,6 +45,13 @@ if(HSM_ENABLED)
   )
 endif()
 
+if(DILITHIUM_ENABLED)
+    set(LIBRARY_SOURCES
+        ${LIBRARY_SOURCES}
+        dilithium.cpp
+    )
+endif()
+
 set(LIBRARY_PUBLIC_HEADERS
     mococrw/asn1time.h
     mococrw/asymmetric_crypto_ctx.h
@@ -80,12 +87,24 @@ if(HSM_ENABLED)
   )
 endif()
 
+if(DILITHIUM_ENABLED)
+    set(LIBRARY_PUBLIC_HEADERS
+        ${LIBRARY_PUBLIC_HEADERS}
+        mococrw/dilithium.h
+    )
+endif()
+
 add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_link_libraries(${LIBRARY_NAME} PUBLIC OpenSSL::Crypto OpenSSL::SSL Boost::boost)
+
 if(HSM_ENABLED)
   target_link_libraries(${LIBRARY_NAME} PUBLIC LibP11::P11)
   target_compile_definitions(${LIBRARY_NAME} PUBLIC HSM_ENABLED)
+endif()
+
+if(DILITHIUM_ENABLED)
+    target_link_libraries(${LIBRARY_NAME} PRIVATE dilithium2_ref dilithium3_ref dilithium5_ref aes256ctr_ref fips202_ref)
 endif()
 
 target_include_directories(${LIBRARY_NAME} INTERFACE

@@ -152,6 +152,12 @@ using SSL_EVP_PKEY_CTX_Ptr =
                         SSLDeleter<EVP_PKEY_CTX, lib::OpenSSLLib::SSL_EVP_PKEY_CTX_free>>;
 using SSL_EVP_PKEY_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_PKEY_CTX_Ptr>;
 
+using SSL_PKCS8_PRIV_KEY_INFO_Ptr = std::unique_ptr<
+        PKCS8_PRIV_KEY_INFO,
+        SSLDeleter<PKCS8_PRIV_KEY_INFO, lib::OpenSSLLib::SSL_PKCS8_PRIV_KEY_INFO_free>>;
+using SSL_PKCS8_PRIV_KEY_INFO_SharedPtr =
+        utility::SharedPtrTypeFromUniquePtr<SSL_PKCS8_PRIV_KEY_INFO_Ptr>;
+
 using SSL_HMAC_CTX_Ptr =
         std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
 using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
@@ -178,6 +184,11 @@ using SSL_EVP_MD_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_EVP_MD_
 
 using SSL_X509_Ptr = std::unique_ptr<X509, SSLDeleter<X509, lib::OpenSSLLib::SSL_X509_free>>;
 using SSL_X509_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_Ptr>;
+
+using SSL_X509_PUBKEY_Ptr =
+        std::unique_ptr<X509_PUBKEY,
+                        SSLDeleter<X509_PUBKEY, lib::OpenSSLLib::SSL_X509_PUBKEY_free>>;
+using SSL_X509_PUBKEY_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_X509_PUBKEY_Ptr>;
 
 using SSL_X509_STORE_Ptr =
         std::unique_ptr<X509_STORE, SSLDeleter<X509_STORE, lib::OpenSSLLib::SSL_X509_STORE_free>>;
@@ -354,6 +365,15 @@ void _EVP_PKEY_CTX_set_ec_paramgen_curve_nid(EVP_PKEY_CTX *ctx, int nid);
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
  */
 void _EVP_PKEY_CTX_set_ec_param_enc(EVP_PKEY_CTX *ctx, int param_enc);
+
+/**
+ * @brief Parses a DER-encoded private key ASN.1 structure (see RFC 5958)
+ *
+ * @param buf The data to parse
+ * @param length  The size of the data
+ * @return SSL_PKCS8_PRIV_KEY_INFO_Ptr A pointer to the object containing the data
+ */
+SSL_PKCS8_PRIV_KEY_INFO_Ptr _SSL_d2i_PKCS8_PRIV_KEY_INFO(const unsigned char *buf, long length);
 
 /**
  * Gets the EC group of a given EC key
@@ -1197,6 +1217,11 @@ SSL_X509_CRL_Ptr _PEM_read_bio_X509_CRL(BIO *bp);
 SSL_X509_CRL_Ptr _d2i_X509_CRL_bio(BIO *bp);
 
 /**
+ * Reads a DER encoded x509 pubkey from a buffer.
+ */
+SSL_X509_PUBKEY_Ptr _d2i_X509_PUBKEY(const unsigned char *pin, long length);
+
+/**
  * Sets a list of CRLs for a verification context.
  */
 void _X509_STORE_CTX_set0_crls(X509_STORE_CTX *ctx, STACK_OF(X509_CRL) * crls);
@@ -1221,6 +1246,14 @@ void _X509_STORE_CTX_set_time(X509_STORE_CTX *ctx, std::time_t time);
  * @throw OpenSSLException if the ASN1_TIME doesn't fit into a time_t.
  */
 time_t _asn1TimeToTimeT(const ASN1_TIME *time);
+
+/**
+ * @brief Returns the int64_t from an ASN1_INTEGER
+ *
+ * @param a the ASN1_INTEGER variable
+ * @return int64_t the stored value
+ */
+int64_t _SSL_ASN1_INTEGER_get_int64(const ASN1_INTEGER *a);
 
 enum class RSAPaddingMode {
     NONE = RSA_NO_PADDING,

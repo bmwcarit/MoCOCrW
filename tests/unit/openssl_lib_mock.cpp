@@ -209,6 +209,18 @@ int OpenSSLLib::SSL_EVP_PKEY_size(EVP_PKEY *pkey) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_size(pkey);
 }
 
+void OpenSSLLib::SSL_PKCS8_PRIV_KEY_INFO_free(PKCS8_PRIV_KEY_INFO *a) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_PKCS8_PRIV_KEY_INFO_free(a);
+}
+
+PKCS8_PRIV_KEY_INFO *OpenSSLLib::SSL_d2i_PKCS8_PRIV_KEY_INFO(PKCS8_PRIV_KEY_INFO **a,
+                                                             const unsigned char **ppin,
+                                                             long length) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_d2i_PKCS8_PRIV_KEY_INFO(a, ppin, length);
+}
+
 char *OpenSSLLib::SSL_ERR_error_string(unsigned long error, char *buf) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ERR_error_string(error, buf);
@@ -490,6 +502,11 @@ ASN1_TIME *OpenSSLLib::SSL_X509_get_notAfter(X509 *x) noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_get_notAfter(x);
 }
 
+X509_PUBKEY *SSL_d2i_X509_PUBKEY(X509_PUBKEY **a, const unsigned char **ppin, long length) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_d2i_X509_PUBKEY(a, ppin, length);
+}
+
 /* X509 Certificate validation */
 X509_STORE *OpenSSLLib::SSL_X509_STORE_new() noexcept
 {
@@ -656,6 +673,10 @@ int OpenSSLLib::SSL_ASN1_INTEGER_set(ASN1_INTEGER *a, long value) noexcept
 long OpenSSLLib::SSL_ASN1_INTEGER_get(const ASN1_INTEGER *a) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_get(a);
+}
+int OpenSSLLib::SSL_ASN1_INTEGER_get_int64(int64_t *pr, const ASN1_INTEGER *a) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ASN1_INTEGER_get_int64(pr, a);
 }
 int OpenSSLLib::SSL_ASN1_INTEGER_cmp(const ASN1_INTEGER *x, const ASN1_INTEGER *y) noexcept
 {
@@ -920,6 +941,16 @@ int OpenSSLLib::SSL_EVP_DigestVerify(EVP_MD_CTX *ctx,
 X509_REQ *OpenSSLLib::SSL_d2i_X509_REQ_bio(BIO *bp, X509_REQ **req) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_d2i_X509_REQ_bio(bp, req);
+}
+void OpenSSLLib::SSL_X509_PUBKEY_free(X509_PUBKEY *a) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_X509_PUBKEY_free(a);
+}
+X509_PUBKEY *OpenSSLLib::SSL_d2i_X509_PUBKEY(X509_PUBKEY **a,
+                                             const unsigned char **ppin,
+                                             long length) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_d2i_X509_PUBKEY(a, ppin, length);
 }
 int OpenSSLLib::SSL_i2d_X509_REQ_bio(BIO *bp, X509_REQ *req) noexcept
 {
