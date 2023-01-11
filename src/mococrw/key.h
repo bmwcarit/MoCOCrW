@@ -282,8 +282,6 @@ public:
      * @param spec @ref RSASpec
      * @param keyID ID of the key on HSM. _Only_ hex values are valid because key IDs are stored as
      * raw bytes.
-     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
-     * are stored. This determines on which token the key shall be stored.
      * @param keyLabel Arbitrary key label
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
@@ -292,7 +290,6 @@ public:
      */
     static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
                                               const RSASpec &spec,
-                                              const std::string &tokenLabel,
                                               const std::string &keyID,
                                               const std::string &keyLabel);
 
@@ -306,8 +303,6 @@ public:
      * @param spec @ref ECCSpec
      * @param keyID ID of the key on HSM. _Only_ hex values are valid because key IDs are stored as
      * raw bytes.
-     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
-     * are stored. This determines on which token the key shall be stored.
      * @param keyLabel Arbitrary key label
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
@@ -316,7 +311,6 @@ public:
      */
     static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
                                               const ECCSpec &spec,
-                                              const std::string &tokenLabel,
                                               const std::string &keyID,
                                               const std::string &keyLabel);
 #endif

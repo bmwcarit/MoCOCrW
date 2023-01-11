@@ -34,15 +34,13 @@ class HSMMock final : public HSM
 public:
     MOCK_CONST_METHOD1(loadPublicKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
     MOCK_CONST_METHOD1(loadPrivateKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
-    MOCK_METHOD4(generateKey,
+    MOCK_METHOD3(generateKey,
                  openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
                                            const std::string &keyID,
-                                           const std::string &tokenLabel,
                                            const std::string &keyLabel));
-    MOCK_METHOD4(generateKey,
+    MOCK_METHOD3(generateKey,
                  openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
                                            const std::string &keyID,
-                                           const std::string &tokenLabel,
                                            const std::string &keyLabel));
 };
 

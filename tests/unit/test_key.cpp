@@ -316,7 +316,7 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationInvalidKeyId)
     ECCSpec eccSpec;
     HSMMock hsmMock;
     EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
-                         hsmMock, eccSpec, "token-label", "100z", "key-label"),
+                         hsmMock, eccSpec, "100z", "key-label"),
                  MoCOCrWException);
 }
 
@@ -327,9 +327,9 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
     EXPECT_CALL(
             hsmMock,
             generateKey(
-                    An<const ECCSpec &>(), "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+                    An<const ECCSpec &>(), "100abcdefABCDEFdeadbeef", "key-label"));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, eccSpec, "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+            hsmMock, eccSpec, "100abcdefABCDEFdeadbeef", "key-label"));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
@@ -339,9 +339,9 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
     EXPECT_CALL(
             hsmMock,
             generateKey(
-                    An<const RSASpec &>(), "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+                    An<const RSASpec &>(), "100abcdefABCDEFdeadbeef", "key-label"));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, rsaSpec, "token-label", "100abcdefABCDEFdeadbeef", "key-label"));
+            hsmMock, rsaSpec, "100abcdefABCDEFdeadbeef", "key-label"));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
@@ -352,7 +352,6 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationValidKeyIdButTooLong)
     EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
                          hsmMock,
                          eccSpec,
-                         "token-label",
                          "c556f2b6b5ce40bda73997cbd4d06f7169fdd7a2609774cead74a7d2a6a206a34c1780a49"
                          "4ae445601314cdf249c1021e33519d715f00539480db87fcd2e6c03",
                          "key-label"),

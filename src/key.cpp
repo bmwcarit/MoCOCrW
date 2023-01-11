@@ -195,7 +195,6 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm, const
 
 AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
                                                       const RSASpec &spec,
-                                                      const std::string &tokenLabel,
                                                       const std::string &keyID,
                                                       const std::string &keyLabel)
 {
@@ -208,7 +207,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key contains non-hex characters");
     }
     try {
-        auto key = hsm.generateKey(spec, tokenLabel, keyID, keyLabel);
+        auto key = hsm.generateKey(spec, keyID, keyLabel);
         return AsymmetricKeypair{std::move(key)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(
@@ -220,7 +219,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
 
 AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
                                                       const ECCSpec &spec,
-                                                      const std::string &tokenLabel,
                                                       const std::string &keyID,
                                                       const std::string &keyLabel)
 {
@@ -233,7 +231,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key contains non-hex characters");
     }
     try {
-        auto key = hsm.generateKey(spec, tokenLabel, keyID, keyLabel);
+        auto key = hsm.generateKey(spec, keyID, keyLabel);
         return AsymmetricKeypair{std::move(key)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(
