@@ -109,3 +109,43 @@ y2Mu1EA=
 ```cpp
 mococrw::AsymmetricKeypair eccPrivKey = mococrw::AsymmetricKeypair::readPrivateKeyFromPEM(KeyHandlingTests::_pemEccPrivKeySect409k1, "correct_password");
 ```
+
+# Dilithium
+
+As openssl does not support dilithium yet, generating and reading keys is implemented using different classes.
+
+## Key Generation
+```cpp
+auto spec = DilithiumSpec(DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2);
+auto priv_key = spec.generate();
+
+// ------------ OR ------------------ //
+auto priv_key_2 = DilithiumAsymmetricKeypair::generate(DilithiumSpec());
+```
+
+The following dilithium parameter sets are supported:
+* DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM2
+* DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM3
+* DilithiumKeyImpl::DilithiumParameterSet::DILITHIUM5
+
+The default parameter set is DILITHIUM3 as recommended by the authors(see https://www.pq-crystals.org/dilithium/index.shtml).
+
+## Reading public key from DER
+The DER format for the public key is described [here](example_asymm_crypto.md#Note-on-DER-format). Sample keys are stored in the [tests](https://github.com/bmwcarit/MoCOCrW/tree/openssl1.1/tests/unit/dilithium-keys) folder.
+
+```cpp
+// Reading a public key
+auto pubKeyData = utility::bytesFromFile<uint8_t>(<PATH_TO_FILE>);
+auto pubKey = DilithiumAsymmetricPublicKey::readPublicKeyfromDER(pubKeyData);
+```
+
+## Reading private key from DER
+The DER format for the private key is described [here](example_asymm_crypto.md#Note-on-DER-format). Sample keys are stored in the [tests](https://github.com/bmwcarit/MoCOCrW/tree/openssl1.1/tests/unit/dilithium-keys) folder.
+```cpp
+// Reading a private key
+auto privKeyData = utility::bytesFromFile<uint8_t>(<PATH_TO_FILE>);
+auto privKey = DilithiumAsymmetricPrivateKey::readPrivateKeyfromDER(privKeyData);
+```
+
+## Writing keys
+Writing keys to disk is not supported.
