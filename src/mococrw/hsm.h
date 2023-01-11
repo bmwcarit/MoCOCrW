@@ -62,7 +62,6 @@ protected:
      * @param spec The RSA specification @ref RSASpec
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                                  const std::string &tokenLabel,
                                                   const std::string &keyID,
                                                   const std::string &keyLabel) = 0;
 
@@ -72,18 +71,24 @@ protected:
      * @param spec The ECC specification @ref ECCSpec
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                                  const std::string &tokenLabel,
                                                   const std::string &keyID,
                                                   const std::string &keyLabel) = 0;
 };
 
 /**
- * Abstract class of an HSMEngine that leverages OpenSSL's ENGINE_* API interface.
+ * Hsm handling that leverages OpenSSL's ENGINE_* API interface.
  */
 class HsmEngine : public HSM
 {
 public:
-    HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin);
+    /**
+     * @note Each HsmEngine object is associated with a specific token and a pin to login to that
+     * token
+     */
+    HsmEngine(const std::string &id,
+              const std::string &modulePath,
+              const std::string &tokenLabel,
+              const std::string &pin);
     virtual ~HsmEngine();
 
 protected:
@@ -93,6 +98,8 @@ protected:
     const std::string _id;
     /** Path to Module. */
     const std::string _modulePath;
+    /** Token label used to uniquely identify a token on which objects reside */
+    const std::string _tokenLabel;
     /** Pin to access PKCS11 Engine. */
     const std::string _pin;
 
@@ -101,12 +108,10 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                          const std::string &tokenLabel,
                                           const std::string &keyID,
                                           const std::string &keyLabel) override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                          const std::string &tokenLabel,
                                           const std::string &keyID,
                                           const std::string &keyLabel) override;
 };

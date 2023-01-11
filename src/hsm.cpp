@@ -24,8 +24,11 @@ namespace mococrw
 {
 using namespace openssl;
 
-HsmEngine::HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin)
-        : HSM(), _id(id), _modulePath(modulePath), _pin(pin)
+HsmEngine::HsmEngine(const std::string &id,
+                     const std::string &modulePath,
+                     const std::string &tokenLabel,
+                     const std::string &pin)
+        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel), _pin(pin)
 {
     // Fetch _engine via ID.
     _engine = _ENGINE_by_id(_id);
@@ -44,6 +47,10 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyID) con
     if (keyID.length() % 2 != 0) {
         evenLengthKeyID = "0" + evenLengthKeyID;
     }
+    /**
+     *  TODO: use _tokenLabel and keyID to form a pkcs#11 uri as defined by rfc 7512 i.e.
+     * pkcs11:token=some_label;id=123;object=some_label Rename keyID argument to keyURI
+     */
     return _ENGINE_load_public_key(_engine.get(), evenLengthKeyID);
 }
 
@@ -54,11 +61,14 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyID) co
     if (keyID.length() % 2 != 0) {
         evenLengthKeyID = "0" + evenLengthKeyID;
     }
+    /**
+     *  TODO: use _tokenLabel and keyID to form a pkcs#11 uri as defined by rfc 7512 i.e.
+     * pkcs11:token=some_label;id=123;object=some_label Rename keyID argument to keyURI
+     */
     return _ENGINE_load_private_key(_engine.get(), evenLengthKeyID);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
-                                                 const std::string &tokenLabel,
                                                  const std::string &keyID,
                                                  const std::string &keyLabel)
 {
@@ -77,7 +87,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
     pkcs11RSAKeygen.type = EVP_PKEY_RSA;
     pkcs11RSAKeygen.kgen.rsa = &pkcs11RSASpec;
     pkcs11RSAKeygen.key_id = evenLengthKeyID.c_str();
-    pkcs11RSAKeygen.token_label = tokenLabel.c_str();
+    pkcs11RSAKeygen.token_label = _tokenLabel.c_str();
     pkcs11RSAKeygen.key_label = keyLabel.c_str();
 
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
@@ -85,7 +95,6 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
-                                                 const std::string &tokenLabel,
                                                  const std::string &keyID,
                                                  const std::string &keyLabel)
 {
@@ -105,7 +114,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
     pkcs11ECCKeygen.type = EVP_PKEY_EC;
     pkcs11ECCKeygen.kgen.ec = &pkcs11ECCSpec;
     pkcs11ECCKeygen.key_id = evenLengthKeyID.c_str();
-    pkcs11ECCKeygen.token_label = tokenLabel.c_str();
+    pkcs11ECCKeygen.token_label = _tokenLabel.c_str();
     pkcs11ECCKeygen.key_label = keyLabel.c_str();
 
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
