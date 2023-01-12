@@ -58,6 +58,48 @@ build/$ ctest . --output-on-failure
 
 The bci.config file is used by our internal validation environment, please just ignore it.
 
+### Build with dilithium support
+
+Dilithium is an optional feature for MoCOCrW. For enabling it
+replace the cmake invocation from abovei:
+```
+build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
+```
+
+Make sure that the adapted version of libdilithium can be found by the linker.
+
+HSM and dilithium support can be enabled independently.
+
+#### Dilithium Adaptions
+
+It is not possible to take the bare dilithium implementation. The dilithium implementation was
+adapted. A new function for retrieving the public key from a private key was added. This change is
+required to compile MoCOCrW with dilithium support.
+
+There are two PRs created for dilithium. These can be found in dilithium's [github
+repository](https://github.com/pq-crystals/dilithium/).
+
+The first [PR](https://github.com/pq-crystals/dilithium/pull/68) contains the adaptions for
+retreiving the public key from a private key and is REQUIRED in order to compile MoCOCrW with
+dilithium support.
+
+The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the cmake file, so that
+the static libraries and the header can be installed using cmake. It is recommended to use this PR
+for compiling and installing dilithium.
+
+### Build with HSM support
+
+HSM support is an OPTIONAL feature for MoCOCrW. For building MoCOCrW with HSM support replace the
+cmake invocation from above with
+```
+build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
+```
+
+[libp11](https://github.com/OpenSC/libp11/) `>=libp11-0.4.11` is required for building MoCOCrW with
+HSM feature enabled.
+
+HSM and dilithium support can be enabled independently.
+
 ## Installation / Usage / Packaging
 
 MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a cmake

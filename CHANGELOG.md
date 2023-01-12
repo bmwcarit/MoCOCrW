@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+
+# Release 4.2.1
+## Changed
+
+## Fixed
+
 * CA Tests' SetUp was changed so that all the objects involved do not depend on time when
   construction of object is made. This led to problems where object of CA class had notBefore
   attribute set to greater value than CA's certificate's notBefore which should never happen.
@@ -36,6 +42,11 @@ All notable changes to this project will be documented in this file.
     - Loading Public Keys
     - Loading Private Keys
     - Generating EC and RSA keypairs
+* Post Quantum Cryptography support has been added.
+  [Dilithium](https://www.pq-crystals.org/dilithium/)
+  is used to offer signing and verification functionality. To build MoCOCrW with dilithium support
+  please follow the instructions in the [README](README.md). Please note that the API for
+  dilithium will slightly change in the future once openssl officially supports dilithium.
 
 # Release 4.1.1
 
