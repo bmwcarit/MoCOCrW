@@ -61,7 +61,7 @@ The bci.config file is used by our internal validation environment, please just 
 ### Build with dilithium support
 
 Dilithium is an optional feature provided by MoCOCrW. To enable the feature,
-replace the cmake invocation from abovei:
+replace the CMake invocation with:
 ```
 build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
 ```
@@ -80,30 +80,30 @@ There are two PRs created for dilithium. These can be found in dilithium's [gith
 repository](https://github.com/pq-crystals/dilithium/).
 
 The first [PR](https://github.com/pq-crystals/dilithium/pull/68) contains the adaptions for
-retreiving the public key from a private key and is REQUIRED in order to compile MoCOCrW with
+retreiving the public key from a private key and is **required** in order to compile MoCOCrW with
 dilithium support.
 
-The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the cmake file so that
-the static libraries and the header can be installed using cmake. It is recommended to use this PR
+The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the CMake file so that
+the static libraries and the header can be installed using CMake. It is recommended to use this PR
 for compiling and installing dilithium.
 
 ### Build with HSM support
 
-HSM support is an OPTIONAL feature for MoCOCrW. For building MoCOCrW with HSM support replace the
-cmake invocation from above with
+HSM support is an **optional** feature for MoCOCrW. To build MoCOCrW with HSM support replace the
+CMake invocation with
 ```
 build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
 ```
 
-[libp11](https://github.com/OpenSC/libp11/) `>=libp11-0.4.11` is required for building MoCOCrW with
+[libp11](https://github.com/OpenSC/libp11/) `>=libp11-0.4.12` is required for building MoCOCrW with
 HSM feature enabled.
 
 HSM and dilithium support can be enabled independently.
 
 ## Installation / Usage / Packaging
 
-MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a cmake
-exported target that you can use in your projects. A minimal example how to use this cmake
+MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a CMake
+exported target that you can use in your projects. A minimal example how to use this CMake
 integration can be found in `tests/sdk`. This can also be used as an integration test if you
 want to ship MoCOCrW with an SDK.
 
