@@ -76,7 +76,11 @@ More examples and a complete documentation will follow.
 Support for this library will be provided on a best-effort basis. However, we encourage
 you to submit bugs or contact us via github if there is an issue.
 
-## Doxygen Documentation
+## Documentation
+
+[Documentation](doc/examples/) and [examples](examples) are also part of the repository.
+
+### Doxygen
 
 In order to generate the doxygen documentation please follow the next steps:
 on the project build directory run:
@@ -97,4 +101,4 @@ even though it would not be necessary according to Semantic Versioning (e.g. due
 ## Code Format
 
 We use clang-format, version 10, to properly format MoCOCrW's code-base. Kindly use this version
-when formatting your PRs for contribution. 
+when formatting your PRs for contribution.

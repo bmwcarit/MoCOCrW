@@ -476,3 +476,101 @@ mococrw::EdDSASignaturePrivateKeyCtx ctx(key);
 // Hash of message is calculated automatically
 signature = ctx.signMessage(message);
 ```
+
+# Dilithium
+
+## Background
+Quantum computers can break RSA and elliptic curve based encryption using Shor's algorithm. However, nowadays, the number of available qubits in modern quantum computers does not suffice to successfully break RSA and ECC keys. But it is just a matter of time until enough qubits are available.
+
+CRYSTALS-Dilithium is a lattice-based signature scheme. There are no known quantum computer algorithms that can break dilithium.
+
+For further information regarding dilithium please refer to https://pq-crystals.org/dilithium/index.shtml .
+
+## Note on hashing algorithms
+Dilithium differs compared to the other algorithms. The other signing-/verification-algorithms described here expect a hashing algorithm when verifyMessage(...) or signMessage(...) is used. Dilithium does not.
+
+This behavior arises as the dilithium signature algorithm can take arbitrary length inputs and internally digests them to obtain a fixed-length signature. Consequently, messages may be directly passed into it, or a hash algorithm of choice (e.g., SHA3-512) can be used to digest the message and then pass it into the verifyMessage interface here. This can be an implementation benefit as the dilithium interface doesn't support streaming for large amounts of data but only to pass all data in one go.
+
+## Note on DER format
+For key exchange, the format is expected to be according to RFC5208-PrivateKeyInfo and RFC5280-SubjecPublicKeyInfo. These standards define the private and public key as ASN.1 octet or bit string.
+As there is no ASN.1 format for the de-/serialisation of dilithium keys, the one which is used in MoCOCrW looks like the following:
+* Private Key: embedded in the PrivateKeyInfo:PrivateKey octet string ASN.1 field as defined in [RFC5208 Section 5](https://www.rfc-editor.org/rfc/rfc5208#section-5)
+```
+ASN1_OCTET_STRING privKey
+ASN1_OCTET_STRING pubKey
+ASN1_INTEGER dilithiumParameterSet
+ASN1_BOOLEAN bool1
+ASN1_BOOLEAN bool2
+```
+* Public Key: embedded in the SubjectPublicKeyInfo:subjectPublicKey bit string ASN.1 field as defined in [RFC5280 Section 4.1](https://www.rfc-editor.org/rfc/rfc5280#section-4.1)):
+```
+ASN1_OCTET_STRING pubKey
+ASN1_INTEGER dilithiumParameterSet
+ASN1_BOOLEAN bool1
+ASN1_BOOLEAN bool2
+```
+
+The format might change once a standard for the key format is published.
+
+## Note on future (in)compatibility
+
+The current implementation for RSA, ECC, EcDSA, ... is EVP-centric. EVP is an abstract internal representation of keys in OpenSSL.
+
+As the changes required for getting dilithium into the current EVP-centric implementation would have broken the API, we decided to "clone" the API of the existing implementation and make the dilithium implementation as similar as possible.
+
+Once openssl supports dilithium, this shall allow us to create aliases for the dilithium classes. These aliases will then point to the EVP-centric classes. This will break the API.
+
+To be as little affected as possible by the API break, the use of `auto` for dilithium classes is recommended. It might then only require a recompilation, but no code changes.
+
+## Note on compilation and dilithium adaptions
+
+The dilithium implementation was adapted. A new function for retrieving the public key from a private key was added. This change is required to compile MoCOCrW with dilithium support.
+
+The corresponding PR can be found on [github](https://github.com/pq-crystals/dilithium/pull/68).
+
+If you want to use CMake for compiling and installing libdilithium the following [pull request](https://github.com/pq-crystals/dilithium/pull/69) is recommended.
+
+Dilithium is an optional feature for MoCOCrW. For enabling it add
+```
+-DDILITHIUM_ENABLED=ON
+```
+to your CMake invocation.
+
+Make sure that libdilithium can be found by the linker.
+
+## Verification
+
+```cpp
+auto pubKeyData = utility::bytesFromFile<uint8_t>(<PATH_TO_FILE>);
+auto pubKey = DilithiumAsymmetricPublicKey::readPublicKeyfromDER(pubKeyData);
+
+std::vector<uint8_t> message = {...};
+std::vector<uint8_t> signature = {...};
+
+auto verifyCtx = DilithiumVerificationCtx(pubKey);
+
+try {
+    verifyCtx.verifyMessage(signature, message);
+} catch (MoCOCrWException &e) {
+    std::cerr << "Verification failed!" << std::endl;
+    ...
+}
+```
+
+## Signing
+
+```cpp
+std::vector<uint8_t> message = {...};
+std::vector<uint8_t> signature;
+
+auto privKeyData = utility::bytesFromFile<uint8_t>(<PATH_TO_FILE>);
+auto privKey = DilithiumAsymmetricPrivateKey::readPrivateKeyfromDER(privKeyData);
+
+auto signingCtx = DilithiumSigningCtx(privKey);
+try {
+    signature = signingCtx.signMessage(message);
+} catch (MoCOCrWException &e) {
+    std::cerr << "Signing failed!" << std::endl;
+    ...
+}
+```
