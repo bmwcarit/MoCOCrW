@@ -60,7 +60,7 @@ The bci.config file is used by our internal validation environment, please just 
 
 ### Build with dilithium support
 
-Dilithium is an optional feature for MoCOCrW. For enabling it
+Dilithium is an optional feature provided by MoCOCrW. To enable the feature,
 replace the cmake invocation from abovei:
 ```
 build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
