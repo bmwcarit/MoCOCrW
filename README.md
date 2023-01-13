@@ -83,7 +83,7 @@ The first [PR](https://github.com/pq-crystals/dilithium/pull/68) contains the ad
 retreiving the public key from a private key and is REQUIRED in order to compile MoCOCrW with
 dilithium support.
 
-The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the cmake file, so that
+The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the cmake file so that
 the static libraries and the header can be installed using cmake. It is recommended to use this PR
 for compiling and installing dilithium.
 
