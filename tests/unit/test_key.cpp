@@ -277,7 +277,8 @@ TEST_F(KeyHandlingTests, testPrivKeyFromSavedPemIsSameAsOriginal)
 #ifdef HSM_ENABLED
 TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
 {
-    std::string keyId = "keyId";
+    std::vector<uint8_t> keyID{0x44, 0x22, 0x11};
+    std::string keyLabel{"key-label"};
 
     // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
     // is called. We do this directly using the (wrapped) Bio Api.
@@ -289,13 +290,15 @@ TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
             KeyHandlingTests::_pemEccPubKeyEd25519);
 
     HSMMock hsmMock;
-    EXPECT_CALL(hsmMock, loadPublicKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
-    EXPECT_EQ(eccPubKey, AsymmetricPublicKey::readPublicKeyFromHSM(hsmMock, keyId));
+    EXPECT_CALL(hsmMock, loadPublicKey(keyLabel, keyID))
+            .WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccPubKey, AsymmetricPublicKey::readPublicKeyFromHSM(hsmMock, keyLabel, keyID));
 }
 
 TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
 {
-    std::string keyId = "keyId";
+    std::string keyLabel = "key-label";
+    std::vector<uint8_t> keyID = {0x11, 0x23, 0x33};
     std::string password = "password";
 
     // We need to get an SSL_EVP_PKEY_Ptr so that our Mock can return it when load function
@@ -307,8 +310,45 @@ TEST_F(KeyHandlingTests, testKeyLoadPrivKeyFromHSM)
     auto eccKeyPair = AsymmetricKeypair::readPrivateKeyFromPEM(_pemEccPrivKeyEd25519, password);
 
     HSMMock hsmMock;
-    EXPECT_CALL(hsmMock, loadPrivateKey(keyId)).WillOnce(Return(ByMove(std::move(resKey))));
-    EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyId));
+    EXPECT_CALL(hsmMock, loadPrivateKey(keyLabel, keyID))
+            .WillOnce(Return(ByMove(std::move(resKey))));
+    EXPECT_EQ(eccKeyPair, AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmMock, keyLabel, keyID));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
+{
+    ECCSpec eccSpec;
+    HSMMock hsmMock;
+    std::string keyLabel = "key-label";
+    std::vector<uint8_t> keyID{0x33, 0x33};
+    EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), keyLabel, keyID));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(hsmMock, eccSpec, keyLabel, keyID));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
+{
+    RSASpec rsaSpec;
+    HSMMock hsmMock;
+    std::string keyLabel = "key-label";
+    std::vector<uint8_t> keyID{0x33, 0x33};
+    EXPECT_CALL(hsmMock, generateKey(An<const RSASpec &>(), keyLabel, keyID));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(hsmMock, rsaSpec, keyLabel, keyID));
+}
+
+TEST_F(KeyHandlingTests, testHSMKeyGenerationKeyIdTooLong)
+{
+    ECCSpec eccSpec;
+    HSMMock hsmMock;
+    std::string keyLabel = "key-label";
+    // 128 characters keyId
+    EXPECT_THROW(
+            AsymmetricKeypair::generateKeyOnHSM(
+                    hsmMock, eccSpec, keyLabel, {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                                                 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                                                 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+                                                 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+                                                 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64}),
+            MoCOCrWException);
 }
 #endif
 
@@ -373,6 +413,18 @@ TEST_F(KeyHandlingTests, testGetKeySpec)
     EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed448Spec.get())->curve(), openssl::ellipticCurveNid::Ed448);
     EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed25519Spec.get())->curve(),
               openssl::ellipticCurveNid::Ed25519);
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(defaultSpec.get())->curveName(), "P-256");
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Sect571r1Spec.get())->curveName(), "B-571");
+    EXPECT_EQ(dynamic_cast<ECCSpec *>(Secp521Spec.get())->curveName(), "P-521");
+    /* These two curves are not working:
+    openssl::ellipticCurveNid::Ed448,
+    openssl::ellipticCurveNid::Ed25519
+    6: unknown file: Failure
+    6: C++ exception with description "error:23077074:PKCS12 routines:PKCS12_pbe_crypt:pkcs12
+    cipherfinal error: 587690100" thrown in the test body.
+    */
+    // EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed448Spec.get())->curveName(), "no-work");
+    // EXPECT_EQ(dynamic_cast<ECCSpec *>(Ed25519Spec.get())->curveName(), "no-work");
 
     std::unique_ptr<RSASpec> defaultRSASpec(
             dynamic_cast<RSASpec *>(_rsaKeyPair.getKeySpec().release()));

@@ -46,7 +46,7 @@ public:
 
     KeyTypes getType() const;
 
-    int getKeySize() const { return EVP_PKEY_bits(_key.get()); }
+    int getKeySize() const { return openssl::_EVP_PKEY_bits(_key.get()); }
 
     std::unique_ptr<Spec> getKeySpec() const;
 
@@ -87,10 +87,14 @@ public:
 
 #ifdef HSM_ENABLED
     /**
-     * Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
+     * @brief Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
+     * @param keyLabel string based key identifer
+     * @param keyID raw bytes based key identifer
      */
-    static AsymmetricPublicKey readPublicKeyFromHSM(HSM &hsm, const std::string &keyID);
+    static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm,
+                                                    const std::string &keyLabel,
+                                                    const std::vector<uint8_t> &keyID);
 #endif
 
     /**
@@ -266,10 +270,52 @@ public:
 
 #ifdef HSM_ENABLED
     /**
-     * Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
+     * @brief Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
+     * @param keyLabel string based key identifer
+     * @param keyID raw bytes based key identifer
      */
-    static AsymmetricKeypair readPrivateKeyFromHSM(HSM &hsm, const std::string &keyID);
+    static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm,
+                                                   const std::string &keyLabel,
+                                                   const std::vector<uint8_t> &keyID);
+
+    /**
+     * @brief Generates RSA keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys on the same token.
+     * @param hsm HSM engine handle
+     * @param spec @ref RSASpec
+     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
+     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
+     * to identify keys.
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
+                                              const RSASpec &spec,
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID);
+
+    /**
+     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys on the same token.
+     * @param hsm HSM engine handle
+     * @param spec @ref ECCSpec
+     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
+     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
+     * to identify keys.
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
+                                              const ECCSpec &spec,
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID);
 #endif
 
 private:
@@ -330,6 +376,7 @@ public:
     explicit ECCSpec(openssl::ellipticCurveNid curveNid) : _curveNid{curveNid} {}
     ECCSpec() : ECCSpec{defaultCurveNid} {}
     inline openssl::ellipticCurveNid curve() const { return _curveNid; }
+    inline std::string curveName() const { return openssl::_EC_curve_nid2nist(int(_curveNid)); }
     AsymmetricKey generate() const override;
 
 private:

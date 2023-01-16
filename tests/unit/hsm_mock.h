@@ -19,6 +19,7 @@
 #pragma once
 
 #include "mococrw/hsm.h"
+#include "mococrw/key.h"
 
 #include <mutex>
 
@@ -31,8 +32,20 @@ namespace mococrw
 class HSMMock final : public HSM
 {
 public:
-    MOCK_METHOD1(loadPublicKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
-    MOCK_METHOD1(loadPrivateKey, openssl::SSL_EVP_PKEY_Ptr(const std::string &keyID));
+    MOCK_CONST_METHOD2(loadPublicKey,
+                       openssl::SSL_EVP_PKEY_Ptr(const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID));
+    MOCK_CONST_METHOD2(loadPrivateKey,
+                       openssl::SSL_EVP_PKEY_Ptr(const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID));
+    MOCK_METHOD3(generateKey,
+                 openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
+                                           const std::string &keyLabel,
+                                           const std::vector<uint8_t> &keyID));
+    MOCK_METHOD3(generateKey,
+                 openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
+                                           const std::string &keyLabel,
+                                           const std::vector<uint8_t> &keyID));
 };
 
 }  // namespace mococrw

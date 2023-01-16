@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file.
   to MoCOCrW. Currently, the following functionality is supported:
     - Loading Public Keys
     - Loading Private Keys
+    - Generating EC and RSA keypairs
 
 # Release 4.1.1
 
