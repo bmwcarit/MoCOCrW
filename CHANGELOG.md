@@ -38,7 +38,8 @@ All notable changes to this project will be documented in this file.
 * Clang-Format has been applied to the existing code-base of MoCOCrW and a `.clang-format`
   file has been included to format the code of of future PRs.
 * A foundational PKCS#11 HSM interface, based OpenSSL's ENGINE API, has been introduced
-  to MoCOCrW. Currently, the following functionality is supported:
+  to MoCOCrW. To build MoCOCrW with this API, follow the instruction in the [README](README.md).
+  Currently, the following functionality is supported:
     - Loading Public Keys
     - Loading Private Keys
     - Generating EC and RSA keypairs
