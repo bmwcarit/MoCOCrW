@@ -286,8 +286,6 @@ public:
      * Therefore care should be taken when generating keys on the same token.
      * @param hsm HSM engine handle
      * @param spec @ref RSASpec
-     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
-     * are stored. This determines on which token the key shall be stored.
      * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
      * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
      * to identify keys.
@@ -296,9 +294,8 @@ public:
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
      * some things to stderr, check if there's more context there
      */
-    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
                                               const RSASpec &spec,
-                                              const std::string &tokenLabel,
                                               const std::string &keyLabel,
                                               const std::vector<uint8_t> &keyID);
 
@@ -308,8 +305,6 @@ public:
      * Therefore care should be taken when generating keys on the same token.
      * @param hsm HSM engine handle
      * @param spec @ref ECCSpec
-     * @param tokenLabel Label of the token on HSM. An HSM can have multiple tokens where the keys
-     * are stored. This determines on which token the key shall be stored.
      * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
      * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
      * to identify keys.
@@ -318,9 +313,8 @@ public:
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
      * some things to stderr, check if there's more context there
      */
-    static AsymmetricKeypair generateKeyOnHsm(HSM &hsm,
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
                                               const ECCSpec &spec,
-                                              const std::string &tokenLabel,
                                               const std::string &keyLabel,
                                               const std::vector<uint8_t> &keyID);
 #endif

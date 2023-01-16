@@ -38,14 +38,12 @@ public:
     MOCK_CONST_METHOD2(loadPrivateKey,
                        openssl::SSL_EVP_PKEY_Ptr(const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID));
-    MOCK_METHOD4(generateKey,
+    MOCK_METHOD3(generateKey,
                  openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
-                                           const std::string &tokenLabel,
                                            const std::string &keyLabel,
                                            const std::vector<uint8_t> &keyID));
-    MOCK_METHOD4(generateKey,
+    MOCK_METHOD3(generateKey,
                  openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
-                                           const std::string &tokenLabel,
                                            const std::string &keyLabel,
                                            const std::vector<uint8_t> &keyID));
 };

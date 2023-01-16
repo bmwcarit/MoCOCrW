@@ -87,6 +87,7 @@ std::unique_ptr<HsmEngine> HSMTest::initialiseEngine()
 {
     std::string engineID("engine_id");
     std::string modulePath("/test_path.so");
+    std::string tokenLabel("token-label");
     std::string pin("1234");
     auto engine = ::testutils::someEnginePtr();
 
@@ -106,7 +107,7 @@ std::unique_ptr<HsmEngine> HSMTest::initialiseEngine()
     EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
     EXPECT_CALL(_mock(), SSL_ENGINE_finish(engine)).WillOnce(Return(1));
 
-    return std::make_unique<HsmEngine>(engineID, modulePath, pin);
+    return std::make_unique<HsmEngine>(engineID, modulePath, tokenLabel, pin);
 }
 
 TEST_F(HSMTest, testHSMKeygen)
@@ -123,9 +124,10 @@ TEST_F(HSMTest, testHSMKeygen)
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
             .WillOnce(Return(1));
     EXPECT_CALL(_mock(),
-                SSL_ENGINE_load_private_key(
-                        engine, StrEq("pkcs11:object=key-label;id="), nullptr, nullptr))
+                SSL_ENGINE_load_private_key(engine,
+                                            StrEq("pkcs11:token=token-label;object=key-label;id="),
+                                            nullptr,
+                                            nullptr))
             .WillOnce(Return(pkey));
-    EXPECT_NO_THROW(
-            AsymmetricKeypair::generateKeyOnHsm(*hsm, eccSpec, "token-label", keyLabel, keyId));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId));
 }

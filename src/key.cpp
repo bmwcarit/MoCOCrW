@@ -196,9 +196,8 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm,
     return AsymmetricKeypair{std::move(key)};
 }
 
-AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const RSASpec &spec,
-                                                      const std::string &tokenLabel,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID)
 {
@@ -207,7 +206,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
     try {
-        auto key = hsm.generateKey(spec, tokenLabel, keyLabel, keyID);
+        auto key = hsm.generateKey(spec, keyLabel, keyID);
         return AsymmetricKeypair{std::move(key)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(
@@ -217,9 +216,8 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
     }
 }
 
-AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const ECCSpec &spec,
-                                                      const std::string &tokenLabel,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID)
 {
@@ -228,7 +226,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHsm(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
     try {
-        auto key = hsm.generateKey(spec, tokenLabel, keyLabel, keyID);
+        auto key = hsm.generateKey(spec, keyLabel, keyID);
         return AsymmetricKeypair{std::move(key)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(

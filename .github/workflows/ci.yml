@@ -13,7 +13,8 @@ env:
   DOCKER_WITH_HSM_TAG: buildenv_with_hsm
   DOCKER_WITH_HSM_FOLDER_PATH: ./dockerfiles/hsm-support
 
-  TOKEN_LABEL: token-label
+  TOKEN_LABEL1: token-label
+  TOKEN_LABEL2: token-label2
   USER_PIN: 1234
   SO_PIN: 4321
 
@@ -104,10 +105,12 @@ jobs:
             -u "$UID"${{ matrix.softhsm2_grp }} \
             -v "$PWD:/src:rw" -w /src/build ${{ matrix.docker_tag }}  bash -c \
             'if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
-                softhsm2-util --init-token --free --label ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
+                softhsm2-util --init-token --free --label ${{ env.TOKEN_LABEL1 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
+                softhsm2-util --init-token --free --label ${{ env.TOKEN_LABEL2 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi \
             && ctest --verbose -j $(nproc) \
             && if [ "${{ matrix.hsm_flag }}" = "HSM_ENABLED=ON" ]; then \
-                softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
+                softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL1 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
+                softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL2 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi'
 

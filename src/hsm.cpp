@@ -17,15 +17,41 @@
  * #L%
  */
 #include "mococrw/hsm.h"
+
+#include <iomanip>
+#include <sstream>
+
 #include "libp11.h"
+
 #include "mococrw/key.h"
 
 namespace mococrw
 {
 using namespace openssl;
 
-HsmEngine::HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin)
-        : HSM(), _id(id), _modulePath(modulePath), _pin(pin)
+namespace
+{
+/**
+ * @brief Transforms given input to pct encoded string (see RFC 3986)
+ */
+std::string pctEncode(const std::vector<uint8_t> &bytes)
+{
+    if (bytes.size() == 0) {
+        return {};
+    }
+    std::stringstream result;
+    for (int byte : bytes) {
+        result << "%" << std::hex << std::setfill('0') << std::setw(2) << byte;
+    }
+    return result.str();
+}
+}  // namespace
+
+HsmEngine::HsmEngine(const std::string &id,
+                     const std::string &modulePath,
+                     const std::string &tokenLabel,
+                     const std::string &pin)
+        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel), _pin(pin)
 {
     // Fetch _engine via ID.
     _engine = _ENGINE_by_id(_id);
@@ -40,21 +66,22 @@ HsmEngine::~HsmEngine() { _ENGINE_finish(_engine.get()); }
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
                                                    const std::vector<uint8_t> &keyID) const
 {
-    auto keyIDPctEncoded = stringToPctEncoded(utility::toHex(keyID));
-    std::string pkcs11URI = "pkcs11:object=" + keyLabel + ";id=" + keyIDPctEncoded;
+    auto keyIDPctEncoded = pctEncode(keyID);
+    std::string pkcs11URI =
+            "pkcs11:token=" + _tokenLabel + ";object=" + keyLabel + ";id=" + keyIDPctEncoded;
     return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
                                                     const std::vector<uint8_t> &keyID) const
 {
-    auto keyIDPctEncoded = stringToPctEncoded(utility::toHex(keyID));
-    std::string pkcs11URI = "pkcs11:object=" + keyLabel + ";id=" + keyIDPctEncoded;
+    auto keyIDPctEncoded = pctEncode(keyID);
+    std::string pkcs11URI =
+            "pkcs11:token=" + _tokenLabel + ";object=" + keyLabel + ";id=" + keyIDPctEncoded;
     return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
-                                                 const std::string &tokenLabel,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
@@ -65,7 +92,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
     pkcs11RSAKeygen.type = EVP_PKEY_RSA;
     pkcs11RSAKeygen.kgen.rsa = &pkcs11RSASpec;
     pkcs11RSAKeygen.key_id = keyIDHexString.c_str();
-    pkcs11RSAKeygen.token_label = tokenLabel.c_str();
+    pkcs11RSAKeygen.token_label = _tokenLabel.c_str();
     pkcs11RSAKeygen.key_label = keyLabel.c_str();
 
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
@@ -73,7 +100,6 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
-                                                 const std::string &tokenLabel,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
@@ -85,28 +111,10 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
     pkcs11ECCKeygen.type = EVP_PKEY_EC;
     pkcs11ECCKeygen.kgen.ec = &pkcs11ECCSpec;
     pkcs11ECCKeygen.key_id = keyIDHexString.c_str();
-    pkcs11ECCKeygen.token_label = tokenLabel.c_str();
+    pkcs11ECCKeygen.token_label = _tokenLabel.c_str();
     pkcs11ECCKeygen.key_label = keyLabel.c_str();
 
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
     return loadPrivateKey(keyLabel, keyID);
-}
-
-std::string HsmEngine::stringToPctEncoded(const std::string &&str) const
-{
-    std::string ret = str;
-    auto size = str.length();
-    if (size == 0) {
-        return {};
-    }
-    if (size % 2 != 0) {
-        ret = '0' + ret;
-        size++;
-    }
-    for (size_t i = 0; i < size - 1; i += 3) {
-        ret.insert(i, "%");
-        size++;
-    }
-    return ret;
 }
 }  // namespace mococrw

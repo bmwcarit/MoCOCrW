@@ -54,7 +54,6 @@ protected:
     /**
      * Loads private key from HSM.
      *
-     * @param keyLabel String based identifer of a key on the token
      * @param keyID Vector of raw bytes that identifies a key on the token
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
@@ -66,7 +65,6 @@ protected:
      * @param spec The RSA specification @ref RSASpec
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                                  const std::string &tokenLabel,
                                                   const std::string &keyLabel,
                                                   const std::vector<uint8_t> &keyID) = 0;
 
@@ -76,18 +74,29 @@ protected:
      * @param spec The ECC specification @ref ECCSpec
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                                  const std::string &tokenLabel,
                                                   const std::string &keyLabel,
                                                   const std::vector<uint8_t> &keyID) = 0;
 };
 
 /**
- * Abstract class of an HSMEngine that leverages OpenSSL's ENGINE_* API interface.
+ * Hsm handling that leverages OpenSSL's ENGINE_* API interface.
  */
 class HsmEngine : public HSM
 {
 public:
-    HsmEngine(const std::string &id, const std::string &modulePath, const std::string &pin);
+    /**
+     * @brief Constructor for an object that can manage keys on HSM using OpenSSL Engine
+     * @note Each HsmEngine object is associated with a specific token and a pin to login to that
+     * token
+     * @param id unique identifier for an OpenSSL engine
+     * @param modulePath path to HSM module i.e. softhsm
+     * @param tokenLabel label of the token where keys are managed
+     * @param pin pin to the mentioned token
+     */
+    HsmEngine(const std::string &id,
+              const std::string &modulePath,
+              const std::string &tokenLabel,
+              const std::string &pin);
     virtual ~HsmEngine();
 
 protected:
@@ -97,6 +106,8 @@ protected:
     const std::string _id;
     /** Path to Module. */
     const std::string _modulePath;
+    /** Token label used to uniquely identify a token on which objects reside */
+    const std::string _tokenLabel;
     /** Pin to access PKCS11 Engine. */
     const std::string _pin;
 
@@ -107,23 +118,12 @@ protected:
                                              const std::vector<uint8_t> &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
-                                          const std::string &tokenLabel,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID) override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
-                                          const std::string &tokenLabel,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID) override;
-
-    /**
-     * @brief Transforms given string to a string with percent encoding notation (see RFC 3986)
-     * i.e. "30AFF" -> "%03%0A%FF"
-     * @note This function does not enforce a string to contain only hex characters (only hex digits
-     * are used in percent encoding). If you have a different use case, change this or create your
-     * own function.
-     */
-    std::string stringToPctEncoded(const std::string &&str) const;
 };
 
 }  // namespace mococrw

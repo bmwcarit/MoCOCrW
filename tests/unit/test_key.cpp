@@ -319,37 +319,36 @@ TEST_F(KeyHandlingTests, testHSMKeyGenerationECC)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
+    std::string keyLabel = "key-label";
     std::vector<uint8_t> keyID{0x33, 0x33};
-    EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), "token-label", "key-label", keyID));
-    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, eccSpec, "token-label", "key-label", keyID));
+    EXPECT_CALL(hsmMock, generateKey(An<const ECCSpec &>(), keyLabel, keyID));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(hsmMock, eccSpec, keyLabel, keyID));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationRSA)
 {
     RSASpec rsaSpec;
     HSMMock hsmMock;
+    std::string keyLabel = "key-label";
     std::vector<uint8_t> keyID{0x33, 0x33};
-    EXPECT_CALL(hsmMock, generateKey(An<const RSASpec &>(), "token-label", "key-label", keyID));
-    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHsm(
-            hsmMock, rsaSpec, "token-label", "key-label", keyID));
+    EXPECT_CALL(hsmMock, generateKey(An<const RSASpec &>(), keyLabel, keyID));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(hsmMock, rsaSpec, keyLabel, keyID));
 }
 
 TEST_F(KeyHandlingTests, testHSMKeyGenerationKeyIdTooLong)
 {
     ECCSpec eccSpec;
     HSMMock hsmMock;
+    std::string keyLabel = "key-label";
     // 128 characters keyId
-    EXPECT_THROW(AsymmetricKeypair::generateKeyOnHsm(
-                         hsmMock,
-                         eccSpec,
-                         "token-label",
-                         "key-label",
-                         {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13, 14, 15, 16,
-                          17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32,
-                          33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
-                          49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64}),
-                 MoCOCrWException);
+    EXPECT_THROW(
+            AsymmetricKeypair::generateKeyOnHSM(
+                    hsmMock, eccSpec, keyLabel, {1,  2,  3,  4,  5,  6,  7,  8,  9,  10, 11, 12, 13,
+                                                 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26,
+                                                 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39,
+                                                 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52,
+                                                 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64}),
+            MoCOCrWException);
 }
 #endif
 
