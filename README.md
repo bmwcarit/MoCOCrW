@@ -68,7 +68,7 @@ build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
 
 Make sure that the adapted version of libdilithium can be found by the linker.
 
-HSM and dilithium support can be enabled independently.
+Note, HSM and dilithium support can be enabled independently via CMake arguments.
 
 #### Dilithium Adaptions
 
@@ -87,19 +87,36 @@ The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the C
 the static libraries and the header can be installed using CMake. It is recommended to use this PR
 for compiling and installing dilithium.
 
+To get the local copy of libdilithium with above PRs:
+```
+git clone https://github.com/pq-crystals/dilithium.git && cd dilithium
+git reset --hard 3e9b9f1412f6c7435dbeb4e10692ea58f181ee51
+git checkout -b pub-key-extraction
+git pull origin pull/68/head:pub-key-extraction
+git checkout master
+git checkout -b cmake-improvements
+git pull origin pull/69/head:cmake-improvements
+git checkout master
+git merge --no-edit cmake-improvements
+git merge --no-edit pub-key-extraction
+```
+
+and then build with:
+`mkdir build && cd build && cmake .. && cmake --build .`
+
 ### Build with HSM support
 
-HSM support is an **optional** feature for MoCOCrW. To build MoCOCrW with HSM support replace the
-CMake invocation with
+HSM support is an **optional** feature for MoCOCrW. To build MoCOCrW with HSM support, replace the
+CMake invocation with:
 ```
 build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
 ```
 
 [libp11 release 0.4.12](https://github.com/OpenSC/libp11/releases/tag/libp11-0.4.12) patched with
 [patch for key generation](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch) is required for building MoCOCrW with
-HSM feature enabled.
+HSM feature enabled. To build patched libp11, check out [how it's done](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/Dockerfile#L31) in our CI or (official instructions by libp11)[https://github.com/OpenSC/libp11/blob/master/INSTALL.md].
 
-HSM and dilithium support can be enabled independently.
+Note, HSM and dilithium support can be enabled independently via CMake arguments.
 
 ## Installation / Usage / Packaging
 
