@@ -114,7 +114,7 @@ build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
 
 [libp11 release 0.4.12](https://github.com/OpenSC/libp11/releases/tag/libp11-0.4.12) patched with
 [patch for key generation](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch) is required for building MoCOCrW with
-HSM feature enabled. To build patched libp11, check out [how it's done](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/Dockerfile#L31) in our CI or (official instructions by libp11)[https://github.com/OpenSC/libp11/blob/master/INSTALL.md].
+HSM feature enabled. To build and install patched libp11, check out [how it's done](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/Dockerfile#L31) in our CI or [official instructions by libp11](https://github.com/OpenSC/libp11/blob/master/INSTALL.md).
 
 Note, HSM and dilithium support can be enabled independently via CMake arguments.
 
