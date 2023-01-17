@@ -17,16 +17,232 @@
  * #L%
  */
 #include <mococrw/asymmetric_crypto_ctx.h>
+#include <mococrw/ecies.h>
 #include <mococrw/hash.h>
 #include <mococrw/hsm.h>
 #include <mococrw/key.h>
 #include <iostream>
 
-/* This example demonstrates how to create a PKCS11 engine object,
- * and store a key inside the HSM.
- */
-
 using namespace mococrw;
+
+/**
+ * Helper functions taken from ecies-examples.cpp
+ */
+struct EciesEncryptResult
+{
+    std::vector<uint8_t> ephemeralKey;
+    std::vector<uint8_t> ciphertext;
+    std::vector<uint8_t> mac;
+};
+
+EciesEncryptResult encrypt_data(const std::vector<uint8_t> &message,
+                                const AsymmetricPublicKey &pubKey)
+{
+    /* The standard for ECIES (IEEE 1363a-2004) doesn't specify the details of the different cipher
+     * blocks. Thus it is up to the implementer to define its own protocol (hash-function, key
+     * derivation function, message authentication code, symmetric cipher, key serialization) used
+     * for encryption and decryption. In the current example the following is used:
+     * - SHA512 everywhere where a hash function is required
+     * - X963(SHA512) as key derivation function
+     * - HMAC(SHA512) as message authentication code
+     * - AES CBC with PKCS padding, zero IV and 256 bit key size
+     * - Additionally salts for KDF and MAC can be set (optional value, default: empty)
+     *
+     * The defaults if the builder is invoked without any optional parameters are:
+     * - X963(SHA512) as key derivation function
+     * - HMAC(SHA512)
+     * - AES CBC with PKCS padding, zero IV and 256 bit key size
+     * - empty salts for KDF and MAC
+     */
+    /* Get the encryption context */
+    std::unique_ptr<ECIESEncryptionCtx> encCtx =
+            ECIESCtxBuilder{} /* This is optional. The default is X963 with SHA512 */
+                    .setKDF(std::make_shared<X963KDF>(DigestTypes::SHA512))
+                    /* This is optional. The default is HMAC with SHA512
+                     * Dependency injection function, as the key for MAC is generated based on a
+                     * random ECC key in the ECIES class */
+                    .setMacFactoryFunction([](const std::vector<uint8_t> &key)
+                                                   -> std::unique_ptr<MessageAuthenticationCode> {
+                        return std::make_unique<mococrw::HMAC>(DigestTypes::SHA512, key);
+                    })
+                    /* This is optional. The default key length is 512 / 8 bytes (length of hash
+                       sum) */
+                    .setMacKeySize(Hash::getDigestSize(DigestTypes::SHA512))
+                    /* The next two lines are optional. Default: AES CBC with PKCS padding, zero IV
+                       and 256 bit key size */
+                    .setSymmetricCipherFactoryFunction(
+                            [](const std::vector<uint8_t> &key)
+                                    -> std::unique_ptr<SymmetricCipherI> {
+                                return AESCipherBuilder(SymmetricCipherMode::CBC,
+                                                        SymmetricCipherKeySize::S_256,
+                                                        key)
+                                        .setIV(std::vector<uint8_t>(
+                                                AESCipherBuilder::getDefaultIVLength(
+                                                        SymmetricCipherMode::CBC)))
+                                        .setPadding(SymmetricCipherPadding::PKCS)
+                                        .buildEncryptor();
+                            })
+                    .setSymmetricCipherKeySize(
+                            getSymmetricCipherKeySize(SymmetricCipherKeySize::S_256))
+                    .buildEncryptionCtx(pubKey);
+
+    std::vector<uint8_t> encryptedData;
+    try {
+        encCtx->update(message);
+        encryptedData = encCtx->finish();
+    } catch (const openssl::OpenSSLException &e) {
+        /* low level OpenSSL failure */
+        std::cerr << "Error encrypting data." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - symmetric cipher is not initalized
+         * - update is invoked after finish
+         * - symmetric cipher's finish() is already invoked
+         * - symmetric cipher's update() is invoked after its finish()
+         * - Message is too big
+         * - finish is invoked twice
+         * - MAC's finish() is already invoked
+         * - MAC's update() is invoked after MAC's finish()
+         */
+        std::cerr << "Error encrypting data." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    std::vector<uint8_t> ephemeralKey;
+    try {
+        ephemeralKey = encCtx->getEphemeralKey().toECPoint(
+                openssl::EllipticCurvePointConversionForm::uncompressed);
+    } catch (const openssl::OpenSSLException &e) {
+        /* low level OpenSSL failure */
+        std::cerr << "Failure transforming EC key." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - Key object doesn't contain an EC key
+         */
+        std::cerr << "Failure transforming EC key." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    }
+    return EciesEncryptResult{
+            /* The serialization of the ephemeral key's public component is up to the implementer.
+             * The standard is not defining a format. Available formats in MoCOCrW are:
+             * - uncompressed (used here)
+             * - compressed
+             * - hybrid
+             */
+            ephemeralKey,
+            encryptedData,
+            encCtx->getMAC(),
+    };
+}
+
+void decrypt_data(const EciesEncryptResult &eciesData, const AsymmetricPrivateKey &privKey)
+{
+    /* We need
+     * - mac value
+     * - ephemeral key
+     * - ciphertext
+     * - private key
+     */
+
+    /* The standard for ECIES (IEEE 1363a-2004) doesn't specify the details of the different cipher
+     * blocks. Thus it is up to the user to define its own set of cipher blocks (hash-function, key
+     * derivation function, message authentication code, symmetric cipher) used for encryption and
+     * decryption. In the current example the following is used:
+     * - SHA512 everywhere where a hash function is required
+     * - X963(SHA512) as key derivation function
+     * - HMAC(SHA512) as message authentication code
+     * - AES CBC with PKCS padding, zero IV and 256 bit key size
+     * - Additionally salts for KDF and MAC can be set (optional value, default: empty)
+     *
+     * The defaults if the builder is invoked without any optional parameters are:
+     * - X963(SHA512) as key derivation function
+     * - HMAC(SHA512)
+     * - AES CBC with PKCS padding, zero IV and 256 bit key size
+     * - empty salts for KDF and MAC
+     */
+
+    std::shared_ptr<AsymmetricKey::Spec> spec = privKey.getKeySpec();
+    auto eccSpec = std::dynamic_pointer_cast<ECCSpec>(spec);
+    if (!eccSpec) {
+        std::cerr << "Given key is no ECC key." << std::endl;
+        exit(EXIT_FAILURE);
+    }
+
+    /* The underlying openssl function recognizes the used serialization format of the ephemeral key
+     * reading the first byte of the serialized data, which defines the format.
+     * The variable eccSpec contains the used elliptic curve of the ephemeral key */
+    auto _ephemeralKey = AsymmetricPublicKey::fromECPoint(eccSpec, eciesData.ephemeralKey);
+
+    /* Get the decryption context */
+    auto decCtx =
+            ECIESCtxBuilder{}  // This is optional. The default is X963 with SHA512
+                    .setKDF(std::make_shared<X963KDF>(DigestTypes::SHA512))
+                    // This is optional. The default is HMAC with SHA512
+                    .setMacFactoryFunction([](const std::vector<uint8_t> &key)
+                                                   -> std::unique_ptr<MessageAuthenticationCode> {
+                        return std::make_unique<mococrw::HMAC>(DigestTypes::SHA512, key);
+                    })
+                    // This is optional. The default key length is 512 / 8 bytes (length of hash
+                    // sum)
+                    .setMacKeySize(Hash::getDigestSize(DigestTypes::SHA512))
+                    // This is optional. Default: AES CBC with PKCS padding, zero IV and 256 bit key
+                    // size
+                    .setSymmetricCipherFactoryFunction(
+                            [](const std::vector<uint8_t> &key)
+                                    -> std::unique_ptr<SymmetricCipherI> {
+                                return AESCipherBuilder(SymmetricCipherMode::CBC,
+                                                        SymmetricCipherKeySize::S_256,
+                                                        key)
+                                        .setIV(std::vector<uint8_t>(
+                                                AESCipherBuilder::getDefaultIVLength(
+                                                        SymmetricCipherMode::CBC)))
+                                        .setPadding(SymmetricCipherPadding::PKCS)
+                                        .buildDecryptor();
+                            })
+                    .setSymmetricCipherKeySize(
+                            getSymmetricCipherKeySize(SymmetricCipherKeySize::S_256))
+                    .buildDecryptionCtx(privKey, _ephemeralKey);
+
+    /* Decrypt the data and verify the MAC */
+    std::vector<uint8_t> decryptedData;
+    try {
+        /* Decrypt the ciphertext */
+        decCtx->update(eciesData.ciphertext);
+
+        /* Set the received mac value */
+        decCtx->setMAC(eciesData.mac);
+
+        /* Get the plaintext and verify the MAC */
+        decryptedData = decCtx->finish();
+    } catch (const openssl::OpenSSLException &e) {
+        /* low level OpenSSL failure */
+        std::cerr << "Failure decrypting data." << std::endl;
+        std::cerr << e.what() << std::endl;
+        exit(EXIT_FAILURE);
+    } catch (const MoCOCrWException &e) {
+        /* Possible reasons:
+         * - symmetric cipher is not initalized
+         * - update is invoked after finish
+         * - symmetric cipher's finish() is already invoked
+         * - symmetric cipher's update() is invoked after its finish()
+         * - Message is too big
+         * - finish is invoked twice
+         * - MAC's finish() is already invoked
+         * - MAC's update() is invoked after MAC's finish()
+         * - MAC is not set before invoking finish()
+         * - MAC verification failed
+         */
+        std::cerr << "Error decrypting integrated encryption scheme." << std::endl;
+        std::cerr << e.what();
+        exit(EXIT_FAILURE);
+    }
+}
 
 std::vector<uint8_t> rsaSign(const AsymmetricPrivateKey &privKey,
                              const DigestTypes digestType,
@@ -225,6 +441,12 @@ int main(void)
     /**
      * See rsa-example.cpp or sig-example.cpp for further examples.
      */
+
+    /**
+     * Use the keys for ECIES scheme
+     */
+    auto eciesData = encrypt_data(message, pubKeyEcc);
+    decrypt_data(eciesData, eccPrivKey);
 
     return 0;
 }
