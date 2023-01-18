@@ -60,63 +60,39 @@ The bci.config file is used by our internal validation environment, please just 
 
 ### Build with dilithium support
 
-Dilithium is an optional feature provided by MoCOCrW. To enable the feature,
-replace the CMake invocation with:
+Dilithium is an **optional** feature provided by MoCOCrW.
+
+This feature depends on [reference implementation of the Dilithium signature scheme](https://github.com/pq-crystals/dilithium/)
+since OpenSSL still doesn't have a support for Dilithium. In order to sucessfully compile MoCOCrW
+with Dilithium feature the following adaptations are necessary. 
+
+#### Dilithium Adaptions
+
+It is not possible to take the bare Dilithium implementation. The Dilithium implementation was
+adapted with the following PRs: [PR#1](https://github.com/pq-crystals/dilithium/pull/68)
+[PR#2](https://github.com/pq-crystals/dilithium/pull/69). These PRs need to be pulled and used
+to build and install libdilithium locally before trying to use it with MoCOCrW.
+
+Then, to use the Dilithium feature, replace the CMake invocation with:
 ```
 build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
 ```
 
-Make sure that the adapted version of libdilithium can be found by the linker.
-
-Note, HSM and dilithium support can be enabled independently via CMake arguments.
-
-#### Dilithium Adaptions
-
-It is not possible to take the bare dilithium implementation. The dilithium implementation was
-adapted. A new function for retrieving the public key from a private key was added. This change is
-required to compile MoCOCrW with dilithium support.
-
-There are two PRs created for dilithium. These can be found in dilithium's [github
-repository](https://github.com/pq-crystals/dilithium/).
-
-The first [PR](https://github.com/pq-crystals/dilithium/pull/68) contains the adaptions for
-retreiving the public key from a private key and is **required** in order to compile MoCOCrW with
-dilithium support.
-
-The second [PR](https://github.com/pq-crystals/dilithium/pull/69) improves the CMake file so that
-the static libraries and the header can be installed using CMake. It is recommended to use this PR
-for compiling and installing dilithium.
-
-To get the local copy of libdilithium with above PRs:
-```
-git clone https://github.com/pq-crystals/dilithium.git && cd dilithium
-git reset --hard 3e9b9f1412f6c7435dbeb4e10692ea58f181ee51
-git checkout -b pub-key-extraction
-git pull origin pull/68/head:pub-key-extraction
-git checkout master
-git checkout -b cmake-improvements
-git pull origin pull/69/head:cmake-improvements
-git checkout master
-git merge --no-edit cmake-improvements
-git merge --no-edit pub-key-extraction
-```
-
-and then build with:
-`mkdir build && cd build && cmake .. && cmake --build .`
-
 ### Build with HSM support
 
-HSM support is an **optional** feature for MoCOCrW. To build MoCOCrW with HSM support, replace the
-CMake invocation with:
-```
-build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
-```
+HSM support is an **optional** feature for MoCOCrW. This allows for loading and storing keys on HSM
+and using those keys in various cryptographic algorithms without having keys in memory. To build
+MoCOCrW with HSM support, a patched version of libp11 is necessary since upstream libp11 does not
+support key generation through OpenSSL's ENGINE API.
 
 [libp11 release 0.4.12](https://github.com/OpenSC/libp11/releases/tag/libp11-0.4.12) patched with
 [patch for key generation](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch) is required for building MoCOCrW with
 HSM feature enabled. To build and install patched libp11, check out [how it's done](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/Dockerfile#L31) in our CI or [official instructions by libp11](https://github.com/OpenSC/libp11/blob/master/INSTALL.md).
 
-Note, HSM and dilithium support can be enabled independently via CMake arguments.
+Then, to use the HSM feature, replace the CMake invocation with:
+```
+build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
+```
 
 ## Installation / Usage / Packaging
 
