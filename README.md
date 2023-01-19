@@ -58,10 +58,46 @@ build/$ ctest . --output-on-failure
 
 The bci.config file is used by our internal validation environment, please just ignore it.
 
+### Build with dilithium support
+
+Dilithium is an **optional** feature provided by MoCOCrW.
+
+This feature depends on [reference implementation of the Dilithium signature scheme](https://github.com/pq-crystals/dilithium/)
+since OpenSSL still doesn't have a support for Dilithium. The following adaptations are necessary
+in order to successfully compile MoCOCrW with the Dilithium feature . 
+
+#### Dilithium Adaptions
+
+It is not possible to take the bare Dilithium implementation. The Dilithium implementation was
+adapted with the following PRs: [PR#1](https://github.com/pq-crystals/dilithium/pull/68)
+[PR#2](https://github.com/pq-crystals/dilithium/pull/69). These PRs need to be pulled and used
+to build and install libdilithium locally before trying to use it with MoCOCrW.
+
+Then, to use the Dilithium feature, replace the CMake invocation with:
+```
+build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
+```
+
+### Build with HSM support
+
+HSM support is an **optional** feature for MoCOCrW. This allows for loading and storing keys on HSM
+and using those keys in various cryptographic algorithms without having keys in memory. To build
+MoCOCrW with HSM support, a patched version of libp11 is necessary since upstream libp11 does not
+support key generation through OpenSSL's ENGINE API.
+
+[libp11 release 0.4.12](https://github.com/OpenSC/libp11/releases/tag/libp11-0.4.12) patched with
+[patch for key generation](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch) is required for building MoCOCrW with
+HSM feature enabled. To build and install patched libp11, check out [how it's done](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/Dockerfile#L31) in our CI or [official instructions by libp11](https://github.com/OpenSC/libp11/blob/master/INSTALL.md).
+
+Then, to use the HSM feature, replace the CMake invocation with:
+```
+build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
+```
+
 ## Installation / Usage / Packaging
 
-MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a cmake
-exported target that you can use in your projects. A minimal example how to use this cmake
+MoCOCrW is prepared to be installed or packaged into an SDK. It also provides a CMake
+exported target that you can use in your projects. A minimal example how to use this CMake
 integration can be found in `tests/sdk`. This can also be used as an integration test if you
 want to ship MoCOCrW with an SDK.
 

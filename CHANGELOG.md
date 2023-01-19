@@ -8,6 +8,12 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+
+# Release 4.2.0
+## Changed
+
+## Fixed
+
 * CA Tests' SetUp was changed so that all the objects involved do not depend on time when
   construction of object is made. This led to problems where object of CA class had notBefore
   attribute set to greater value than CA's certificate's notBefore which should never happen.
@@ -31,11 +37,22 @@ All notable changes to this project will be documented in this file.
   This change just improves the error reporting.
 * Clang-Format has been applied to the existing code-base of MoCOCrW and a `.clang-format`
   file has been included to format the code of of future PRs.
-* A foundational PKCS#11 HSM interface, based OpenSSL's ENGINE API, has been introduced
-  to MoCOCrW. Currently, the following functionality is supported:
+* A foundational PKCS#11 HSM interface, based on OpenSSL's ENGINE API, has been introduced
+  to MoCOCrW. This functionality is disabled by default. See [README](README.md) to get more
+  information on how to enable it.
+  Currently, the following functionality is supported:
     - Loading Public Keys
     - Loading Private Keys
     - Generating EC and RSA keypairs
+* Post Quantum Cryptography support has been added.
+  [Dilithium](https://www.pq-crystals.org/dilithium/)
+  is used to offer signing and verification functionality. Please note that the API is
+  provisional as there is currently no OpenSSL support for Dilithium. This library intends to
+  switch to an OpenSSL implementation once available. As a consequence of this, the interfaces
+  around Dilithium are subject to future changes. We support dilithium for experimentation and
+  getting early hands-on experience but we discourage using it as it's not yet standardized.
+  This functionality is disabled by default. See [README](README.md) to get more
+  information on how to enable it.
 
 # Release 4.1.1
 
