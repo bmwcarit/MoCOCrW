@@ -63,8 +63,8 @@ The bci.config file is used by our internal validation environment, please just 
 Dilithium is an **optional** feature provided by MoCOCrW.
 
 This feature depends on [reference implementation of the Dilithium signature scheme](https://github.com/pq-crystals/dilithium/)
-since OpenSSL still doesn't have a support for Dilithium. In order to sucessfully compile MoCOCrW
-with Dilithium feature the following adaptations are necessary. 
+since OpenSSL still doesn't have a support for Dilithium. The following adaptations are necessary
+in order to successfully compile MoCOCrW with the Dilithium feature . 
 
 #### Dilithium Adaptions
 
