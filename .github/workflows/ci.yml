@@ -43,9 +43,18 @@ jobs:
       fail-fast: false
       matrix:
         compiler: ["g++", "clang++"]
-        build_type: ["", "ASAN"]
+        build_type: ["", "ASAN", "UBSAN", "TSAN", "Coverage"]
         hsm_flag: ["HSM_ENABLED=ON", "HSM_ENABLED=OFF"]
         dilithium_flag: ["DILITHIUM_ENABLED=ON", "DILITHIUM_ENABLED=OFF"]
+
+        exclude:
+          # UBSAN, TSAN and Coverage are only executed with HSM feature enabled
+          - build_type: "UBSAN"
+            hsm_flag: "HSM_ENABLED=OFF"
+          - build_type: "TSAN"
+            hsm_flag: "HSM_ENABLED=OFF"
+          - build_type: "Coverage"
+            hsm_flag: "HSM_ENABLED=OFF"
 
         include:
           - build_type: "ASAN"
