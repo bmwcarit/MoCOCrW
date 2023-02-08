@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2018 BMW Car IT GmbH
+ * Copyright (C) 2023 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,11 @@
  * limitations under the License.
  * #L%
  */
+
+// Note, this file was configured and generated via CMake.
+
 #pragma once
 
-#include <boost/current_function.hpp>
-#include <boost/format.hpp>
-#include "mococrw/config.h"
+#cmakedefine MOCOCRW_HSM_ENABLED 1
+#cmakedefine MOCOCRW_DILITHIUM_ENABLED 1
 
-namespace mococrw
-{
-class MoCOCrWException : public std::exception
-{
-public:
-    template <class StringType>
-    explicit MoCOCrWException(StringType &&msg) : _msg{std::forward<StringType>(msg)}
-    {
-    }
-    const char *what() const noexcept override { return _msg.c_str(); }
-
-private:
-    const std::string _msg;
-};
-
-#define ERROR_STRING(msg) (boost::format{"%s: %s"} % BOOST_CURRENT_FUNCTION % (msg)).str()
-}  // namespace mococrw

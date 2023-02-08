@@ -17,10 +17,10 @@
  * #L%
  */
 #pragma once
+#include "openssl_wrap.h"
 #ifdef MOCOCRW_HSM_ENABLED
 #include "mococrw/hsm.h"
 #endif
-#include "openssl_wrap.h"
 
 namespace mococrw
 {

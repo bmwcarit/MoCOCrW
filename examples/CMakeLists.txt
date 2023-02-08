@@ -33,7 +33,6 @@ add_test(
 if(MOCOCRW_HSM_ENABLED)
     add_executable(hsm-example hsm-example.cpp)
     target_link_libraries(hsm-example PUBLIC MoCOCrW::mococrw)
-    target_compile_definitions(hsm-example PUBLIC MOCOCRW_HSM_ENABLED)
 
     add_test(
         NAME hsmExample
@@ -73,9 +72,6 @@ add_test(
 
 add_executable(sig-example sig-example.cpp)
 target_link_libraries(sig-example PUBLIC MoCOCrW::mococrw)
-if(MOCOCRW_DILITHIUM_ENABLED)
-    target_compile_definitions(sig-example PUBLIC MOCOCRW_DILITHIUM_ENABLED)
-endif()
 add_test(
     NAME sigExample
     COMMAND sig-example
