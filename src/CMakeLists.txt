@@ -38,14 +38,14 @@ set(LIBRARY_SOURCES
 )
 
 # Add additional source files if HSM features are enabled.
-if(HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
   set(LIBRARY_SOURCES
       ${LIBRARY_SOURCES}
       hsm.cpp
   )
 endif()
 
-if(DILITHIUM_ENABLED)
+if(MOCOCRW_DILITHIUM_ENABLED)
     set(LIBRARY_SOURCES
         ${LIBRARY_SOURCES}
         dilithium.cpp
@@ -80,14 +80,14 @@ set(LIBRARY_PUBLIC_HEADERS
 )
 
 # Add additional header files if HSM features are enabled.
-if(HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
   set(LIBRARY_PUBLIC_HEADERS
       ${LIBRARY_PUBLIC_HEADERS}
       mococrw/hsm.h
   )
 endif()
 
-if(DILITHIUM_ENABLED)
+if(MOCOCRW_DILITHIUM_ENABLED)
     set(LIBRARY_PUBLIC_HEADERS
         ${LIBRARY_PUBLIC_HEADERS}
         mococrw/dilithium.h
@@ -98,11 +98,11 @@ add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_link_libraries(${LIBRARY_NAME} PUBLIC OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
-if(HSM_ENABLED)
-  target_compile_definitions(${LIBRARY_NAME} PUBLIC HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
+  target_compile_definitions(${LIBRARY_NAME} PUBLIC MOCOCRW_HSM_ENABLED)
 endif()
 
-if(DILITHIUM_ENABLED)
+if(MOCOCRW_DILITHIUM_ENABLED)
     target_link_libraries(${LIBRARY_NAME} PRIVATE dilithium2_ref dilithium3_ref dilithium5_ref aes256ctr_ref fips202_ref)
 endif()
 

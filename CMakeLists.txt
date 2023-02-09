@@ -29,10 +29,10 @@ set(SECURITY_COMPILER_FLAGS
 )
 
 # By default, we do not build MoCOCrW with LibP11.
-option(HSM_ENABLED "Enable HSM features" OFF)
+option(MOCOCRW_HSM_ENABLED "Enable HSM features" OFF)
 
 # By default, we do not build MoCOCrW with dilithium support.
-option(DILITHIUM_ENABLED "Enable Dilithium features" OFF)
+option(MOCOCRW_DILITHIUM_ENABLED "Enable Dilithium features" OFF)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -96,7 +96,7 @@ if(BUILD_DOCUMENTATION)
     add_subdirectory(doc)
 endif()
 
-if(DILITHIUM_ENABLED)
+if(MOCOCRW_DILITHIUM_ENABLED)
     message(STATUS "Dilithium support is enabled. Linking libdilithium statically.")
     find_package(dilithium 3.1 REQUIRED)
 else()
@@ -108,7 +108,7 @@ if(OPENSSL_FOUND)
     message(STATUS "Using OpenSSL ${OPENSSL_VERSION}")
 endif()
 
-if(HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
   message(STATUS "HSM features are enabled. Building with LibP11")
   find_package(LibP11 REQUIRED)
 else()

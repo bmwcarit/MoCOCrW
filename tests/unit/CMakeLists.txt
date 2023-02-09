@@ -31,7 +31,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     add_executable(openssltest test_opensslwrapper.cpp
                              ${MOCK_SOURCES})
 
-    if(HSM_ENABLED)
+    if(MOCOCRW_HSM_ENABLED)
         add_executable(hsmtest test_hsm.cpp
                             "${SRC_DIR}/key.cpp"
                             "${SRC_DIR}/hsm.cpp"
@@ -145,7 +145,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         "${SRC_DIR}/kdf.cpp"
         ${REAL_SOURCES})
 
-    if(DILITHIUM_ENABLED)
+    if(MOCOCRW_DILITHIUM_ENABLED)
         add_executable(dilithiumtests test_dilithium.cpp
             "${SRC_DIR}/asymmetric_crypto_ctx.cpp"
             "${SRC_DIR}/hash.cpp"
@@ -163,12 +163,12 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     # Cannot link to imported OpenSSL and leverage implicit include-dir-propagation, as openssltest uses mocks.
     target_include_directories(openssltest PUBLIC ${OPENSSL_INCLUDE_DIR})
 
-    if(HSM_ENABLED)
+    if(MOCOCRW_HSM_ENABLED)
         target_link_libraries(hsmtest ${GMOCK_BOTH_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
         target_include_directories(hsmtest PUBLIC ${OPENSSL_INCLUDE_DIR})
     endif()
 
-    if(DILITHIUM_ENABLED)
+    if(MOCOCRW_DILITHIUM_ENABLED)
         set(DEFAULT_LINK_LIBRARIES ${DEFAULT_LINK_LIBRARIES} dilithium2_ref dilithium3_ref dilithium5_ref aes256ctr_ref fips202_ref)
         target_link_libraries(dilithiumtests ${DEFAULT_LINK_LIBRARIES})
     endif()
@@ -195,9 +195,9 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(cmactests ${DEFAULT_LINK_LIBRARIES})
     target_link_libraries(eciestests ${DEFAULT_LINK_LIBRARIES})
 
-    if(HSM_ENABLED)
-        target_compile_definitions(keytests PUBLIC HSM_ENABLED)
-        target_compile_definitions(hsmtest PUBLIC HSM_ENABLED)
+    if(MOCOCRW_HSM_ENABLED)
+        target_compile_definitions(keytests PUBLIC MOCOCRW_HSM_ENABLED)
+        target_compile_definitions(hsmtest PUBLIC MOCOCRW_HSM_ENABLED)
     endif()
 
     add_test(
@@ -205,7 +205,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
         COMMAND openssltest
     )
 
-    if(HSM_ENABLED)
+    if(MOCOCRW_HSM_ENABLED)
         add_test(
             NAME HSMTest
             COMMAND hsmtest
@@ -301,7 +301,7 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
 	COMMAND eciestests
     )
 
-    if(DILITHIUM_ENABLED)
+    if(MOCOCRW_DILITHIUM_ENABLED)
         add_test(
             NAME DilithiumSignatureTests
             COMMAND dilithiumtests

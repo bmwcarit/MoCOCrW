@@ -17,7 +17,7 @@
  * #L%
  */
 #pragma once
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
 #include "mococrw/hsm.h"
 #endif
 #include "openssl_wrap.h"
@@ -85,7 +85,7 @@ public:
      */
     static AsymmetricPublicKey readPublicKeyFromPEM(const std::string &pem);
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
     /**
      * @brief Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
@@ -268,7 +268,7 @@ public:
     static AsymmetricKeypair readPrivateKeyFromPEM(const std::string &pem,
                                                    const std::string &password);
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
     /**
      * @brief Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.

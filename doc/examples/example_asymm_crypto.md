@@ -532,7 +532,7 @@ If you want to use CMake for compiling and installing libdilithium the following
 
 Dilithium is an optional feature for MoCOCrW. For enabling it add
 ```
--DDILITHIUM_ENABLED=ON
+-DMOCOCRW_DILITHIUM_ENABLED=ON
 ```
 to your CMake invocation.
 
