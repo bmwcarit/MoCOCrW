@@ -22,7 +22,7 @@
 #include <iostream>
 #include "mococrw/util.h"
 
-#ifdef DILITHIUM_ENABLED
+#ifdef MOCOCRW_DILITHIUM_ENABLED
 #include <mococrw/dilithium.h>
 #endif
 
@@ -205,7 +205,7 @@ void edDsaVerify(const AsymmetricPublicKey &pubKey,
     }
 }
 
-#ifdef DILITHIUM_ENABLED
+#ifdef MOCOCRW_DILITHIUM_ENABLED
 
 std::vector<uint8_t> dilithiumSign(const DilithiumAsymmetricPrivateKey &privKey,
                                    const std::vector<uint8_t> &message)
@@ -244,7 +244,7 @@ void dilithiumVerify(const DilithiumAsymmetricPublicKey &pubKey,
     }
 }
 
-#endif  // DILITHIUM_ENABLED
+#endif  // MOCOCRW_DILITHIUM_ENABLED
 
 int main(void)
 {
@@ -299,7 +299,7 @@ int main(void)
     edDsaVerify(edPrivKey, signature, message);
     /*********************************************/
 
-#ifdef DILITHIUM_ENABLED
+#ifdef MOCOCRW_DILITHIUM_ENABLED
     /************** dilithium signature **********/
     /* Please note that the interface might change slightly once openssl officially supports
      * dilithium
@@ -323,5 +323,5 @@ int main(void)
 
     dilithiumVerify(dilithiumPubKey, signature, message);
     /*********************************************/
-#endif  // DILITHIUM_ENABLED
+#endif  // MOCOCRW_DILITHIUM_ENABLED
 }

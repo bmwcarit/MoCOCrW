@@ -64,7 +64,7 @@ Dilithium is an **optional** feature provided by MoCOCrW.
 
 This feature depends on [reference implementation of the Dilithium signature scheme](https://github.com/pq-crystals/dilithium/)
 since OpenSSL still doesn't have a support for Dilithium. The following adaptations are necessary
-in order to successfully compile MoCOCrW with the Dilithium feature . 
+in order to successfully compile MoCOCrW with the Dilithium feature .
 
 #### Dilithium Adaptions
 
@@ -75,7 +75,7 @@ to build and install libdilithium locally before trying to use it with MoCOCrW.
 
 Then, to use the Dilithium feature, replace the CMake invocation with:
 ```
-build/$ cmake -DBUILD_TESTING=True -DDILITHIUM_ENABLED=ON ..
+build/$ cmake -DBUILD_TESTING=True -DMOCOCRW_DILITHIUM_ENABLED=ON ..
 ```
 
 ### Build with HSM support
@@ -91,7 +91,7 @@ HSM feature enabled. To build and install patched libp11, check out [how it's do
 
 Then, to use the HSM feature, replace the CMake invocation with:
 ```
-build/$ cmake -DBUILD_TESTING=True -DHSM_ENABLED=ON ..
+build/$ cmake -DBUILD_TESTING=True -DMOCOCRW_HSM_ENABLED=ON ..
 ```
 
 ## Installation / Usage / Packaging

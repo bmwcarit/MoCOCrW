@@ -106,7 +106,7 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromPEM(const std::string 
     return AsymmetricPublicKey{std::move(key)};
 }
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
 AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(const HSM &hsm,
                                                               const std::string &keyLabel,
                                                               const std::vector<uint8_t> &keyID)
@@ -187,7 +187,7 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromPEM(const std::string &pe
     return AsymmetricKeypair{std::move(key)};
 }
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
 AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm,
                                                            const std::string &keyLabel,
                                                            const std::vector<uint8_t> &keyID)

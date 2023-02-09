@@ -30,10 +30,10 @@ add_test(
 #
 # TODO: Make the HSM flag be an imported variable so users
 # can easily determine its status.
-if(HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
     add_executable(hsm-example hsm-example.cpp)
     target_link_libraries(hsm-example PUBLIC MoCOCrW::mococrw)
-    target_compile_definitions(hsm-example PUBLIC HSM_ENABLED)
+    target_compile_definitions(hsm-example PUBLIC MOCOCRW_HSM_ENABLED)
 
     add_test(
         NAME hsmExample
@@ -73,8 +73,8 @@ add_test(
 
 add_executable(sig-example sig-example.cpp)
 target_link_libraries(sig-example PUBLIC MoCOCrW::mococrw)
-if(DILITHIUM_ENABLED)
-    target_compile_definitions(sig-example PUBLIC DILITHIUM_ENABLED)
+if(MOCOCRW_DILITHIUM_ENABLED)
+    target_compile_definitions(sig-example PUBLIC MOCOCRW_DILITHIUM_ENABLED)
 endif()
 add_test(
     NAME sigExample

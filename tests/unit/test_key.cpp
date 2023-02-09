@@ -22,7 +22,7 @@
 #include "key.cpp"
 #include "util.cpp"
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
 #include "hsm_mock.h"
 #endif
 
@@ -274,7 +274,7 @@ TEST_F(KeyHandlingTests, testPrivKeyFromSavedPemIsSameAsOriginal)
     ASSERT_EQ(pemOfSectEd25519PubKey, retrievedEd25519KeyPair.publicKeyToPem());
 }
 
-#ifdef HSM_ENABLED
+#ifdef MOCOCRW_HSM_ENABLED
 TEST_F(KeyHandlingTests, testKeyLoadPubKeyFromHSM)
 {
     std::vector<uint8_t> keyID{0x44, 0x22, 0x11};
