@@ -195,11 +195,6 @@ if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     target_link_libraries(cmactests ${DEFAULT_LINK_LIBRARIES})
     target_link_libraries(eciestests ${DEFAULT_LINK_LIBRARIES})
 
-    if(MOCOCRW_HSM_ENABLED)
-        target_compile_definitions(keytests PUBLIC MOCOCRW_HSM_ENABLED)
-        target_compile_definitions(hsmtest PUBLIC MOCOCRW_HSM_ENABLED)
-    endif()
-
     add_test(
         NAME OpenSSLTest
         COMMAND openssltest

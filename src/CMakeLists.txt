@@ -52,7 +52,11 @@ if(MOCOCRW_DILITHIUM_ENABLED)
     )
 endif()
 
+# Set up configuration header for optional features.
+configure_file(${MOCOCRW_PROJECT_ROOT}/cmake/in/MoCOCrWConfig.h.in ${MOCOCRW_INCLUDE_CONFIG_DIR}/mococrw/config.h)
+
 set(LIBRARY_PUBLIC_HEADERS
+    ${MOCOCRW_INCLUDE_CONFIG_DIR}/mococrw/config.h
     mococrw/asn1time.h
     mococrw/asymmetric_crypto_ctx.h
     mococrw/basic_constraints.h
@@ -98,16 +102,13 @@ add_library(${LIBRARY_NAME} SHARED ${LIBRARY_SOURCES} ${LIBRARY_PUBLIC_HEADERS})
 add_library(${PROJECT_NAME}::${LIBRARY_NAME} ALIAS ${LIBRARY_NAME})
 target_link_libraries(${LIBRARY_NAME} PUBLIC OpenSSL::Crypto OpenSSL::SSL Boost::boost)
 
-if(MOCOCRW_HSM_ENABLED)
-  target_compile_definitions(${LIBRARY_NAME} PUBLIC MOCOCRW_HSM_ENABLED)
-endif()
-
 if(MOCOCRW_DILITHIUM_ENABLED)
     target_link_libraries(${LIBRARY_NAME} PRIVATE dilithium2_ref dilithium3_ref dilithium5_ref aes256ctr_ref fips202_ref)
 endif()
 
 target_include_directories(${LIBRARY_NAME} INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+    $<BUILD_INTERFACE:${MOCOCRW_INCLUDE_CONFIG_DIR}>
     $<INSTALL_INTERFACE:${MOCOCRW_INSTALL_INCLUDEDIR}>
 )
 set_target_properties(${LIBRARY_NAME} PROPERTIES

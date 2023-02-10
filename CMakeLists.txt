@@ -124,12 +124,14 @@ set(MOCOCRW_INSTALL_BINDIR ${CMAKE_INSTALL_FULL_BINDIR})
 set(EXAMPLE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/examples)
 
 set(MOCOCRW_PROJECT_ROOT ${CMAKE_CURRENT_SOURCE_DIR})
+set(MOCOCRW_INCLUDE_CONFIG_DIR ${CMAKE_BINARY_DIR}/config_include)
 set(SRC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
 #TODO set(DOC_DIR ${CMAKE_CURRENT_SOURCE_DIR}/doc)
 set(TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
 # Enable all subprojects to find each other's include files
 include_directories(${SRC_DIR})
+include_directories(${MOCOCRW_INCLUDE_CONFIG_DIR})
 
 add_subdirectory(${SRC_DIR})
 add_subdirectory(${TEST_DIR})
