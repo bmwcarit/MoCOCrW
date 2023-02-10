@@ -6,6 +6,14 @@ All notable changes to this project will be documented in this file.
 
 ## Changed
 
+## Fixed
+
+## Added
+
+# Release 4.3.0
+
+## Changed
+
 * Renamed CMake and MACRO definitions for optional features to be prefixed
   by MOCOCRW_ in order to be more specific in terms of naming.
   As a result, HSM_ENABLED is now MOCOCRW_HSM_ENABLED, etc.
@@ -16,6 +24,7 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+## Added
 
 # Release 4.2.0
 ## Changed
