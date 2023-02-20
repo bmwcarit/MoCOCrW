@@ -124,6 +124,9 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID) override;
+
+    bool isUnknownKeyError(const openssl::OpenSSLException &e) const;
+    void checkForDuplicateKey(const std::string &keyLabel, const std::vector<uint8_t> &keyID) const;
 };
 
 }  // namespace mococrw

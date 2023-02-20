@@ -1,0 +1,154 @@
+From 4ef4c70d30dff8346a6291cfc840538e84c04459 Mon Sep 17 00:00:00 2001
+From: John Galea <John.Galea@bmw.de>
+Date: Mon, 27 Feb 2023 17:32:17 +0100
+Subject: [PATCH] Add RW Session Engine Command
+
+In order to support key generation, we add a new command that
+opens a RW session. Prior to this change, it was possible to
+make key generation fail due to the internal use of a read-only
+session.
+---
+ src/eng_back.c  | 71 ++++++++++++++++++++++++++++++++++++++++---------
+ src/eng_err.h   |  1 +
+ src/eng_front.c |  4 +++
+ src/engine.h    |  1 +
+ 4 files changed, 65 insertions(+), 12 deletions(-)
+
+diff --git a/src/eng_back.c b/src/eng_back.c
+index 868463e..809865d 100644
+--- a/src/eng_back.c
++++ b/src/eng_back.c
+@@ -890,6 +890,60 @@ EVP_PKEY *ctx_load_privkey(ENGINE_CTX *ctx, const char *s_key_id,
+ 	return PKCS11_get_private_key(key);
+ }
+ 
++static PKCS11_SLOT *find_token_via_label(ENGINE_CTX *ctx, const char *token_label)
++{
++	PKCS11_SLOT *slot = NULL;
++	unsigned int i;
++	/* Take the first token that has a matching label */
++	for (i = 0; i < ctx->slot_count; ++i)
++	{
++		slot = ctx->slot_list + i;
++		if (slot && slot->token && slot->token->initialized &&
++			slot->token->label &&
++			!strncmp(slot->token->label, token_label, 32))
++		{
++			return slot;
++		}
++	}
++	ctx_log(ctx, 0, "Initialized token with matching label not found...\n");
++	return NULL;
++}
++
++static int ctx_create_rw_session(ENGINE_CTX *ctx, const char *token_label)
++{
++	PKCS11_SLOT *slot = NULL;
++	int rv = 1;
++
++	/* Pre-condition check */
++	if (!token_label)
++	{
++		ENGerr(ENG_F_CTX_CTRL_RW_SESSION, ERR_R_PASSED_NULL_PARAMETER);
++		errno = EINVAL;
++		goto done;
++	}
++
++	pthread_mutex_lock(&ctx->lock);
++	/* Delayed libp11 initialization */
++	if (ctx_init_libp11_unlocked(ctx))
++	{
++		ENGerr(ENG_F_CTX_LOAD_OBJECT, ENG_R_INVALID_PARAMETER);
++		goto done;
++	}
++
++	slot = find_token_via_label(ctx, token_label);
++	if (slot == NULL)
++	{
++		goto done;
++	}
++
++	ERR_clear_error();
++	rv = PKCS11_open_session(slot, 1 /*rw*/);
++
++done:
++	pthread_mutex_unlock(&ctx->lock);
++	return rv ? 0 : 1;
++}
++
+ static int ctx_keygen(ENGINE_CTX *ctx, void *p)
+ {
+ 	if (p == NULL)
+@@ -906,18 +960,9 @@ static int ctx_keygen(ENGINE_CTX *ctx, void *p)
+ 		goto done;
+ 	}
+ 
+-	// Take the first token that has a matching label
+-	for (i = 0; i < ctx->slot_count; ++i) {
+-		slot = ctx->slot_list + i;
+-		if (slot && slot->token && slot->token->initialized &&
+-				slot->token->label &&
+-					!strncmp(slot->token->label, kg_attrs->token_label, 32)) {
+-			break;
+-		}
+-	}
+-
+-	if (i == ctx->slot_count) {
+-		ctx_log(ctx, 0, "Initialized token with matching label not found...\n");
++	slot = find_token_via_label(ctx, kg_attrs->token_label);
++	if (slot == NULL)
++	{
+ 		goto done;
+ 	}
+ 
+@@ -1073,6 +1118,8 @@ int ctx_engine_ctrl(ENGINE_CTX *ctx, int cmd, long i, void *p, void (*f)())
+ 		return ctx_enumerate_slots(ctx, ctx->pkcs11_ctx);
+ 	case CMD_KEYGEN:
+ 		return ctx_keygen(ctx, p);
++	case CMD_RW:
++		return ctx_create_rw_session(ctx, (const char *)p);
+ 	default:
+ 		ENGerr(ENG_F_CTX_ENGINE_CTRL, ENG_R_UNKNOWN_COMMAND);
+ 		break;
+diff --git a/src/eng_err.h b/src/eng_err.h
+index 8151be5..07cba26 100644
+--- a/src/eng_err.h
++++ b/src/eng_err.h
+@@ -30,6 +30,7 @@ void ERR_ENG_error(int function, int reason, char *file, int line);
+ /* Function codes. */
+ # define ENG_F_CTX_CTRL_LOAD_CERT                         102
+ # define ENG_F_CTX_CTRL_SET_PIN                           106
++# define ENG_F_CTX_CTRL_RW_SESSION                        108
+ # define ENG_F_CTX_ENGINE_CTRL                            105
+ # define ENG_F_CTX_LOAD_OBJECT                            107
+ # define ENG_F_CTX_LOAD_CERT                              100
+diff --git a/src/eng_front.c b/src/eng_front.c
+index e3e5a78..9404987 100644
+--- a/src/eng_front.c
++++ b/src/eng_front.c
+@@ -83,6 +83,10 @@ static const ENGINE_CMD_DEFN engine_cmd_defns[] = {
+ 		"KEYGEN",
+ 		"Generate asymmetric key pair",
+ 		ENGINE_CMD_FLAG_INTERNAL},
++	{CMD_RW,
++		"RW_SESSION",
++		"Creates a Read Write Session for the specified token",
++		ENGINE_CMD_FLAG_STRING},
+ 	{0, NULL, NULL, 0}
+ };
+ 
+diff --git a/src/engine.h b/src/engine.h
+index 740f86e..19bf8dd 100644
+--- a/src/engine.h
++++ b/src/engine.h
+@@ -53,6 +53,7 @@
+ #define CMD_FORCE_LOGIN	(ENGINE_CMD_BASE+9)
+ #define CMD_RE_ENUMERATE	(ENGINE_CMD_BASE+10)
+ #define CMD_KEYGEN		(ENGINE_CMD_BASE+11)
++#define CMD_RW			(ENGINE_CMD_BASE+12)
+ 
+ typedef struct st_engine_ctx ENGINE_CTX; /* opaque */
+ 
+-- 
+2.25.1
+

@@ -59,9 +59,38 @@ HsmEngine::HsmEngine(const std::string &id,
     _ENGINE_ctrl_cmd_string(_engine.get(), "MODULE_PATH", _modulePath);
     _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
     _ENGINE_init(_engine.get());
+    // Open a RW session by default to allow for key generation.
+    _ENGINE_ctrl_cmd_string(_engine.get(), "RW_SESSION", _tokenLabel);
 }
 
 HsmEngine::~HsmEngine() { _ENGINE_finish(_engine.get()); }
+
+bool HsmEngine::isUnknownKeyError(const OpenSSLException &e) const
+{
+    // The current OpenSSLException catch-all approach makes it difficult to distinguish
+    // different types of errors. In order to specifically identify the case where the
+    // passed key is unknown, we check that the error stems from the pkcs11 engine and that
+    // the reason is "object not found".
+    return e.getLib() == "pkcs11 engine" && e.getReason() == "object not found";
+}
+
+void HsmEngine::checkForDuplicateKey(const std::string &keyLabel,
+                                     const std::vector<uint8_t> &keyID) const
+{
+    bool isDup = true;
+    try {
+        loadPrivateKey(keyLabel, keyID);
+    } catch (const MoCOCrWUnknownHsmKeyException &e) {
+        // Take note that the key identifiers are unknown.
+        // This is a good sign, b/c it means a duplicate does not
+        // already exist.
+        isDup = false;
+    }
+    if (isDup) {
+        throw MoCOCrWHsmKeyDuplicateGenerationException(
+                "Duplicate key identification attributes detected!");
+    }
+}
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
                                                    const std::vector<uint8_t> &keyID) const
@@ -72,12 +101,8 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
     try {
         return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
-        // The current OpenSSLException catch-all approach makes it difficult to distinguish
-        // different types of errors. In order to specifically identify the case where the passed
-        // key is unknown, we check that the error stems from the pkcs11 engine and that the
-        // reason is "object not found".
-        if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load public key. Public key not found!");
+        if (isUnknownKeyError(e)) {
+            throw MoCOCrWUnknownHsmKeyException("Unable to load public key. Public key not found!");
         }
         // If not Unknown Key error, then throw again the original exception.
         throw;
@@ -93,8 +118,9 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
     try {
         return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
-        if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load private key. Private key not found!");
+        if (isUnknownKeyError(e)) {
+            throw MoCOCrWUnknownHsmKeyException(
+                    "Unable to load private key. Private key not found!");
         }
         throw;
     }
@@ -104,6 +130,12 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
+    // Check for duplicate key generation:
+    checkForDuplicateKey(keyLabel, keyID);
+    checkForDuplicateKey("", keyID);
+    std::vector<uint8_t> blankID{};
+    checkForDuplicateKey(keyLabel, blankID);
+
     std::string keyIDHexString = utility::toHex(keyID);
     PKCS11_RSA_KGEN pkcs11RSASpec;
     pkcs11RSASpec.bits = spec.numberOfBits();
@@ -122,6 +154,12 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
+    // Check for duplicate key generation:
+    checkForDuplicateKey(keyLabel, keyID);
+    checkForDuplicateKey("", keyID);
+    std::vector<uint8_t> blankID{};
+    checkForDuplicateKey(keyLabel, blankID);
+
     std::string curve = spec.curveName();
     std::string keyIDHexString = utility::toHex(keyID);
     PKCS11_EC_KGEN pkcs11ECCSpec;

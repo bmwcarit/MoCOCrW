@@ -2,7 +2,8 @@ FROM buildenv
 
 ARG LIBP11_URL=https://github.com/OpenSC/libp11/releases/download/libp11-0.4.12/libp11-0.4.12.tar.gz
 RUN mkdir /tmp/patches
-COPY hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch \
+COPY hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch    \
+     hsm-patches/0002-Add-RW-Session-Engine-Command.patch                           \
      dilithium-patches/0001-CMakeLists.txt-Add-BUILD_TESTING-compile-flag.patch     \
      dilithium-patches/0002-CMakeLists.txt-Enable-parallel-test-execution.patch     \
      dilithium-patches/0003-CMakeLists.txt-Enable-PIE-compilation-flag.patch        \
@@ -35,6 +36,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-rec
     tar xf libp11-0.4.12.tar.gz && \
     cd libp11-0.4.12 && \
     git apply /tmp/patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch && \
+    git apply /tmp/patches/0002-Add-RW-Session-Engine-Command.patch && \
     echo "Successfully patched libp11" && \
     autoreconf --verbose --install --force && \
     ./configure --enable-strict && \

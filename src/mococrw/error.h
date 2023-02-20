@@ -37,5 +37,28 @@ private:
     const std::string _msg;
 };
 
+#ifdef MOCOCRW_HSM_ENABLED
+// Sub-classes of MoCOCrWException to denote specific HSM errors, making it easier
+// for users to catch certain exceptions and handle accordingly.
+
+class MoCOCrWUnknownHsmKeyException : public MoCOCrWException
+{
+public:
+    template <class StringType>
+    explicit MoCOCrWUnknownHsmKeyException(StringType &&msg) : MoCOCrWException(msg)
+    {
+    }
+};
+
+class MoCOCrWHsmKeyDuplicateGenerationException : public MoCOCrWException
+{
+public:
+    template <class StringType>
+    explicit MoCOCrWHsmKeyDuplicateGenerationException(StringType &&msg) : MoCOCrWException(msg)
+    {
+    }
+};
+#endif
+
 #define ERROR_STRING(msg) (boost::format{"%s: %s"} % BOOST_CURRENT_FUNCTION % (msg)).str()
 }  // namespace mococrw
