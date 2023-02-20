@@ -231,6 +231,16 @@ unsigned long OpenSSLLib::SSL_ERR_get_error() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_ERR_get_error();
 }
 
+const char *OpenSSLLib::SSL_ERR_lib_error_string(unsigned long error) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ERR_lib_error_string(error);
+}
+
+const char *OpenSSLLib::SSL_ERR_reason_error_string(unsigned long error) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_ERR_reason_error_string(error);
+}
+
 X509_NAME *OpenSSLLib::SSL_X509_NAME_new() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_X509_NAME_new();

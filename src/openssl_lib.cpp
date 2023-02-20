@@ -163,6 +163,16 @@ char *OpenSSLLib::SSL_ERR_error_string(unsigned long error, char *buf) noexcept
     return ERR_error_string(error, buf);
 }
 
+const char *OpenSSLLib::SSL_ERR_lib_error_string(unsigned long error) noexcept
+{
+    return ERR_lib_error_string(error);
+}
+
+const char *OpenSSLLib::SSL_ERR_reason_error_string(unsigned long error) noexcept
+{
+    return ERR_reason_error_string(error);
+}
+
 unsigned long OpenSSLLib::SSL_ERR_get_error() noexcept { return ERR_get_error(); }
 
 X509_NAME *OpenSSLLib::SSL_X509_NAME_new() noexcept { return X509_NAME_new(); }

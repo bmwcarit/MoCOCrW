@@ -69,7 +69,19 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
     auto keyIDPctEncoded = pctEncode(keyID);
     std::string pkcs11URI =
             "pkcs11:token=" + _tokenLabel + ";object=" + keyLabel + ";id=" + keyIDPctEncoded;
-    return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
+    try {
+        return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
+    } catch (const OpenSSLException &e) {
+        // The current OpenSSLException catch-all approach makes it difficult to distinguish
+        // different types of errors. In order to specifically identify the case where the passed
+        // key is unknown, we check that the error stems from the pkcs11 engine and that the
+        // reason is "object not found".
+        if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
+            throw MoCOCrWException("Unable to load public key. Public key not found!");
+        }
+        // If not Unknown Key error, then throw again the original exception.
+        throw;
+    }
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
@@ -78,7 +90,14 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
     auto keyIDPctEncoded = pctEncode(keyID);
     std::string pkcs11URI =
             "pkcs11:token=" + _tokenLabel + ";object=" + keyLabel + ";id=" + keyIDPctEncoded;
-    return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
+    try {
+        return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
+    } catch (const OpenSSLException &e) {
+        if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
+            throw MoCOCrWException("Unable to load private key. Private key not found!");
+        }
+        throw;
+    }
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,

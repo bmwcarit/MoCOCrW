@@ -128,13 +128,22 @@ public:
      * as message.
      *
      */
-    OpenSSLException() : _message{generateOpenSSLErrorString()} {}
+    OpenSSLException();
 
     const char *what() const noexcept override { return _message.c_str(); }
 
+    /**
+     * The following functions enable fine-tuned error handling via sub-library and reason
+     * information
+     */
+    std::string getLib() const { return _library; };
+    std::string getReason() const { return _reason; };
+
 private:
-    static std::string generateOpenSSLErrorString();
+    static std::string generateOpenSSLErrorString(unsigned long error);
     std::string _message;
+    std::string _library;
+    std::string _reason;
 };
 
 /*

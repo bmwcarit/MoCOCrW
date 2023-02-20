@@ -50,7 +50,10 @@ public:
     void TearDown() override;
 
 protected:
-    std::string _defaultErrorMessage{"bla bla bla"};
+    std::string _defaultErrorMessage{"bla bla err msg"};
+    std::string _defaultErrorLibrary{"bla bla err lib"};
+    std::string _defaultErrorReason{"bla bla err reason"};
+
     const unsigned long _defaultErrorCode = 1L;
     OpenSSLLibMock &_mock() const { return OpenSSLLibMockManager::getMockInterface(); }
 };
@@ -89,6 +92,11 @@ void OpenSSLWrapperTest::SetUp()
     ON_CALL(_mock(), SSL_ERR_get_error()).WillByDefault(Return(_defaultErrorCode));
     ON_CALL(_mock(), SSL_ERR_error_string(_, nullptr))
             .WillByDefault(Return(const_cast<char *>(_defaultErrorMessage.c_str())));
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_))
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorLibrary.c_str())));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_))
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorReason.c_str())));
+
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 
@@ -106,6 +114,8 @@ TEST_F(OpenSSLWrapperTest, keyMemoryManagement)
 
     EXPECT_CALL(_mock(), SSL_ERR_get_error()).WillOnce(Return(_defaultErrorCode));
     EXPECT_CALL(_mock(), SSL_ERR_error_string(_defaultErrorCode, nullptr));
+    EXPECT_CALL(_mock(), SSL_ERR_lib_error_string(_defaultErrorCode));
+    EXPECT_CALL(_mock(), SSL_ERR_reason_error_string(_defaultErrorCode));
 
     EXPECT_THROW(_EVP_PKEY_new(), OpenSSLException);
 }
@@ -128,6 +138,8 @@ TEST_F(OpenSSLWrapperTest, keyContextMemoryManagement)
 
     EXPECT_CALL(_mock(), SSL_ERR_get_error()).WillOnce(Return(_defaultErrorCode));
     EXPECT_CALL(_mock(), SSL_ERR_error_string(_defaultErrorCode, nullptr));
+    EXPECT_CALL(_mock(), SSL_ERR_lib_error_string(_defaultErrorCode));
+    EXPECT_CALL(_mock(), SSL_ERR_reason_error_string(_defaultErrorCode));
 
     EXPECT_THROW(_EVP_PKEY_CTX_new_id(0), OpenSSLException);
     auto key = _EVP_PKEY_CTX_new_id(0);

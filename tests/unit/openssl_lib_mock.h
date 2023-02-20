@@ -213,6 +213,8 @@ public:
     /* Error handling */
     virtual char *SSL_ERR_error_string(unsigned long error, char *buf) = 0;
     virtual unsigned long SSL_ERR_get_error() = 0;
+    virtual const char *SSL_ERR_lib_error_string(unsigned long error) = 0;
+    virtual const char *SSL_ERR_reason_error_string(unsigned long error) = 0;
 
     /* X509_NAME related things */
     virtual X509_NAME *SSL_X509_NAME_new() = 0;
@@ -583,6 +585,8 @@ public:
 
     MOCK_METHOD0(SSL_ERR_get_error, unsigned long());
     MOCK_METHOD2(SSL_ERR_error_string, char *(unsigned long, char *));
+    MOCK_METHOD1(SSL_ERR_lib_error_string, const char *(unsigned long));
+    MOCK_METHOD1(SSL_ERR_reason_error_string, const char *(unsigned long));
 
     MOCK_METHOD0(SSL_X509_NAME_new, X509_NAME *());
     MOCK_METHOD1(SSL_X509_NAME_free, void(X509_NAME *));

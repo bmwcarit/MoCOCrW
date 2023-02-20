@@ -41,7 +41,9 @@ public:
     void TearDown() override;
 
 protected:
-    std::string _defaultErrorMessage{"bla bla bla"};
+    std::string _defaultErrorMessage{"bla bla err msg"};
+    std::string _defaultErrorLibrary{"bla bla err lib"};
+    std::string _defaultErrorReason{"bla bla err reason"};
     const unsigned long _defaultErrorCode = 1L;
     openssl::OpenSSLLibMock &_mock() const
     {
@@ -78,6 +80,10 @@ void HSMTest::SetUp()
     ON_CALL(_mock(), SSL_ERR_get_error()).WillByDefault(Return(_defaultErrorCode));
     ON_CALL(_mock(), SSL_ERR_error_string(_, nullptr))
             .WillByDefault(Return(const_cast<char *>(_defaultErrorMessage.c_str())));
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_))
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorLibrary.c_str())));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_))
+            .WillByDefault(Return(const_cast<char *>(_defaultErrorReason.c_str())));
     // TODO: Get rid of the uninteresting calls by default here somehow...
 }
 
@@ -130,4 +136,43 @@ TEST_F(HSMTest, testHSMKeygen)
                                             nullptr))
             .WillOnce(Return(pkey));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId));
+}
+
+TEST_F(HSMTest, testHSMLoadUnknownPublicKey)
+{
+    auto engine = ::testutils::someEnginePtr();
+    auto hsm = initialiseEngine();
+    const std::string keyLabel{"key-label"};
+    const std::vector<uint8_t> keyId{};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_load_public_key(engine,
+                                           StrEq("pkcs11:token=token-label;object=key-label;id="),
+                                           nullptr,
+                                           nullptr))
+            .WillOnce(Return(nullptr));
+
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
+
+    EXPECT_THROW(AsymmetricPublicKey::readPublicKeyFromHSM(*hsm, keyLabel, keyId),
+                 MoCOCrWException);
+}
+
+TEST_F(HSMTest, testHSMLoadUnknownPrivateKey)
+{
+    auto engine = ::testutils::someEnginePtr();
+    auto hsm = initialiseEngine();
+    const std::string keyLabel{"key-label"};
+    const std::vector<uint8_t> keyId{};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_load_private_key(engine,
+                                            StrEq("pkcs11:token=token-label;object=key-label;id="),
+                                            nullptr,
+                                            nullptr))
+            .WillOnce(Return(nullptr));
+
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
+
+    EXPECT_THROW(AsymmetricKeypair::readPrivateKeyFromHSM(*hsm, keyLabel, keyId), MoCOCrWException);
 }
