@@ -221,6 +221,8 @@ public:
     /* Error handling */
     static char *SSL_ERR_error_string(unsigned long error, char *buf) noexcept;
     static unsigned long SSL_ERR_get_error() noexcept;
+    static const char *SSL_ERR_lib_error_string(unsigned long error) noexcept;
+    static const char *SSL_ERR_reason_error_string(unsigned long error) noexcept;
 
     /* BIO Stuff */
     static const BIO_METHOD *SSL_BIO_s_mem() noexcept;

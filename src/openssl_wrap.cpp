@@ -41,9 +41,20 @@ namespace mococrw
 {
 namespace openssl
 {
-std::string OpenSSLException::generateOpenSSLErrorString()
+OpenSSLException::OpenSSLException()
 {
     auto error = lib::OpenSSLLib::SSL_ERR_get_error();
+    _message = generateOpenSSLErrorString(error);
+
+    auto libraryCharStr = lib::OpenSSLLib::SSL_ERR_lib_error_string(error);
+    _library = (libraryCharStr == nullptr) ? "" : std::string(libraryCharStr);
+
+    auto reasonCharStr = lib::OpenSSLLib::SSL_ERR_reason_error_string(error);
+    _reason = (reasonCharStr == nullptr) ? "" : std::string(reasonCharStr);
+}
+
+std::string OpenSSLException::generateOpenSSLErrorString(unsigned long error)
+{
     auto formatter = boost::format("%s: %d");
     formatter % lib::OpenSSLLib::SSL_ERR_error_string(error, nullptr) % error;
     return formatter.str();
