@@ -1617,5 +1617,10 @@ std::string _EC_curve_nid2nist(int nid);
  */
 int _EVP_PKEY_bits(EVP_PKEY *pkey);
 
+/**
+ * Overwrite sensitive memory chunk
+ */
+void _OPENSSL_cleanse(void *ptr, size_t size);
+
 }  // namespace openssl
 }  // namespace mococrw

@@ -1068,6 +1068,10 @@ int OpenSSLLib::SSL_ENGINE_ctrl_cmd(ENGINE *e,
 }
 const char *OpenSSLLib::SSL_EC_curve_nid2nist(int nid) noexcept { return EC_curve_nid2nist(nid); }
 int OpenSSLLib::SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept { return EVP_PKEY_bits(pkey); }
+void OpenSSLLib::SSL_OPENSSL_cleanse(void *ptr, size_t size) noexcept
+{
+    OPENSSL_cleanse(ptr, size);
+}
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw

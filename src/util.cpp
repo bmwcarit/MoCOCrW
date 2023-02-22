@@ -77,5 +77,12 @@ std::vector<uint8_t> cryptoRandomBytes(size_t length)
     return buffer;
 }
 
+void stringCleanse(std::string &str)
+{
+    // &str[0] is always a valid pointer
+    openssl::_OPENSSL_cleanse(&str[0], str.size());
+    str.clear();
+}
+
 }  // namespace utility
 }  // namespace mococrw

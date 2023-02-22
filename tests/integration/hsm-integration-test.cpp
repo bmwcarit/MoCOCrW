@@ -273,6 +273,7 @@ int main(void)
     // Don't hardcode the pin in your application, this is just for demonstration purposes
     std::string pin("1234");
     HsmEngine hsmEngine(id, modulePath, tokenLabel, pin);
+    utility::stringCleanse(pin);
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
 
     /************** ECC key generation and ECDSA **************/

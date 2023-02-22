@@ -34,6 +34,7 @@ int main(void)
     // Don't hardcode the pin in your application, this is just for demonstration purposes
     std::string pin("1234");
     HsmEngine hsmEngine(id, modulePath, tokenLabel, pin);
+    utility::stringCleanse(pin);
 
     /************** ECC key generation **************/
     std::vector<uint8_t> keyIDECC{};

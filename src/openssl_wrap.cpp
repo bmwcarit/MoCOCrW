@@ -1645,5 +1645,7 @@ int _EVP_PKEY_bits(EVP_PKEY *pkey)
     return OpensslCallIsPositive::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_bits, pkey);
 }
 
+void _OPENSSL_cleanse(void *ptr, size_t size) { lib::OpenSSLLib::SSL_OPENSSL_cleanse(ptr, size); }
+
 }  // namespace openssl
 }  // namespace mococrw

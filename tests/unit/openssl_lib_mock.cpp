@@ -1248,6 +1248,10 @@ int OpenSSLLib::SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EVP_PKEY_bits(pkey);
 }
+void OpenSSLLib::SSL_OPENSSL_cleanse(void *ptr, size_t size) noexcept
+{
+    return OpenSSLLibMockManager::getMockInterface().SSL_OPENSSL_cleanse(ptr, size);
+}
 }  // namespace lib
 }  // namespace openssl
 }  // namespace mococrw
