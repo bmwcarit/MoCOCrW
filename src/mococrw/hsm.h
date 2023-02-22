@@ -88,6 +88,8 @@ public:
      * @brief Constructor for an object that can manage keys on HSM using OpenSSL Engine
      * @note Each HsmEngine object is associated with a specific token and a pin to login to that
      * token
+     * @warning PIN value is not safely cleaned from memory. Make sure you clean it. Check
+     * out utility::stringCleanse()
      * @param id unique identifier for an OpenSSL engine
      * @param modulePath path to HSM module i.e. softhsm
      * @param tokenLabel label of the token where keys are managed
@@ -108,8 +110,6 @@ protected:
     const std::string _modulePath;
     /** Token label used to uniquely identify a token on which objects reside */
     const std::string _tokenLabel;
-    /** Pin to access PKCS11 Engine. */
-    const std::string _pin;
 
     openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
                                             const std::vector<uint8_t> &keyID) const override;

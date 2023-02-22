@@ -79,6 +79,11 @@ void vectorCleanse(std::vector<T> &vec)
 }
 
 /**
+ * @brief Overwrite sensitive content in std::string
+ */
+void stringCleanse(std::string &str);
+
+/**
  * RAII wrapper that executes a lambda on destruction
  */
 

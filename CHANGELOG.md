@@ -8,6 +8,9 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
+PIN member variable was removed from HsmEngine class. Utility function
+that cleanses std::string has been created.
+
 ## Added
 
 # Release 4.3.0

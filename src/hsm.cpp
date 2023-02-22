@@ -51,13 +51,13 @@ HsmEngine::HsmEngine(const std::string &id,
                      const std::string &modulePath,
                      const std::string &tokenLabel,
                      const std::string &pin)
-        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel), _pin(pin)
+        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel)
 {
     // Fetch _engine via ID.
     _engine = _ENGINE_by_id(_id);
 
     _ENGINE_ctrl_cmd_string(_engine.get(), "MODULE_PATH", _modulePath);
-    _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
+    _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", pin);
     _ENGINE_init(_engine.get());
 }
 
