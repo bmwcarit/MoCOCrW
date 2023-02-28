@@ -75,6 +75,8 @@ void vectorCleanse(std::vector<T> &vec)
     // std::vector<T>::data() is allowed to return a nullptr if the size is 0.
     if (vec.size() > 0) {
         OPENSSL_cleanse(vec.data(), vec.size() * sizeof(T));
+        // Clear all vector metadata
+        vec.clear();
     }
 }
 
