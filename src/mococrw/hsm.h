@@ -45,8 +45,9 @@ protected:
     /**
      *  Loads public key from HSM.
      *
-     *  @param keyLabel String based identifer of a key on the token
-     *  @param keyID Vector of raw bytes that identifies a key on the token
+     * @param keyLabel String based identifer of a key on the token
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     * @note keyID can not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
                                                     const std::vector<uint8_t> &keyID) const = 0;
@@ -55,6 +56,7 @@ protected:
      * Loads private key from HSM.
      *
      * @param keyID Vector of raw bytes that identifies a key on the token
+     * @note keyID can not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
                                                      const std::vector<uint8_t> &keyID) const = 0;
@@ -63,6 +65,7 @@ protected:
      * @brief Generate a RSA key pair on the HSM
      *
      * @param spec The RSA specification @ref RSASpec
+     * @note keyID can not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
                                                   const std::string &keyLabel,
@@ -72,6 +75,7 @@ protected:
      * @brief Generate a ECC key pair on the HSM
      *
      * @param spec The ECC specification @ref ECCSpec
+     * @note keyID can not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                                   const std::string &keyLabel,
@@ -124,6 +128,13 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID) override;
+
+private:
+    /**
+     * @brief Construct a PKCS11 URI according to RFC 7512
+     */
+    std::string _constructPkcs11URI(const std::string &keyLabel,
+                                    const std::vector<uint8_t> &keyId) const;
 };
 
 }  // namespace mococrw

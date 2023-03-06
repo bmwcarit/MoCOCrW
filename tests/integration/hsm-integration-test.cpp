@@ -275,20 +275,60 @@ int main(void)
     HsmEngine hsmEngine(id, modulePath, tokenLabel, pin);
     utility::stringCleanse(pin);
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
+    // Default specs are used in numerous places
+    ECCSpec eccSpec;
+    RSASpec rsaSpec;
+
+    /************** Key generation and loading **************/
+    std::cerr << "0. Testing key generation and loading:\n";
+    std::vector<uint8_t> emptyKeyId{};
+    std::string emptyLabel{};
+    std::vector<uint8_t> keyId_1{0x11};
+    std::vector<uint8_t> keyId_2{0x12};
+    std::string keyLabel_1{"key-label-1"};
+    std::string keyLabel_2{"key-label-2"};
+
+    std::cerr << "Generating a key without specifying the key ID...";
+    try {
+        auto keypair =
+                AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, keyLabel_1, emptyKeyId);
+    } catch (const MoCOCrWException &e) {
+        std::cerr << std::string(e.what()) + "...";
+    }
+    std::cerr << "Success\n";
+    std::cerr << "Loading a key without specifying the key ID...";
+    try {
+        auto keypair =
+                AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyLabel_1, emptyKeyId);
+    } catch (const MoCOCrWException &e) {
+        std::cerr << std::string(e.what()) + "...";
+    }
+    std::cerr << "Success\n";
+    std::cerr << "Generating a key without specifying the label...";
+    auto key1 = AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_1);
+    std::cerr << "Success\n";
+    std::cerr << "Generating another key without specifying the label...";
+    auto key2 = AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_2);
+    std::cerr << "Success\n";
+    std::cerr << "Load them both and test that different keys have been loaded...";
+    if (AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_1) ==
+        AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_2)) {
+        std::cerr << "Generated keys with different IDs should not be the same\n";
+        exit(1);
+    }
+    std::cerr << "Success\n";
 
     /************** ECC key generation and ECDSA **************/
-    std::vector<uint8_t> keyIDECC{};
+    std::vector<uint8_t> keyIDECC{0x21};
     std::string keyLabelECC("ecc-key-label");
     auto ecdsaDigestType = DigestTypes::SHA512;
     auto ecdsaSigFormat = ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS;
-    ECCSpec ecspec;
 
     std::cerr << "1. Testing digital signatures using ECC keys on HSM:\n";
     std::cerr << "Generating ECC keys on HSM...";
-    auto eccPrivKey =
-            AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, ecspec, keyLabelECC, keyIDECC);
+    AsymmetricKeypair eccPrivKey =
+            AsymmetricKeypair::generateKeyOnHSM(hsmEngine, eccSpec, keyLabelECC, keyIDECC);
     std::cerr << "Success\n";
-
     /**
      * Signing is expected to be executed inside softhsm using a PKCS11 function C_Sign.
      * This is expected to be the case whenever key is loaded from HSM, which is the case
@@ -327,9 +367,8 @@ int main(void)
     std::cerr << "Success\n\n";
 
     /************** RSA key generation, loading and digital signatures **************/
-    std::vector<uint8_t> keyIDRSA{0x12, 0x34};
+    std::vector<uint8_t> keyIDRSA{0x31};
     std::string keyLabelRSA{"rsa-key-label"};
-    mococrw::RSASpec rsaSpec;
     auto rsaSignatureDigestType = DigestTypes::SHA512;
 
     /**
