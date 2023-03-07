@@ -46,8 +46,8 @@ EciesEncryptResult encryptData(const std::vector<uint8_t> &message,
         encryptedData = encCtx->finish();
     } catch (const openssl::OpenSSLException &e) {
         /* low level OpenSSL failure */
-        std::cerr << "Error encrypting data." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Error encrypting data." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     } catch (const MoCOCrWException &e) {
         /* Possible reasons:
@@ -60,8 +60,8 @@ EciesEncryptResult encryptData(const std::vector<uint8_t> &message,
          * - MAC's finish() is already invoked
          * - MAC's update() is invoked after MAC's finish()
          */
-        std::cerr << "Error encrypting data." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Error encrypting data." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -71,15 +71,15 @@ EciesEncryptResult encryptData(const std::vector<uint8_t> &message,
                 openssl::EllipticCurvePointConversionForm::uncompressed);
     } catch (const openssl::OpenSSLException &e) {
         /* low level OpenSSL failure */
-        std::cerr << "Failure transforming EC key." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Failure transforming EC key." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     } catch (const MoCOCrWException &e) {
         /* Possible reasons:
          * - Key object doesn't contain an EC key
          */
-        std::cerr << "Failure transforming EC key." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Failure transforming EC key." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
     return EciesEncryptResult{
@@ -100,7 +100,7 @@ void decryptData(const EciesEncryptResult &eciesData, const AsymmetricPrivateKey
     std::shared_ptr<AsymmetricKey::Spec> spec = privKey.getKeySpec();
     auto eccSpec = std::dynamic_pointer_cast<ECCSpec>(spec);
     if (!eccSpec) {
-        std::cerr << "Given key is not an ECC key." << std::endl;
+        std::cout << "Given key is not an ECC key." << std::endl;
         exit(EXIT_FAILURE);
     }
 
@@ -121,8 +121,8 @@ void decryptData(const EciesEncryptResult &eciesData, const AsymmetricPrivateKey
         decryptedData = decCtx->finish();
     } catch (const openssl::OpenSSLException &e) {
         /* low level OpenSSL failure */
-        std::cerr << "Failure decrypting data." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Failure decrypting data." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     } catch (const MoCOCrWException &e) {
         /* Possible reasons:
@@ -137,8 +137,8 @@ void decryptData(const EciesEncryptResult &eciesData, const AsymmetricPrivateKey
          * - MAC is not set before invoking finish()
          * - MAC verification failed
          */
-        std::cerr << "Error decrypting integrated encryption scheme." << std::endl;
-        std::cerr << e.what();
+        std::cout << "Error decrypting integrated encryption scheme." << std::endl;
+        std::cout << e.what();
         exit(EXIT_FAILURE);
     }
 }
@@ -156,8 +156,8 @@ std::vector<uint8_t> rsaSign(const AsymmetricPrivateKey &privKey,
     try {
         signCtx = std::make_shared<RSASignaturePrivateKeyCtx>(privKey, digestType);
     } catch (const MoCOCrWException &e) {
-        std::cerr << "Please check your RSA key. Failure creating context." << std::endl;
-        std::cerr << e.what();
+        std::cout << "Please check your RSA key. Failure creating context." << std::endl;
+        std::cout << e.what();
         exit(EXIT_FAILURE);
     }
 
@@ -169,8 +169,8 @@ std::vector<uint8_t> rsaSign(const AsymmetricPrivateKey &privKey,
          * - error in openssl (sign, padding, ...)
          * - Hash function's digest size doesn't match the message's digest size
          */
-        std::cerr << "Failure occurred during signing." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Failure occurred during signing." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
     return signature;
@@ -185,8 +185,8 @@ void rsaVerify(const AsymmetricPublicKey &pubKey,
     try {
         verifyCtx = std::make_shared<RSASignaturePublicKeyCtx>(pubKey, digestType);
     } catch (const MoCOCrWException &e) {
-        std::cerr << "Please check your RSA key. Failure creating context." << std::endl;
-        std::cerr << e.what();
+        std::cout << "Please check your RSA key. Failure creating context." << std::endl;
+        std::cout << e.what();
         exit(EXIT_FAILURE);
     }
 
@@ -198,8 +198,8 @@ void rsaVerify(const AsymmetricPublicKey &pubKey,
          * - Hash function's digest size doesn't match the message's digest size
          * - Invalid signature
          */
-        std::cerr << "Verification failed!" << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Verification failed!" << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -213,8 +213,8 @@ std::vector<uint8_t> ecdsaSign(const AsymmetricPrivateKey &privKey,
     try {
         signCtx = std::make_shared<ECDSASignaturePrivateKeyCtx>(privKey, digestType, sigFormat);
     } catch (MoCOCrWException &e) {
-        std::cerr << "Please check your ECC key. Failure creating context." << std::endl;
-        std::cerr << e.what();
+        std::cout << "Please check your ECC key. Failure creating context." << std::endl;
+        std::cout << e.what();
         exit(EXIT_FAILURE);
     }
 
@@ -227,8 +227,8 @@ std::vector<uint8_t> ecdsaSign(const AsymmetricPrivateKey &privKey,
          * - Hash function's digest size doesn't match the message's digest size
          * - Invalid signature format set
          */
-        std::cerr << "Failure occurred during signing." << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Failure occurred during signing." << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
     return signature;
@@ -244,8 +244,8 @@ void ecdsaVerify(const AsymmetricPublicKey &pubKey,
     try {
         verifyCtx = std::make_shared<ECDSASignaturePublicKeyCtx>(pubKey, digestType, sigFormat);
     } catch (const MoCOCrWException &e) {
-        std::cerr << "Please check your ECC key. Failure creating context." << std::endl;
-        std::cerr << e.what();
+        std::cout << "Please check your ECC key. Failure creating context." << std::endl;
+        std::cout << e.what();
         exit(EXIT_FAILURE);
     }
     try {
@@ -258,8 +258,8 @@ void ecdsaVerify(const AsymmetricPublicKey &pubKey,
          * - Signature can't be parsed
          * - Invalid signature
          */
-        std::cerr << "Verification failed!" << std::endl;
-        std::cerr << e.what() << std::endl;
+        std::cout << "Verification failed!" << std::endl;
+        std::cout << e.what() << std::endl;
         exit(EXIT_FAILURE);
     }
 }
@@ -280,43 +280,75 @@ int main(void)
     RSASpec rsaSpec;
 
     /************** Key generation and loading **************/
-    std::cerr << "0. Testing key generation and loading:\n";
-    std::vector<uint8_t> emptyKeyId{};
-    std::string emptyLabel{};
-    std::vector<uint8_t> keyId_1{0x11};
-    std::vector<uint8_t> keyId_2{0x12};
-    std::string keyLabel_1{"key-label-1"};
-    std::string keyLabel_2{"key-label-2"};
+    std::cout << "0. Testing key generation and loading:" << std::endl;
 
-    std::cerr << "Generating a key without specifying the key ID...";
+    std::vector<uint8_t> emptyKeyId{};
+    std::string keyLabel_1{"key-label-1"};
+    std::cout << "Try to generate a key without specifying the key ID...";
     try {
         auto keypair =
                 AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, keyLabel_1, emptyKeyId);
     } catch (const MoCOCrWException &e) {
-        std::cerr << std::string(e.what()) + "...";
+        std::cout << std::string(e.what()) + "...";
     }
-    std::cerr << "Success\n";
-    std::cerr << "Loading a key without specifying the key ID...";
+    std::cout << "Success" << std::endl;
+
+    std::cout << "Try to load a key without specifying the key ID...";
     try {
         auto keypair =
                 AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyLabel_1, emptyKeyId);
     } catch (const MoCOCrWException &e) {
-        std::cerr << std::string(e.what()) + "...";
+        std::cout << std::string(e.what()) + "...";
     }
-    std::cerr << "Success\n";
-    std::cerr << "Generating a key without specifying the label...";
-    auto key1 = AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_1);
-    std::cerr << "Success\n";
-    std::cerr << "Generating another key without specifying the label...";
-    auto key2 = AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_2);
-    std::cerr << "Success\n";
-    std::cerr << "Load them both and test that different keys have been loaded...";
+    std::cout << "Success" << std::endl;
+
+    std::string emptyLabel{};
+    std::vector<uint8_t> keyId_1{0x11};
+    std::cout << "Generate a key without specifying the label...";
+    AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_1);
+    std::cout << "Success" << std::endl;
+
+    std::vector<uint8_t> keyId_2{0x12};
+    std::cout << "Generate another key without specifying the label...";
+    AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, emptyLabel, keyId_2);
+    std::cout << "Success" << std::endl;
+
+    std::cout << "Load them both and test that different keys have been loaded...";
     if (AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_1) ==
         AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_2)) {
-        std::cerr << "Generated keys with different IDs should not be the same\n";
+        std::cout << "Generated keys with different IDs and empty labels should not be the same"
+                  << std::endl;
         exit(1);
     }
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
+
+    std::cout << "Try to generate a key with the same ID as in previous steps...";
+    try {
+        AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, keyLabel_1, keyId_1);
+    } catch (const MoCOCrWException &e) {
+        std::cout << std::string(e.what()) + "...";
+    }
+    std::cout << "Success" << std::endl;
+
+    std::vector<uint8_t> keyId_3{0x13};
+    std::string keyLabel_2{"key-label-2"};
+    std::cout << "Generate another key with some label and unique ID...";
+    AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, keyLabel_2, keyId_3);
+    std::cout << "Success" << std::endl;
+
+    std::vector<uint8_t> keyId_4{0x14};
+    std::cout << "Generate another key with the same label and unique ID...";
+    AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, eccSpec, keyLabel_2, keyId_4);
+    std::cout << "Success" << std::endl;
+
+    std::cout << "Load them both and test that different keys have been loaded...";
+    if (AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyLabel_2, keyId_3) ==
+        AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyLabel_2, keyId_4)) {
+        std::cout << "Generated keys with different IDs and same labels should not be the same"
+                  << std::endl;
+        exit(1);
+    }
+    std::cout << "Success\n" << std::endl;
 
     /************** ECC key generation and ECDSA **************/
     std::vector<uint8_t> keyIDECC{0x21};
@@ -324,47 +356,47 @@ int main(void)
     auto ecdsaDigestType = DigestTypes::SHA512;
     auto ecdsaSigFormat = ECDSASignatureFormat::ASN1_SEQUENCE_OF_INTS;
 
-    std::cerr << "1. Testing digital signatures using ECC keys on HSM:\n";
-    std::cerr << "Generating ECC keys on HSM...";
+    std::cout << "1. Testing digital signatures using ECC keys on HSM:" << std::endl;
+    std::cout << "Generating ECC keys on HSM...";
     AsymmetricKeypair eccPrivKey =
             AsymmetricKeypair::generateKeyOnHSM(hsmEngine, eccSpec, keyLabelECC, keyIDECC);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
     /**
      * Signing is expected to be executed inside softhsm using a PKCS11 function C_Sign.
      * This is expected to be the case whenever key is loaded from HSM, which is the case
      * when generateKeyOnHSM() is called
      */
-    std::cerr << "Signing a message using an ECC private key generated on HSM...";
+    std::cout << "Signing a message using an ECC private key generated on HSM...";
     auto ECDSAsignature = ecdsaSign(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, message);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
     // AsymmetricPrivateKey also contains the public key.
-    std::cerr << "Verifying the message with the corresponding public key...";
+    std::cout << "Verifying the message with the corresponding public key...";
     ecdsaVerify(eccPrivKey, ecdsaDigestType, ecdsaSigFormat, ECDSAsignature, message);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
-    std::cerr << "Explicitly loading a public key from HSM and trying to verify a signature...";
+    std::cout << "Explicitly loading a public key from HSM and trying to verify a signature...";
     auto pubKeyEcc = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyLabelECC, keyIDECC);
     ecdsaVerify(pubKeyEcc, ecdsaDigestType, ecdsaSigFormat, ECDSAsignature, message);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
-    std::cerr << "Transforming a public key from HSM to a PKCS8 format that can be written to a "
+    std::cout << "Transforming a public key from HSM to a PKCS8 format that can be written to a "
                  "PEM file...";
     auto pubKeyPem = eccPrivKey.publicKeyToPem();
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
-    std::cerr << "Constructing a public key from PKCS8 format...";
+    std::cout << "Constructing a public key from PKCS8 format...";
     auto pubKeyEccFromPem = mococrw::AsymmetricPublicKey::readPublicKeyFromPEM(pubKeyPem);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
     /**
      * Since this key object is contructed from PEM string, this verification is executed
      * in software.
      */
-    std::cerr << "Doing the verification with public key from PKCS8 format (this verification is "
+    std::cout << "Doing the verification with public key from PKCS8 format (this verification is "
                  "done in software)...";
     ecdsaVerify(pubKeyEccFromPem, ecdsaDigestType, ecdsaSigFormat, ECDSAsignature, message);
-    std::cerr << "Success\n\n";
+    std::cout << "Success\n" << std::endl;
 
     /************** RSA key generation, loading and digital signatures **************/
     std::vector<uint8_t> keyIDRSA{0x31};
@@ -374,36 +406,36 @@ int main(void)
     /**
      * Generate an RSA keypair and load the public part
      */
-    std::cerr << "2. Testing digital signatures using RSA keys on HSM:\n";
-    std::cerr << "Generating ECC keys on HSM...";
+    std::cout << "2. Testing digital signatures using RSA keys on HSM:" << std::endl;
+    std::cout << "Generating ECC keys on HSM...";
     auto rsaPrivKey =
             AsymmetricPrivateKey::generateKeyOnHSM(hsmEngine, rsaSpec, keyLabelRSA, keyIDRSA);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
-    std::cerr << "Explicitly loading a public key from HSM and trying to verify a signature...";
+    std::cout << "Explicitly loading a public key from HSM and trying to verify a signature...";
     auto pubKeyRsa = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyLabelRSA, keyIDRSA);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
     /**
      * Do signing/verification
      */
-    std::cerr << "Signing a message using an RSA private key generated on HSM...";
+    std::cout << "Signing a message using an RSA private key generated on HSM...";
     auto RSAsignature = rsaSign(rsaPrivKey, rsaSignatureDigestType, message);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
     // We can use here the private key, as it also contains the public key.
-    std::cerr << "Verifying the message with the corresponding public key...";
+    std::cout << "Verifying the message with the corresponding public key...";
     rsaVerify(rsaPrivKey, rsaSignatureDigestType, RSAsignature, message);
-    std::cerr << "Success\n\n";
+    std::cout << "Success\n" << std::endl;
 
     /************** ECIES scheme **************/
-    std::cerr << "3. Testing ECIES scheme using ECC keys on HSM:\n";
-    std::cerr << "Encrypting the message...";
+    std::cout << "3. Testing ECIES scheme using ECC keys on HSM:" << std::endl;
+    std::cout << "Encrypting the message...";
     auto eciesData = encryptData(message, pubKeyEcc);
-    std::cerr << "Success\n";
+    std::cout << "Success" << std::endl;
 
-    std::cerr << "Decrypting the message...";
+    std::cout << "Decrypting the message...";
     decryptData(eciesData, eccPrivKey);
-    std::cerr << "Success\n\n";
+    std::cout << "Success\n" << std::endl;
 
     return 0;
 }
