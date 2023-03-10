@@ -45,27 +45,35 @@ protected:
     /**
      *  Loads public key from HSM.
      *
-     * @param keyLabel String based identifer of a key on the token
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
      * @param keyID Vector of raw bytes that identifies a key on the token
-     * @note keyID can not be empty
+     * @note keyID must not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
                                                     const std::vector<uint8_t> &keyID) const = 0;
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::vector<uint8_t> &keyID) const = 0;
 
     /**
      * Loads private key from HSM.
      *
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
      * @param keyID Vector of raw bytes that identifies a key on the token
-     * @note keyID can not be empty
+     * @note keyID must not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
                                                      const std::vector<uint8_t> &keyID) const = 0;
+    virtual openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::vector<uint8_t> &keyID) const = 0;
 
     /**
      * @brief Generate a RSA key pair on the HSM
      *
      * @param spec The RSA specification @ref RSASpec
-     * @note keyID can not be empty
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     * @note keyID must not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
                                                   const std::string &keyLabel,
@@ -75,7 +83,10 @@ protected:
      * @brief Generate a ECC key pair on the HSM
      *
      * @param spec The ECC specification @ref ECCSpec
-     * @note keyID can not be empty
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     * @note keyID must not be empty
      */
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                                   const std::string &keyLabel,
@@ -118,8 +129,12 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::string &keyLabel,
                                             const std::vector<uint8_t> &keyID) const override;
 
+    openssl::SSL_EVP_PKEY_Ptr loadPublicKey(const std::vector<uint8_t> &keyID) const override;
+
     openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::string &keyLabel,
                                              const std::vector<uint8_t> &keyID) const override;
+
+    openssl::SSL_EVP_PKEY_Ptr loadPrivateKey(const std::vector<uint8_t> &keyID) const override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
                                           const std::string &keyLabel,
@@ -135,6 +150,8 @@ private:
      */
     std::string _constructPkcs11URI(const std::string &keyLabel,
                                     const std::vector<uint8_t> &keyId) const;
+
+    std::string _constructPkcs11URI(const std::vector<uint8_t> &keyId) const;
 };
 
 }  // namespace mococrw
