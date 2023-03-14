@@ -111,8 +111,13 @@ AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(const HSM &hsm,
                                                               const std::string &keyLabel,
                                                               const std::vector<uint8_t> &keyID)
 {
-    auto key = hsm.loadPublicKey(keyLabel, keyID);
-    return AsymmetricPublicKey{std::move(key)};
+    return AsymmetricPublicKey{hsm.loadPublicKey(keyLabel, keyID)};
+}
+
+AsymmetricPublicKey AsymmetricPublicKey::readPublicKeyFromHSM(const HSM &hsm,
+                                                              const std::vector<uint8_t> &keyID)
+{
+    return AsymmetricPublicKey{hsm.loadPublicKey(keyID)};
 }
 #endif
 
@@ -192,8 +197,13 @@ AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm,
                                                            const std::string &keyLabel,
                                                            const std::vector<uint8_t> &keyID)
 {
-    auto key = hsm.loadPrivateKey(keyLabel, keyID);
-    return AsymmetricKeypair{std::move(key)};
+    return AsymmetricKeypair{hsm.loadPrivateKey(keyLabel, keyID)};
+}
+
+AsymmetricKeypair AsymmetricKeypair::readPrivateKeyFromHSM(const HSM &hsm,
+                                                           const std::vector<uint8_t> &keyID)
+{
+    return AsymmetricKeypair{hsm.loadPrivateKey(keyID)};
 }
 
 AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
@@ -206,8 +216,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
     try {
-        auto key = hsm.generateKey(spec, keyLabel, keyID);
-        return AsymmetricKeypair{std::move(key)};
+        return AsymmetricKeypair{hsm.generateKey(spec, keyLabel, keyID)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(
                 // wrong token-label? using unsupported ECC curve? HSM module implementation?
@@ -226,8 +235,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
     try {
-        auto key = hsm.generateKey(spec, keyLabel, keyID);
-        return AsymmetricKeypair{std::move(key)};
+        return AsymmetricKeypair{hsm.generateKey(spec, keyLabel, keyID)};
     } catch (const openssl::OpenSSLException &e) {
         throw MoCOCrWException(
                 // wrong token-label? using unsupported ECC curve? HSM module implementation?

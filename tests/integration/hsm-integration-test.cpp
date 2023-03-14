@@ -319,8 +319,8 @@ int main(void)
         std::cout << "Success" << std::endl;
 
         std::cout << "Load them both and test that different keys have been loaded...";
-        if (AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_1) ==
-            AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, emptyLabel, keyId_2)) {
+        if (AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyId_1) ==
+            AsymmetricPrivateKey::readPrivateKeyFromHSM(hsmEngine, keyId_2)) {
             std::cout << "Generated keys with different IDs and empty labels should not be the same"
                       << std::endl;
             exit(1);

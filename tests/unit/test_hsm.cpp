@@ -129,20 +129,14 @@ TEST_F(HSMTest, testHSMKeygen)
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_load_private_key(
                         engine, StrEq("pkcs11:token=token-label;id=%12"), nullptr, nullptr))
-            .WillOnce(Return(nullptr));
+            .WillOnce(Return(nullptr))
+            .WillOnce(Return(pkey));
     ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
     ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
     EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
             .WillOnce(Return(1));
-    EXPECT_CALL(
-            _mock(),
-            SSL_ENGINE_load_private_key(engine,
-                                        StrEq("pkcs11:token=token-label;id=%12;object=key-label"),
-                                        nullptr,
-                                        nullptr))
-            .WillOnce(Return(pkey));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId));
 }
 

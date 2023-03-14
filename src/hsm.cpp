@@ -82,16 +82,11 @@ std::string HsmEngine::_constructPkcs11URI(const std::vector<uint8_t> &keyID) co
 std::string HsmEngine::_constructPkcs11URI(const std::string &keyLabel,
                                            const std::vector<uint8_t> &keyID) const
 {
-    if (keyID.empty()) {
-        // libp11 doesn't fetch keys in deterministic manner if multiple keys have the
-        // the same label and we provide empty keyID
-        throw MoCOCrWException("keyID can't be empty");
+    auto pkcs11URI = _constructPkcs11URI(keyID);
+    if (keyLabel.empty()) {
+        throw MoCOCrWException("keyLabel can't be empty");
     }
-    auto keyIDPctEncoded = pctEncode(keyID);
-    std::string pkcs11URI = "pkcs11:token=" + _tokenLabel + ";id=" + keyIDPctEncoded;
-    if (!keyLabel.empty()) {
-        pkcs11URI += ";object=" + keyLabel;
-    }
+    pkcs11URI += ";object=" + keyLabel;
     return pkcs11URI;
 }
 
@@ -185,7 +180,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
     pkcs11RSAKeygen.token_label = _tokenLabel.c_str();
     pkcs11RSAKeygen.key_label = keyLabel.c_str();
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
-    return loadPrivateKey(keyLabel, keyID);
+    return loadPrivateKey(keyID);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
@@ -215,6 +210,6 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
     pkcs11ECCKeygen.token_label = _tokenLabel.c_str();
     pkcs11ECCKeygen.key_label = keyLabel.c_str();
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
-    return loadPrivateKey(keyLabel, keyID);
+    return loadPrivateKey(keyID);
 }
 }  // namespace mococrw
