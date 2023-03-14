@@ -46,6 +46,9 @@ std::string pctEncode(const std::vector<uint8_t> &bytes)
     }
     return result.str();
 }
+
+constexpr const char privKeyNotFoundError[] = "Unable to load private key. Private key not found!";
+constexpr const char pubKeyNotFoundError[] = "Unable to load public key. Public key not found!";
 }  // namespace
 
 HsmEngine::HsmEngine(const std::string &id,
@@ -104,7 +107,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
         // key is unknown, we check that the error stems from the pkcs11 engine and that the
         // reason is "object not found".
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load public key. Public key not found!");
+            throw MoCOCrWException(pubKeyNotFoundError);
         }
         // If not Unknown Key error, then throw again the original exception.
         throw;
@@ -122,7 +125,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::vector<uint8_t> &k
         // key is unknown, we check that the error stems from the pkcs11 engine and that the
         // reason is "object not found".
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load public key. Public key not found!");
+            throw MoCOCrWException(pubKeyNotFoundError);
         }
         // If not Unknown Key error, then throw again the original exception.
         throw;
@@ -137,7 +140,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
         return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load private key. Private key not found!");
+            throw MoCOCrWException(privKeyNotFoundError);
         }
         throw;
     }
@@ -150,7 +153,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::vector<uint8_t> &
         return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
-            throw MoCOCrWException("Unable to load private key. Private key not found!");
+            throw MoCOCrWException(privKeyNotFoundError);
         }
         throw;
     }
@@ -168,7 +171,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
         loadPrivateKey(keyID);
         throw MoCOCrWException("Key with that keyID already exists");
     } catch (const MoCOCrWException &e) {
-        if (e.what() != std::string("Unable to load private key. Private key not found!")) {
+        if (e.what() != std::string(privKeyNotFoundError)) {
             throw;
         }
     }
@@ -197,7 +200,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
         loadPrivateKey(keyID);
         throw MoCOCrWException("Key with that keyID already exists");
     } catch (const MoCOCrWException &e) {
-        if (e.what() != std::string("Unable to load private key. Private key not found!")) {
+        if (e.what() != std::string(privKeyNotFoundError)) {
             throw;
         }
     }

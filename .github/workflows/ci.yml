@@ -117,6 +117,8 @@ jobs:
             fi \
             && ctest --verbose -j $(nproc) \
             && if [ "${{ matrix.hsm_flag }}" = "MOCOCRW_HSM_ENABLED=ON" ]; then \
+                echo "HsmIntegrationTest stderr:"
+                cat /tmp/hsm-int-test.log
                 softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL1 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
                 softhsm2-util --delete-token --token ${{ env.TOKEN_LABEL2 }} --pin ${{ env.USER_PIN }} --so-pin ${{ env.SO_PIN  }}; \
             fi'
