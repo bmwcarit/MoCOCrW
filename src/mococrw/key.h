@@ -89,11 +89,22 @@ public:
     /**
      * @brief Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
      * object as a result.
-     * @param keyLabel string based key identifer
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
      * @param keyID raw bytes based key identifer
+     * @note keyID and keyLabel must not be empty
      */
     static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm,
                                                     const std::string &keyLabel,
+                                                    const std::vector<uint8_t> &keyID);
+
+    /**
+     * @brief Loads a public key from an HSM, creating an @ref AsymmetricPublicKey
+     * object as a result.
+     * @param keyID raw bytes based key identifer
+     * @note keyID must not be empty
+     */
+    static AsymmetricPublicKey readPublicKeyFromHSM(const HSM &hsm,
                                                     const std::vector<uint8_t> &keyID);
 #endif
 
@@ -270,24 +281,35 @@ public:
 
 #ifdef MOCOCRW_HSM_ENABLED
     /**
-     * @brief Loads a private key from an HSM, creating an @ref AsymmetricPublicKey
+     * @brief Loads a private key from an HSM, creating an @ref AsymmetricKeypair
      * object as a result.
-     * @param keyLabel string based key identifer
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
      * @param keyID raw bytes based key identifer
+     * @note keyID and keyLabel must not be empty
      */
     static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm,
                                                    const std::string &keyLabel,
                                                    const std::vector<uint8_t> &keyID);
 
     /**
+     * @brief Loads a private key from an HSM, creating an @ref AsymmetricKeypair
+     * object as a result.
+     * @param keyID raw bytes based key identifer
+     * @note keyID and keyLabel must not be empty
+     */
+    static AsymmetricKeypair readPrivateKeyFromHSM(const HSM &hsm,
+                                                   const std::vector<uint8_t> &keyID);
+
+    /**
      * @brief Generates RSA keypair on HSM token according to the spec given.
      * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
-     * Therefore care should be taken when generating keys on the same token.
+     * Therefore care should be taken when generating keys with other tools on the same token.
      * @param hsm HSM engine handle
      * @param spec @ref RSASpec
-     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
-     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
-     * to identify keys.
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID raw bytes based key identifer
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
@@ -301,12 +323,12 @@ public:
     /**
      * @brief Generates ECC keypair on HSM token according to the spec given.
      * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
-     * Therefore care should be taken when generating keys on the same token.
+     * Therefore care should be taken when generating keys with other tools on the same token.
      * @param hsm HSM engine handle
      * @param spec @ref ECCSpec
-     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
-     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
-     * to identify keys.
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID raw bytes based key identifer
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log

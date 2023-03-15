@@ -11,13 +11,14 @@ add_compile_options(
     -Wfatal-errors
 )
 
-if(HSM_ENABLED)
+if(MOCOCRW_HSM_ENABLED)
     add_executable(hsm-integration-test hsm-integration-test.cpp)
     target_link_libraries(hsm-integration-test PRIVATE MoCOCrW::mococrw)
     target_compile_definitions(hsm-integration-test PRIVATE HSM_ENABLED)
+    # libp11 writes to stderr on unsuccessful key loading. Pipe it to devnull
     add_test(
         NAME HsmIntegrationTest
-        COMMAND hsm-integration-test
+        COMMAND sh -c "${CMAKE_BINARY_DIR}/tests/integration/hsm-integration-test 2>/tmp/hsm-int-test.log"
     )
 endif()
 

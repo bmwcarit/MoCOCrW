@@ -33,6 +33,7 @@ using ::testing::_;
 using ::testing::Mock;
 using ::testing::Return;
 using ::testing::StrEq;
+using ::testing::Throw;
 
 class HSMTest : public ::testing::Test
 {
@@ -124,18 +125,29 @@ TEST_F(HSMTest, testHSMKeygen)
     auto pkey = ::testutils::somePkeyPtr();
     auto hsm = initialiseEngine();
     std::string keyLabel{"key-label"};
-    std::vector<uint8_t> keyId{};
+    std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_load_private_key(
+                        engine, StrEq("pkcs11:token=token-label;id=%12"), nullptr, nullptr))
+            .WillOnce(Return(nullptr))
+            .WillOnce(Return(pkey));
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
     EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
             .WillOnce(Return(1));
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_load_private_key(engine,
-                                            StrEq("pkcs11:token=token-label;object=key-label;id="),
-                                            nullptr,
-                                            nullptr))
-            .WillOnce(Return(pkey));
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId));
+}
+
+TEST_F(HSMTest, testHSMTryLoadKeyWithEmptyId)
+{
+    auto hsm = initialiseEngine();
+    const std::string keyLabel{"key-label"};
+    const std::vector<uint8_t> keyId{};
+
+    EXPECT_THROW(AsymmetricPublicKey::readPublicKeyFromHSM(*hsm, keyLabel, keyId),
+                 MoCOCrWException);
 }
 
 TEST_F(HSMTest, testHSMLoadUnknownPublicKey)
@@ -143,12 +155,13 @@ TEST_F(HSMTest, testHSMLoadUnknownPublicKey)
     auto engine = ::testutils::someEnginePtr();
     auto hsm = initialiseEngine();
     const std::string keyLabel{"key-label"};
-    const std::vector<uint8_t> keyId{};
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_load_public_key(engine,
-                                           StrEq("pkcs11:token=token-label;object=key-label;id="),
-                                           nullptr,
-                                           nullptr))
+    const std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(
+            _mock(),
+            SSL_ENGINE_load_public_key(engine,
+                                       StrEq("pkcs11:token=token-label;id=%12;object=key-label"),
+                                       nullptr,
+                                       nullptr))
             .WillOnce(Return(nullptr));
 
     ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
@@ -163,12 +176,13 @@ TEST_F(HSMTest, testHSMLoadUnknownPrivateKey)
     auto engine = ::testutils::someEnginePtr();
     auto hsm = initialiseEngine();
     const std::string keyLabel{"key-label"};
-    const std::vector<uint8_t> keyId{};
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_load_private_key(engine,
-                                            StrEq("pkcs11:token=token-label;object=key-label;id="),
-                                            nullptr,
-                                            nullptr))
+    const std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(
+            _mock(),
+            SSL_ENGINE_load_private_key(engine,
+                                        StrEq("pkcs11:token=token-label;id=%12;object=key-label"),
+                                        nullptr,
+                                        nullptr))
             .WillOnce(Return(nullptr));
 
     ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));

@@ -32,9 +32,12 @@ namespace mococrw
 class HSMMock final : public HSM
 {
 public:
+    MOCK_CONST_METHOD1(loadPublicKey, openssl::SSL_EVP_PKEY_Ptr(const std::vector<uint8_t> &keyID));
     MOCK_CONST_METHOD2(loadPublicKey,
                        openssl::SSL_EVP_PKEY_Ptr(const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID));
+    MOCK_CONST_METHOD1(loadPrivateKey,
+                       openssl::SSL_EVP_PKEY_Ptr(const std::vector<uint8_t> &keyID));
     MOCK_CONST_METHOD2(loadPrivateKey,
                        openssl::SSL_EVP_PKEY_Ptr(const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID));

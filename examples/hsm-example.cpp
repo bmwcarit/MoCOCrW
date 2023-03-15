@@ -37,7 +37,7 @@ int main(void)
     utility::stringCleanse(pin);
 
     /************** ECC key generation **************/
-    std::vector<uint8_t> keyIDECC{};
+    std::vector<uint8_t> keyIDECC{0x97};
     std::string keyLabelECC("ecc-key-label");
     ECCSpec ecspec;
     // Keypair containing private and public key
@@ -47,7 +47,7 @@ int main(void)
     auto pubKeyEcc = AsymmetricPublicKey::readPublicKeyFromHSM(hsmEngine, keyLabelECC, keyIDECC);
 
     /************** RSA key generation **************/
-    std::vector<uint8_t> keyIDRSA{0x12, 0x34};
+    std::vector<uint8_t> keyIDRSA{0x97, 0x34};
     std::string keyLabelRSA{"rsa-key-label"};
     mococrw::RSASpec rsaSpec;
     // AsymmetricPrivateKey is an alias for AsymmetricKeypair so it can be used as well
