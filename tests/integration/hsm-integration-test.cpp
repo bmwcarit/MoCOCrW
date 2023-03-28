@@ -273,6 +273,8 @@ int main(void)
     // Don't hardcode the pin in your application, this is just for demonstration purposes
     std::string pin("1234");
     HsmEngine hsmEngine(id, modulePath, tokenLabel, pin);
+    // Test that this doesn't invalidate Pin from hsmEngine
+    HsmEngine hsmEngine2(id, modulePath, tokenLabel, "0000000");
     utility::stringCleanse(pin);
     std::vector<uint8_t> message = utility::fromHex("deadbeef");
     // Default specs are used in numerous places

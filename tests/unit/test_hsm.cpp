@@ -51,6 +51,7 @@ protected:
         return openssl::OpenSSLLibMockManager::getMockInterface();
     }
 
+    std::string pin = "1234";
     std::unique_ptr<HsmEngine> initialiseEngine();
 };
 
@@ -95,7 +96,6 @@ std::unique_ptr<HsmEngine> HSMTest::initialiseEngine()
     std::string engineID("engine_id");
     std::string modulePath("/test_path.so");
     std::string tokenLabel("token-label");
-    std::string pin("1234");
     auto engine = ::testutils::someEnginePtr();
 
     EXPECT_CALL(_mock(), SSL_ENGINE_by_id(StrEq(engineID.c_str()))).WillOnce(Return(engine));
@@ -104,11 +104,6 @@ std::unique_ptr<HsmEngine> HSMTest::initialiseEngine()
             _mock(),
             SSL_ENGINE_ctrl_cmd_string(
                     engine, StrEq("MODULE_PATH"), StrEq(modulePath.c_str()), 0 /*non-optional*/))
-            .WillOnce(Return(1));
-
-    EXPECT_CALL(_mock(),
-                SSL_ENGINE_ctrl_cmd_string(
-                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
             .WillOnce(Return(1));
 
     EXPECT_CALL(_mock(), SSL_ENGINE_init(engine)).WillOnce(Return(1));
@@ -126,6 +121,12 @@ TEST_F(HSMTest, testHSMKeygen)
     auto hsm = initialiseEngine();
     std::string keyLabel{"key-label"};
     std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
+            .WillOnce(Return(1))
+            .WillOnce(Return(1))
+            .WillOnce(Return(1));
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_load_private_key(
                         engine, StrEq("pkcs11:token=token-label;id=%12"), nullptr, nullptr))
@@ -156,6 +157,10 @@ TEST_F(HSMTest, testHSMLoadUnknownPublicKey)
     auto hsm = initialiseEngine();
     const std::string keyLabel{"key-label"};
     const std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
+            .WillOnce(Return(1));
     EXPECT_CALL(
             _mock(),
             SSL_ENGINE_load_public_key(engine,
@@ -177,6 +182,10 @@ TEST_F(HSMTest, testHSMLoadUnknownPrivateKey)
     auto hsm = initialiseEngine();
     const std::string keyLabel{"key-label"};
     const std::vector<uint8_t> keyId{0x12};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
+            .WillOnce(Return(1));
     EXPECT_CALL(
             _mock(),
             SSL_ENGINE_load_private_key(engine,
