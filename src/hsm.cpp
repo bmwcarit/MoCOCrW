@@ -25,6 +25,7 @@
 
 #include "mococrw/error.h"
 #include "mococrw/key.h"
+#include "mococrw/util.h"
 
 namespace mococrw
 {
@@ -55,17 +56,20 @@ HsmEngine::HsmEngine(const std::string &id,
                      const std::string &modulePath,
                      const std::string &tokenLabel,
                      const std::string &pin)
-        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel)
+        : _id(id), _modulePath(modulePath), _tokenLabel(tokenLabel), _pin(pin)
 {
     // Fetch _engine via ID.
     _engine = _ENGINE_by_id(_id);
 
     _ENGINE_ctrl_cmd_string(_engine.get(), "MODULE_PATH", _modulePath);
-    _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", pin);
     _ENGINE_init(_engine.get());
 }
 
-HsmEngine::~HsmEngine() { _ENGINE_finish(_engine.get()); }
+HsmEngine::~HsmEngine()
+{
+    _ENGINE_finish(_engine.get());
+    utility::stringCleanse(_pin);
+}
 
 std::string HsmEngine::_constructPkcs11URI(const std::vector<uint8_t> &keyID) const
 {
@@ -95,6 +99,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::string &keyLabel,
 {
     auto pkcs11URI = _constructPkcs11URI(keyLabel, keyID);
     try {
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         // The current OpenSSLException catch-all approach makes it difficult to distinguish
@@ -113,6 +118,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPublicKey(const std::vector<uint8_t> &k
 {
     auto pkcs11URI = _constructPkcs11URI(keyID);
     try {
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         return _ENGINE_load_public_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         // The current OpenSSLException catch-all approach makes it difficult to distinguish
@@ -132,6 +138,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::string &keyLabel,
 {
     auto pkcs11URI = _constructPkcs11URI(keyLabel, keyID);
     try {
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
@@ -145,6 +152,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::loadPrivateKey(const std::vector<uint8_t> &
 {
     auto pkcs11URI = _constructPkcs11URI(keyID);
     try {
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         return _ENGINE_load_private_key(_engine.get(), pkcs11URI);
     } catch (const OpenSSLException &e) {
         if (e.getLib() == "pkcs11 engine" && e.getReason() == "object not found") {
@@ -163,6 +171,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
         // For that we need to pass empty keyLabel. Otherwise libp11 tries to find
         // a key with exact keyLabel/keyID combination. This means that libp11 might
         // not recognize that the key with the same ID is already there.
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         loadPrivateKey(keyID);
         throw MoCOCrWException("Key with that keyID already exists");
     } catch (const MoCOCrWException &e) {
@@ -192,6 +201,7 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
         // For that we need to pass empty keyLabel. Otherwise libp11 tries to find
         // a key with exact keyLabel/keyID combination. This means that libp11 might
         // not recognize that the key with the same ID is already there.
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
         loadPrivateKey(keyID);
         throw MoCOCrWException("Key with that keyID already exists");
     } catch (const MoCOCrWException &e) {
