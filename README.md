@@ -81,9 +81,9 @@ build/$ cmake -DBUILD_TESTING=True -DMOCOCRW_DILITHIUM_ENABLED=ON ..
 ### Build with HSM support
 
 HSM support is an **optional** feature for MoCOCrW. This allows for loading and storing keys on HSM
-and using those keys in various cryptographic algorithms without having keys in memory. To build
-MoCOCrW with HSM support, a patched version of libp11 is necessary since upstream libp11 does not
-support key generation through OpenSSL's ENGINE API.
+and using those keys in various cryptographic algorithms without having keys in memory. Thread safety
+is not guaranteed. To build MoCOCrW with HSM support, a patched version of libp11 is necessary since
+upstream libp11 does not support key generation through OpenSSL's ENGINE API.
 
 [libp11 release 0.4.12](https://github.com/OpenSC/libp11/releases/tag/libp11-0.4.12) patched with
 [patch for key generation](https://github.com/bmwcarit/MoCOCrW/blob/openssl1.1/dockerfiles/feature-support/hsm-patches/0001-Introduce-generic-keypair-generation-interface-and-e.patch) is required for building MoCOCrW with
