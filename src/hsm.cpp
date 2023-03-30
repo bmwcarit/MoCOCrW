@@ -20,6 +20,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <unordered_set>
 
 #include "libp11.h"
 
@@ -44,6 +45,26 @@ std::string pctEncode(const std::vector<uint8_t> &bytes)
     std::stringstream result;
     for (int byte : bytes) {
         result << "%" << std::hex << std::setfill('0') << std::setw(2) << byte;
+    }
+    return result.str();
+}
+
+/**
+ * @brief Escape special characters according to RFC 7512 (grammar elemts in pk11-path-res-avail)
+ */
+std::string _pkcs11UriEscape(const std::string &input)
+{
+    static const std::unordered_set<char> specialChars{
+            ':', '[', ']', '@', '!', '$', '\'', '(', ')', '*', '+', ',', '=', '&', ';', '%'};
+    std::stringstream result;
+    for (char character : input) {
+        if (specialChars.find(character) == specialChars.end()) {
+            // this is a regular character
+            result << character;
+        } else {
+            // this needs to be escaped
+            result << "%" << std::hex << std::setfill('0') << std::setw(2) << (int)character;
+        }
     }
     return result.str();
 }
@@ -79,7 +100,8 @@ std::string HsmEngine::_constructPkcs11URI(const std::vector<uint8_t> &keyID) co
         throw MoCOCrWException("keyID can't be empty");
     }
     auto keyIDPctEncoded = pctEncode(keyID);
-    std::string pkcs11URI = "pkcs11:token=" + _tokenLabel + ";id=" + keyIDPctEncoded;
+    std::string pkcs11URI =
+            "pkcs11:token=" + _pkcs11UriEscape(_tokenLabel) + ";id=" + keyIDPctEncoded;
     return pkcs11URI;
 }
 
@@ -90,7 +112,7 @@ std::string HsmEngine::_constructPkcs11URI(const std::string &keyLabel,
     if (keyLabel.empty()) {
         throw MoCOCrWException("keyLabel can't be empty");
     }
-    pkcs11URI += ";object=" + keyLabel;
+    pkcs11URI += ";object=" + _pkcs11UriEscape(keyLabel);
     return pkcs11URI;
 }
 
