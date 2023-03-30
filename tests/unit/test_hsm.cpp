@@ -35,6 +35,9 @@ using ::testing::Return;
 using ::testing::StrEq;
 using ::testing::Throw;
 
+// Include source files to be able to test local functions
+#include "hsm.cpp"
+
 class HSMTest : public ::testing::Test
 {
 public:
@@ -198,4 +201,51 @@ TEST_F(HSMTest, testHSMLoadUnknownPrivateKey)
     ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
 
     EXPECT_THROW(AsymmetricKeypair::readPrivateKeyFromHSM(*hsm, keyLabel, keyId), MoCOCrWException);
+}
+
+TEST_F(HSMTest, testHsmLoadPublicKeyWithSpecialChars)
+{
+    auto engine = ::testutils::someEnginePtr();
+    auto hsm = initialiseEngine();
+    const std::string keyLabel{"key;label"};
+    const std::vector<uint8_t> keyId{0x01};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
+            .WillOnce(Return(1));
+    EXPECT_CALL(
+            _mock(),
+            SSL_ENGINE_load_private_key(engine,
+                                        StrEq("pkcs11:token=token-label;id=%01;object=key%3blabel"),
+                                        nullptr,
+                                        nullptr))
+            .WillOnce(Return(testutils::somePkeyPtr()));
+    auto res = AsymmetricPrivateKey::readPrivateKeyFromHSM(*hsm, keyLabel, keyId);
+}
+
+class HsmUtilitiesTest : public ::testing::Test
+{
+};
+
+TEST_F(HsmUtilitiesTest, uriEscapeDoesNotTouchNormalChars)
+{
+    auto result = _pkcs11UriEscape("key1");
+    EXPECT_THAT(result, StrEq("key1"));
+}
+TEST_F(HsmUtilitiesTest, uriEscapesSpecialChars)
+{
+    auto result = _pkcs11UriEscape(";&");
+    EXPECT_THAT(result, StrEq("%3b%26"));
+}
+
+TEST_F(HsmUtilitiesTest, uriCorrectlyEscapesMixed)
+{
+    auto result = _pkcs11UriEscape("test;test");
+    EXPECT_THAT(result, StrEq("test%3btest"));
+}
+
+TEST_F(HsmUtilitiesTest, uriEscapesAllSpecial)
+{
+    auto result = _pkcs11UriEscape(":[]@!$\'()*+,=&%");
+    EXPECT_THAT(result, StrEq("%3a%5b%5d%40%21%24%27%28%29%2a%2b%2c%3d%26%25"));
 }
