@@ -8,10 +8,35 @@ All notable changes to this project will be documented in this file.
 
 ## Fixed
 
-PIN member variable was removed from HsmEngine class. Utility function
-that cleanses std::string has been created.
+## Added
+
+# Release 4.4.0
+
+## Changed
+
+* Throw a descriptive exception when trying to load a non-existant key from
+HSM
+* A huge chunk of code was moved from hsm-example.cpp to
+tests/integration/hsm-integration-test.cpp where keys loaded/generated on HSM
+are used for various cryptopgraphic algorithms
+* Creating multiple keys with the same ID on the HSM is now not possible.
+* libp11 patch was modified to support a custom PKCS#11 implementation which
+does not implement all the PKCS#11 features as defined by the standard
+
+## Fixed
+
+* Creating multiple HsmEngine in a row has overwritten a set PIN from the
+previous one due to shared state in libp11. This caused problems when logging
+in to the token. This has been fixed.
+* PKCS#11 URIs are used to identify which key to fetch from the HSM.
+Construction of this URI didn't take into account PKCS#11 URI special
+characters that need to get escaped in order to avoid accidental or malicious
+construction of invalid PKCS#11 URI. The special characters have been escaped.
 
 ## Added
+
+* utility::stringCleanse function was added for safely clearing a std::string
+object
 
 # Release 4.3.0
 
