@@ -1,4 +1,4 @@
-From 8468ecc844664c2f066492ed08569d5b7db37756 Mon Sep 17 00:00:00 2001
+From f5bb68262f9f32c3b121a25ac5ecc7b9094f7348 Mon Sep 17 00:00:00 2001
 From: istepic <ivan.stepich@gmail.com>
 Date: Mon, 5 Dec 2022 22:44:25 +0100
 Subject: [PATCH] Introduce generic keypair generation interface and engine
@@ -46,14 +46,14 @@ Signed-off-by: istepic <ivan.stepich@gmail.com>
  src/libp11-int.h     |  15 ++-
  src/libp11.h         |  48 +++++++---
  src/p11_front.c      |  32 +++++--
- src/p11_key.c        | 133 +++++++++++++++++++++++---
+ src/p11_key.c        | 131 +++++++++++++++++++++++---
  src/p11_load.c       |   1 -
  src/p11_misc.c       |  75 +++++++++++++++
  src/p11_slot.c       |   1 +
  tests/Makefile.am    |   6 +-
  tests/keygen.c       | 215 +++++++++++++++++++++++++++++++++++++++++++
  tests/keygen.softhsm |  39 ++++++++
- 13 files changed, 595 insertions(+), 40 deletions(-)
+ 13 files changed, 593 insertions(+), 40 deletions(-)
  create mode 100644 tests/keygen.c
  create mode 100755 tests/keygen.softhsm
 
@@ -331,7 +331,7 @@ index f74f209..f82c9a3 100644
  {
  	PKCS11_OBJECT_private *key = PRIVKEY(pkey);
 diff --git a/src/p11_key.c b/src/p11_key.c
-index ec7f279..5a30e79 100644
+index ec7f279..eb4adff 100644
 --- a/src/p11_key.c
 +++ b/src/p11_key.c
 @@ -252,8 +252,8 @@ int pkcs11_reload_object(PKCS11_OBJECT_private *obj)
@@ -345,7 +345,7 @@ index ec7f279..5a30e79 100644
  
  	PKCS11_CTX_private *ctx = slot->ctx;
  	CK_SESSION_HANDLE session;
-@@ -262,36 +262,45 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
+@@ -262,36 +262,44 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
  		CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0
  	};
  	CK_ULONG num_bits = bits;
@@ -358,18 +358,17 @@ index ec7f279..5a30e79 100644
 -
 -	if (pkcs11_get_session(slot, 1, &session))
 +	// R/W session is mandatory for key generation.
-+	if (pkcs11_open_session(slot, 1)) {
- 		return -1;
-+	}
-+	// open_session might call C_CloseAllSessions if current session is not R/W.
-+	// C_CloseAllSessions logs everyone out
-+	if (slot->logged_in <= 0) {
++	if (slot->rw_mode == 0) {
++		if (pkcs11_open_session(slot, 1)) {
++			return -1;
++		}
++		// open_session will call C_CloseAllSessions which logs everyone out
 +		if (pkcs11_login(slot, 0, slot->prev_pin)) {
 +			return -1;
 +		}
 +	}
 +	if (pkcs11_get_session(slot, 1, &session)) {
-+		return -1;
+ 		return -1;
 +	}
  
 +	/* The following attributes are necessary for RSA encryption and DSA */
@@ -400,7 +399,7 @@ index ec7f279..5a30e79 100644
  
  	/* call the pkcs11 module to create the key pair */
  	rv = CRYPTOKI_call(ctx, C_GenerateKeyPair(
-@@ -310,6 +319,108 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
+@@ -310,6 +318,107 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
  	return 0;
  }
  
@@ -424,12 +423,11 @@ index ec7f279..5a30e79 100644
 +	int curve_nid = NID_undef;
 +
 +	// R/W session is mandatory for key generation.
-+	if (pkcs11_open_session(slot, 1)) {
-+		return -1;
-+	}
-+	// open_session might call C_CloseAllSessions if current session is not R/W.
-+	// C_CloseAllSessions logs everyone out
-+	if (slot->logged_in <= 0) {
++	if (slot->rw_mode == 0) {
++		if (pkcs11_open_session(slot, 1)) {
++			return -1;
++		}
++		// open_session will call C_CloseAllSessions which logs everyone out
 +		if (pkcs11_login(slot, 0, slot->prev_pin)) {
 +			return -1;
 +		}
@@ -908,5 +906,5 @@ index 0000000..83f8175
 +
 +exit 0
 -- 
-2.39.2
+2.40.0
 
