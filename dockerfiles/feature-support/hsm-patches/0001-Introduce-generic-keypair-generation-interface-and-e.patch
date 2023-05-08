@@ -1,4 +1,4 @@
-From f5bb68262f9f32c3b121a25ac5ecc7b9094f7348 Mon Sep 17 00:00:00 2001
+From 236cf8101b3df3914e3986ce685b866f880f02df Mon Sep 17 00:00:00 2001
 From: istepic <ivan.stepich@gmail.com>
 Date: Mon, 5 Dec 2022 22:44:25 +0100
 Subject: [PATCH] Introduce generic keypair generation interface and engine
@@ -331,7 +331,7 @@ index f74f209..f82c9a3 100644
  {
  	PKCS11_OBJECT_private *key = PRIVKEY(pkey);
 diff --git a/src/p11_key.c b/src/p11_key.c
-index ec7f279..eb4adff 100644
+index ec7f279..eaa31c8 100644
 --- a/src/p11_key.c
 +++ b/src/p11_key.c
 @@ -252,8 +252,8 @@ int pkcs11_reload_object(PKCS11_OBJECT_private *obj)
@@ -358,7 +358,7 @@ index ec7f279..eb4adff 100644
 -
 -	if (pkcs11_get_session(slot, 1, &session))
 +	// R/W session is mandatory for key generation.
-+	if (slot->rw_mode == 0) {
++	if (slot->rw_mode != 1) {
 +		if (pkcs11_open_session(slot, 1)) {
 +			return -1;
 +		}
@@ -423,7 +423,7 @@ index ec7f279..eb4adff 100644
 +	int curve_nid = NID_undef;
 +
 +	// R/W session is mandatory for key generation.
-+	if (slot->rw_mode == 0) {
++	if (slot->rw_mode != 1) {
 +		if (pkcs11_open_session(slot, 1)) {
 +			return -1;
 +		}
