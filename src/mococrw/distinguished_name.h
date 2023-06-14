@@ -85,6 +85,11 @@ public:
     {
         return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName);
     }
+    std::string initials() const
+    {
+        return _getAttributeByNIDAsString(openssl::ASN1_NID::Initials);
+    }
+
     std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
     std::string title() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Title); }
 
@@ -147,6 +152,8 @@ public:
     Builder &userId(T &&name);
     template <class T>
     Builder &title(T &&name);
+    template <class T>
+    Builder &initials(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
 
@@ -242,6 +249,13 @@ template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::title(T &&name)
 {
     _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Title, std::forward<T>(name)});
+    return *this;
+}
+
+template <class T>
+DistinguishedName::Builder &DistinguishedName::Builder::initials(T &&name)
+{
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Initials, std::forward<T>(name)});
     return *this;
 }
 

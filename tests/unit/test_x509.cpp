@@ -54,6 +54,7 @@ protected:
     std::string _pemChainNoNewlines;
     static const std::string _pemChainInvalid;
     static const std::string _certWithGivenName;
+    static const std::string _certWithInitials;
     static const std::string _certWithUserId;
     static const std::string _eccRootKeyPem;
     static const std::string _eccIntermediateKeyPem;
@@ -350,6 +351,35 @@ xJGjUzBRMB0GA1UdDgQWBBSvUgPk/0OgqCjq51t0uFte9/uUvzAfBgNVHSMEGDAW
 gBSvUgPk/0OgqCjq51t0uFte9/uUvzAPBgNVHRMBAf8EBTADAQH/MAoGCCqGSM49
 BAMCA0gAMEUCIFMm751uiLYek33gkcLHyCMdXntcwXUdgoEtOuq04Yr7AiEAk62k
 0Ct1NJmoJM1Hb88ID7WRHzwrkn5YLsc57UOKMYo=
+-----END CERTIFICATE-----)"};
+
+const std::string X509Test::_certWithInitials{
+        R"(-----BEGIN CERTIFICATE-----
+MIIEnTCCA4WgAwIBAgIUWVvWponTHtiKc2meICAyVxy0YrkwDQYJKoZIhvcNAQEL
+BQAwgd0xCzAJBgNVBAYTAkRFMRAwDgYDVQQIDAduZWJlbmFuMRAwDgYDVQQKDAdM
+aW51eEFHMRIwEAYDVQQDDAlJbUFUZWFwb3QxFTATBgNVBAsMDExpbnV4U3VwcG9y
+dDEiMCAGCSqGSIb3DQEJARYTc3VwcG9ydEBleGFtcGxlLmNvbTENMAsGA1UEBwwE
+b2JlbjEpMCcGA1UEBRMgMDhFMzZERDUwMTk0MTQzMjM1OEFGRTgyNTZCQzZFRkQx
+EjAQBgNVBCoMCUdpdmVuTmFtZTENMAsGA1UEKwwEMjAyNTAeFw0yMzA2MTQwNzM3
+NTlaFw0zMzA2MTEwNzM3NTlaMIHdMQswCQYDVQQGEwJERTEQMA4GA1UECAwHbmVi
+ZW5hbjEQMA4GA1UECgwHTGludXhBRzESMBAGA1UEAwwJSW1BVGVhcG90MRUwEwYD
+VQQLDAxMaW51eFN1cHBvcnQxIjAgBgkqhkiG9w0BCQEWE3N1cHBvcnRAZXhhbXBs
+ZS5jb20xDTALBgNVBAcMBG9iZW4xKTAnBgNVBAUTIDA4RTM2REQ1MDE5NDE0MzIz
+NThBRkU4MjU2QkM2RUZEMRIwEAYDVQQqDAlHaXZlbk5hbWUxDTALBgNVBCsMBDIw
+MjUwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDI0T+tylPPLLsI4Kkt
+T5EwDY8oT7hwch6SnmRHhIti29/GlmIRLU/7g4rGeJ4kkhFgxOFIr0FuFBYYXvDq
+sD1pWgR5WnO9I0q70HFxkExhtcgIKsP7N+yM2YgG3vasolz3S0iIj2fBbrNoS6dS
+fB8EfwhiIZ2dRpe3GRVK1G3Gys5yiaAIwVYXCIgx+J5XA2Oz3KAzGtIA4nDeIKlY
+5KFBBckrhISeZDQXxuavRHUtn38iJX7yNW45uOt6zXKvy0MhTHKBQRkpMBWkPSZx
+7dI9P/NDNDxU5OgO/AbXtOGDPP0vunzlkE17iO1EnwceZWtFvRlkb1b4bKMiJcMD
+5kYZAgMBAAGjUzBRMB0GA1UdDgQWBBT1eiEdIL4LUw0gDk1LFrZWvC+rgDAfBgNV
+HSMEGDAWgBT1eiEdIL4LUw0gDk1LFrZWvC+rgDAPBgNVHRMBAf8EBTADAQH/MA0G
+CSqGSIb3DQEBCwUAA4IBAQCpWOwu8EajhfApoHKIcWBUTMgtKOOD1p6LVLpclTXn
+2WrUirDgRhWMGgVClACwOS7OQAVegcY6t458cAcFuAli+jUiLeThxxS6bhT716HY
+FTqFsNqqRBmcxaz4D3phhqKKUJUe/x5L4kz2Y3j787tUAGRz5oRkwBIUqViD2s93
+BCgjDYlW5dmxQ0IXBJRNA/+2ILlmULlcTGTtNI2b2iSj0uAmpSBsV2x2yVuq5L/h
+miM0+35FnpK1TkGRtVqx+YKo03h8g/8FyehnlDF7d5DQfWFdeaK9I4pp0CtnB6or
+AqRbzLRUwnDetkA7cb51yx1icxokZg6ET5pI5jN5kwvx
 -----END CERTIFICATE-----)"};
 
 const std::string X509Test::_certWithUserId{
@@ -848,6 +878,26 @@ TEST_F(X509Test, testGivenNameGetter)
     ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("support@example.com"));
     ASSERT_THAT(subject.serialNumber(), Eq("08E36DD501941432358AFE8256BC6EFD"));
     ASSERT_THAT(subject.givenName(), Eq("GivenName"));
+}
+
+
+TEST_F(X509Test, testInitialsGetter)
+{
+    auto _initials_cert = X509Certificate::fromPEM(_certWithInitials);
+
+    using ::testing::Eq;
+    auto subject = _initials_cert.getSubjectDistinguishedName();
+
+    ASSERT_THAT(subject.commonName(), Eq("ImATeapot"));
+    ASSERT_THAT(subject.countryName(), Eq("DE"));
+    ASSERT_THAT(subject.localityName(), Eq("oben"));
+    ASSERT_THAT(subject.stateOrProvinceName(), Eq("nebenan"));
+    ASSERT_THAT(subject.organizationalUnitName(), Eq("LinuxSupport"));
+    ASSERT_THAT(subject.organizationName(), Eq("LinuxAG"));
+    ASSERT_THAT(subject.pkcs9EmailAddress(), Eq("support@example.com"));
+    ASSERT_THAT(subject.serialNumber(), Eq("08E36DD501941432358AFE8256BC6EFD"));
+    ASSERT_THAT(subject.givenName(), Eq("GivenName"));
+    ASSERT_THAT(subject.initials(), Eq("2025"));
 }
 
 TEST_F(X509Test, testGivenUserId)

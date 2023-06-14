@@ -117,6 +117,7 @@ X509Certificate createRootCertificate(const AsymmetricKeypair &rootEccKey)
                                    .givenName("Hot Teapot")
                                    .userId("1000")
                                    .title("Teapots contain tea")
+                                   .initials("2025")
                                    .build();
 
     return CertificateAuthority::createRootCertificate(rootEccKey,
