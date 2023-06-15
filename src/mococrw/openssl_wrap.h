@@ -441,7 +441,7 @@ enum class ASN1_NID : int {
     GivenName = NID_givenName,
     UserId = NID_userId,
     Title = NID_title,
-    Initials = NID_initials,
+    Initials = NID_initials, ///< initials NID enum entry
 };
 
 enum class ASN1_Name_Entry_Type : int {

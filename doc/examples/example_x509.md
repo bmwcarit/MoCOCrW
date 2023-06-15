@@ -86,6 +86,7 @@ mococrw::X509Certificate cert = mococrw::X509Certificate::fromPEM(intPemString);
 
 mococrw::DistinguishedName issDN = cert.getIssuerDistinguishedName();
 mococrw::DistinguishedName subjDN = cert.getSubjectDistinguishedName();
+std::string initials = subjDN.initials();
 uint64_t serialN = cert.getSerialNumber();
 std::chrono::system_clock::time_point validity = X509Certificate::getNotAfter();
 mococrw::AsymmetricPublicKey pubK = cert.getPublicKey();
