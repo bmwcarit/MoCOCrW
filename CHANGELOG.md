@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 ## Fixed
 
 ## Added
+* Add support in the DistinguishedName abstraction for initials in the x509 subject
 
 # Release 4.4.0
 
