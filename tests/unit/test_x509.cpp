@@ -880,7 +880,6 @@ TEST_F(X509Test, testGivenNameGetter)
     ASSERT_THAT(subject.givenName(), Eq("GivenName"));
 }
 
-
 TEST_F(X509Test, testInitialsGetter)
 {
     auto _initials_cert = X509Certificate::fromPEM(_certWithInitials);

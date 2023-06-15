@@ -91,10 +91,7 @@ public:
      * @return string with the initials if defined in the certificate's subject
      * @return empty string if undefined
      */
-    std::string initials() const
-    {
-        return _getAttributeByNIDAsString(openssl::ASN1_NID::Initials);
-    }
+    std::string initials() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Initials); }
 
     std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
     std::string title() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Title); }
