@@ -85,6 +85,14 @@ public:
     {
         return _getAttributeByNIDAsString(openssl::ASN1_NID::GivenName);
     }
+
+    /**
+     * Get the initials attribute of the selected distinguished name
+     * @return string with the initials if defined in the certificate's subject
+     * @return empty string if undefined
+     */
+    std::string initials() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Initials); }
+
     std::string userId() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::UserId); }
     std::string title() const { return _getAttributeByNIDAsString(openssl::ASN1_NID::Title); }
 
@@ -147,6 +155,8 @@ public:
     Builder &userId(T &&name);
     template <class T>
     Builder &title(T &&name);
+    template <class T>
+    Builder &initials(T &&name);
 
     inline DistinguishedName build() const { return _dn; }
 
@@ -242,6 +252,18 @@ template <class T>
 DistinguishedName::Builder &DistinguishedName::Builder::title(T &&name)
 {
     _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Title, std::forward<T>(name)});
+    return *this;
+}
+
+/**
+ * Sets the initial attribute in the distinguished name builder
+ * @param name initials value
+ * @return distinguished name builder containing the new value in the initials field
+ */
+template <class T>
+DistinguishedName::Builder &DistinguishedName::Builder::initials(T &&name)
+{
+    _dn._attributes.emplace_back(Attribute{openssl::ASN1_NID::Initials, std::forward<T>(name)});
     return *this;
 }
 

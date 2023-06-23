@@ -319,3 +319,29 @@ TEST_F(DistinguishedNameTest, testThatTitleAttributeWorksForCustomerOrderBuilder
     ASSERT_EQ(name, "TestTitle");
     ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Title)[0], 1);
 }
+
+TEST_F(DistinguishedNameTest, testThatInitialsAttributeWorksForStandardBuilder)
+{
+    auto builder = DistinguishedName::Builder();
+    builder.countryName("DE").commonName("ImATeapot").title("TestTitle").initials("2025");
+    auto dn = builder.build();
+    auto x509Name = _X509_NAME_new();
+    dn.populateX509Name(x509Name);
+    auto entry = _X509_NAME_get_entry(x509Name.get(), 3);
+    auto initials = _X509_NAME_ENTRY_get_data(entry);
+    ASSERT_EQ(initials, "2025");
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Initials)[0], 3);
+}
+
+TEST_F(DistinguishedNameTest, testThatInitialsAttributeWorksForCustomerOrderBuilder)
+{
+    auto builder = DistinguishedName::CustomOrderBuilder();
+    builder.countryName("DE").initials("2025").title("TestTitle").commonName("ImATeapot");
+    auto dn = builder.build();
+    auto x509Name = _X509_NAME_new();
+    dn.populateX509Name(x509Name);
+    auto entry = _X509_NAME_get_entry(x509Name.get(), 1);
+    auto name = _X509_NAME_ENTRY_get_data(entry);
+    ASSERT_EQ(name, "2025");
+    ASSERT_EQ(_X509_NAME_get_index_by_NID(x509Name.get(), openssl::ASN1_NID::Initials)[0], 1);
+}
