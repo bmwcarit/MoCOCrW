@@ -10,10 +10,6 @@ env:
   DOCKER_TAG: buildenv
   DOCKER_FOLDER_PATH: ./dockerfiles/base
 
-  # This buildenv contains libp11/softhsm and libdilithium
-  DOCKER_WITH_FEATURE_TAG: buildenv_with_features
-  DOCKER_WITH_FEATURE_FOLDER_PATH: ./dockerfiles/feature-support
-
   TOKEN_LABEL1: token-label
   TOKEN_LABEL2: token-label2
   USER_PIN: 1234
@@ -59,18 +55,8 @@ jobs:
             LSAN_OPTIONS: ""
 
           - hsm_flag: "MOCOCRW_HSM_ENABLED=ON"
-            docker_tag: "buildenv_with_features"
             softhsm2_conf: "/usr/share/softhsm/softhsm2.conf"
             softhsm2_grp: ":softhsm"
-
-          - dilithium_flag: "MOCOCRW_DILITHIUM_ENABLED=ON"
-            docker_tag: "buildenv_with_features"
-
-          - hsm_flag: "MOCOCRW_HSM_ENABLED=OFF"
-            dilithium_flag: "MOCOCRW_DILITHIUM_ENABLED=OFF"
-            docker_tag: "buildenv"
-            softhsm2_conf: ""
-            softhsm2_grp:
 
     steps:
       - name: "Checkout"
@@ -81,13 +67,6 @@ jobs:
         with:
           docker_tag: ${{ env.DOCKER_TAG }}
           docker_folder_path: ${{ env.DOCKER_FOLDER_PATH }}
-
-      - name: "Build Docker Image With HSM"
-        if: ${{ matrix.hsm_flag == 'MOCOCRW_HSM_ENABLED=ON' || matrix.dilithium_flag == 'MOCOCRW_DILITHIUM_ENABLED=ON' }}
-        uses: ./.github/actions/build-docker
-        with:
-          docker_tag: ${{ env.DOCKER_WITH_FEATURE_TAG }}
-          docker_folder_path: ${{ env.DOCKER_WITH_FEATURE_FOLDER_PATH }}
 
       - name: "Build MoCOCrW"
         run: |

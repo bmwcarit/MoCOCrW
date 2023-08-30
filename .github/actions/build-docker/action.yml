@@ -11,11 +11,13 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Load Docker cache"
-      uses: satackey/action-docker-layer-caching@v0.0.11
+    - name: Expose GitHub Runtime
+      uses: crazy-max/ghaction-github-runtime@v2
 
     - name: "Build Docker image"
       shell: bash
       run: |
-        docker build -t ${{ inputs.docker_tag }} ${{ inputs.docker_folder_path }}
-
+        docker buildx create --use --driver=docker-container
+        docker buildx build -t ${{ inputs.docker_tag }} \
+        --cache-to="type=gha,mode=max" --cache-from="type=gha" \
+        ${{ inputs.docker_folder_path }} --load
