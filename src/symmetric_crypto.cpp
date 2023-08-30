@@ -120,14 +120,23 @@ public:
             } break;
         }
 
-        _EVP_CIPHER_CTX_reset(_ctx.get());
-
         _EVP_CipherInit_ex(_ctx.get(),
-                           evpCipherConstructor(),
+                           nullptr,
                            nullptr,
                            secretKey.data(),
                            _iv.data(),
                            this->_operation == Operation::Encryption);
+
+        /* IV length sanity check
+         * EVP_CIPHER_CTX_iv_length() returns int and compiler complains about type mismatch.
+         * That's why casting and size check for safe casting are needed.
+         */
+        if (_iv.size() > INT_MAX) {
+            throw MoCOCrWException("Suspicious IV length");
+        }
+        if (static_cast<int>(_iv.size()) != _EVP_CIPHER_CTX_iv_length(_ctx.get())) {
+            throw MoCOCrWException("Length of set IV doesn't match length of IV OpenSSL uses");
+        }
 
         switch (padding) {
             case SymmetricCipherPadding::PKCS:
