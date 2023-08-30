@@ -11,9 +11,6 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: "Load Docker cache"
-      uses: satackey/action-docker-layer-caching@v0.0.11
-
     - name: "Build Docker image"
       shell: bash
       run: |
