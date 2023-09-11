@@ -10,6 +10,16 @@ All notable changes to this project will be documented in this file.
 
 ## Added
 
+# Release 4.5.1
+
+## Changed
+
+## Fixed
+Fixed AES-GCM encryption bug that was caused by mistakenly resetting IV length to default value
+of 12. This led to successful but wrong encryption result.
+
+## Added
+
 # Release 4.5.0
 
 ## Changed
