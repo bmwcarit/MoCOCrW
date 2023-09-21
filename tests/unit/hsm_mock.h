@@ -49,6 +49,17 @@ public:
                  openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
                                            const std::string &keyLabel,
                                            const std::vector<uint8_t> &keyID));
+
+    MOCK_METHOD4(generateKey,
+                 openssl::SSL_EVP_PKEY_Ptr(const RSASpec &spec,
+                                           const std::string &keyLabel,
+                                           const std::vector<uint8_t> &keyID,
+                                           const PKCS11_params &params));
+    MOCK_METHOD4(generateKey,
+                 openssl::SSL_EVP_PKEY_Ptr(const ECCSpec &spec,
+                                           const std::string &keyLabel,
+                                           const std::vector<uint8_t> &keyID,
+                                           const PKCS11_params &params));
 };
 
 }  // namespace mococrw

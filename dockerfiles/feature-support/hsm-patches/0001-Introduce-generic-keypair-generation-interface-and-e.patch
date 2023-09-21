@@ -1,4 +1,4 @@
-From 236cf8101b3df3914e3986ce685b866f880f02df Mon Sep 17 00:00:00 2001
+From 420454eb9fa6f86573b5ac2d65daad6d491a325e Mon Sep 17 00:00:00 2001
 From: istepic <ivan.stepich@gmail.com>
 Date: Mon, 5 Dec 2022 22:44:25 +0100
 Subject: [PATCH] Introduce generic keypair generation interface and engine
@@ -27,10 +27,11 @@ doesn't yet exist.
 Instead, a generic PKCS11_generate_key interface was made that
 takes a structure describing the key generation algorithm. For now
 it only contains simple options like curve name for ECC or number
-of bits for RSA key generation. This interface can then be used
-as any other PKCS11 wrapper interface or using the ENGINE control
-commands. Using it with ENGINE control commands is demonstrated in
-the new tests/keygen.c file.
+of bits for RSA key generation. It also possible to configure
+CKA_SENSITIVE and CKA_EXTRACTABLE key attributes. This interface can
+then be used as any other PKCS11 wrapper interface or using the ENGINE
+control commands. Using it with ENGINE control commands is demonstrated
+in the new tests/keygen.c file.
 
 Code for ECC keygen was taken from:
 https://github.com/OpenSC/libp11/pull/379 and reworked to compile and
@@ -39,21 +40,22 @@ work with some new additions to libp11 i.e. templates.
 Upstream-Status: Rejected (OpenSC/libp11/pull/474)
 
 Signed-off-by: istepic <ivan.stepich@gmail.com>
+Signed-off-by: cps-b <136316734+cps-b@users.noreply.github.com>
 ---
  src/eng_back.c       |  65 +++++++++++++
  src/eng_front.c      |   4 +
  src/engine.h         |   1 +
  src/libp11-int.h     |  15 ++-
- src/libp11.h         |  48 +++++++---
+ src/libp11.h         |  54 ++++++++---
  src/p11_front.c      |  32 +++++--
- src/p11_key.c        | 131 +++++++++++++++++++++++---
+ src/p11_key.c        | 135 +++++++++++++++++++++++---
  src/p11_load.c       |   1 -
  src/p11_misc.c       |  75 +++++++++++++++
  src/p11_slot.c       |   1 +
  tests/Makefile.am    |   6 +-
- tests/keygen.c       | 215 +++++++++++++++++++++++++++++++++++++++++++
+ tests/keygen.c       | 221 +++++++++++++++++++++++++++++++++++++++++++
  tests/keygen.softhsm |  39 ++++++++
- 13 files changed, 593 insertions(+), 40 deletions(-)
+ 13 files changed, 608 insertions(+), 41 deletions(-)
  create mode 100644 tests/keygen.c
  create mode 100755 tests/keygen.softhsm
 
@@ -168,7 +170,7 @@ index 54bdcf0..740f86e 100644
  typedef struct st_engine_ctx ENGINE_CTX; /* opaque */
  
 diff --git a/src/libp11-int.h b/src/libp11-int.h
-index 2d4c48a..3b5db65 100644
+index 2d4c48a..32ffb6e 100644
 --- a/src/libp11-int.h
 +++ b/src/libp11-int.h
 @@ -125,6 +125,9 @@ extern int ERR_load_CKR_strings(void);
@@ -192,20 +194,20 @@ index 2d4c48a..3b5db65 100644
 -	int algorithm, unsigned int bits,
 -	char *label, unsigned char* id, size_t id_len);
 +extern int pkcs11_rsa_keygen(PKCS11_SLOT_private *tpriv,
-+	unsigned int bits, const char *label, unsigned char* id, size_t id_len);
++	unsigned int bits, const char *label, unsigned char* id, size_t id_len, const PKCS11_params* params);
 +
 +extern int pkcs11_ec_keygen(PKCS11_SLOT_private *tpriv,
-+	const char *curve , const char *label, unsigned char* id, size_t id_len);
++	const char *curve , const char *label, unsigned char* id, size_t id_len, const PKCS11_params* params);
 +
 +/* Internal implementation of deprecated features */
  
  /* Get the RSA key modulus size (in bytes) */
  extern int pkcs11_get_key_size(PKCS11_OBJECT_private *);
 diff --git a/src/libp11.h b/src/libp11.h
-index bd47d67..555d67e 100644
+index bd47d67..96e7985 100644
 --- a/src/libp11.h
 +++ b/src/libp11.h
-@@ -111,6 +111,28 @@ typedef struct PKCS11_ctx_st {
+@@ -111,6 +111,34 @@ typedef struct PKCS11_ctx_st {
  	void *_private;
  } PKCS11_CTX;
  
@@ -216,6 +218,11 @@ index bd47d67..555d67e 100644
 +typedef struct PKCS11_rsa_kgen_st {
 +	unsigned int bits;
 +} PKCS11_RSA_KGEN;
++
++typedef struct PKCS11_params {
++    unsigned char extractable;
++    unsigned char sensitive;
++} PKCS11_params;
 +
 +typedef struct PKCS11_kgen_attrs_st {
 +	/* Key generation type from OpenSSL. Given the union below this should
@@ -229,12 +236,13 @@ index bd47d67..555d67e 100644
 +	const char *token_label;
 +	const char *key_label;
 +	const char *key_id;
++    const PKCS11_params *key_params;
 +} PKCS11_KGEN_ATTRS;
 +
  /**
   * Create a new libp11 context
   *
-@@ -387,6 +409,17 @@ extern int PKCS11_store_certificate(PKCS11_TOKEN * token, X509 * x509,
+@@ -387,6 +415,17 @@ extern int PKCS11_store_certificate(PKCS11_TOKEN * token, X509 * x509,
  		char *label, unsigned char *id, size_t id_len,
  		PKCS11_CERT **ret_cert);
  
@@ -252,7 +260,7 @@ index bd47d67..555d67e 100644
  /* Access the random number generator */
  extern int PKCS11_seed_random(PKCS11_SLOT *slot, const unsigned char *s, unsigned int s_len);
  extern int PKCS11_generate_random(PKCS11_SLOT *slot, unsigned char *r, unsigned int r_len);
-@@ -443,21 +476,6 @@ extern void ERR_load_PKCS11_strings(void);
+@@ -443,21 +482,6 @@ extern void ERR_load_PKCS11_strings(void);
   * duplicate the functionality OpenSSL provides for EVP_PKEY objects
   */
  
@@ -275,7 +283,7 @@ index bd47d67..555d67e 100644
  /* Get the RSA key modulus size (in bytes) */
  P11_DEPRECATED_FUNC extern int PKCS11_get_key_size(PKCS11_KEY *);
 diff --git a/src/p11_front.c b/src/p11_front.c
-index f74f209..f82c9a3 100644
+index f74f209..edd9ab0 100644
 --- a/src/p11_front.c
 +++ b/src/p11_front.c
 @@ -16,6 +16,8 @@
@@ -316,10 +324,10 @@ index f74f209..f82c9a3 100644
 +	switch(kg->type) {
 +	case EVP_PKEY_RSA:
 +		return pkcs11_rsa_keygen(slot, kg->kgen.rsa->bits,
-+				kg->key_label, out, key_id_len);
++				kg->key_label, out, key_id_len, kg->key_params);
 +	case EVP_PKEY_EC:
 +		return pkcs11_ec_keygen(slot, kg->kgen.ec->curve,
-+				kg->key_label, out, key_id_len);
++				kg->key_label, out, key_id_len, kg->key_params);
 +	default:
 +		return -1;
 +	}
@@ -331,7 +339,7 @@ index f74f209..f82c9a3 100644
  {
  	PKCS11_OBJECT_private *key = PRIVKEY(pkey);
 diff --git a/src/p11_key.c b/src/p11_key.c
-index ec7f279..eaa31c8 100644
+index ec7f279..cf35eef 100644
 --- a/src/p11_key.c
 +++ b/src/p11_key.c
 @@ -252,8 +252,8 @@ int pkcs11_reload_object(PKCS11_OBJECT_private *obj)
@@ -341,11 +349,11 @@ index ec7f279..eaa31c8 100644
 -int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int bits,
 -		char *label, unsigned char* id, size_t id_len) {
 +int pkcs11_rsa_keygen(PKCS11_SLOT_private *slot, unsigned int bits,
-+		const char *label, unsigned char* id, size_t id_len) {
++		const char *label, unsigned char* id, size_t id_len, const PKCS11_params* params) {
  
  	PKCS11_CTX_private *ctx = slot->ctx;
  	CK_SESSION_HANDLE session;
-@@ -262,36 +262,44 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
+@@ -262,36 +262,45 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
  		CKM_RSA_PKCS_KEY_PAIR_GEN, NULL_PTR, 0
  	};
  	CK_ULONG num_bits = bits;
@@ -391,20 +399,22 @@ index ec7f279..eaa31c8 100644
  		pkcs11_addattr_s(&privtmpl, CKA_LABEL, label);
 -	pkcs11_addattr_bool(&privtmpl, CKA_TOKEN, TRUE);
  	pkcs11_addattr_bool(&privtmpl, CKA_PRIVATE, TRUE);
+-	pkcs11_addattr_bool(&privtmpl, CKA_SENSITIVE, TRUE);
 +	pkcs11_addattr_bool(&privtmpl, CKA_TOKEN, TRUE);
- 	pkcs11_addattr_bool(&privtmpl, CKA_SENSITIVE, TRUE);
++	pkcs11_addattr_bool(&privtmpl, CKA_SENSITIVE, params->sensitive);
++    pkcs11_addattr_bool(&privtmpl, CKA_EXTRACTABLE, params->extractable);
  	pkcs11_addattr_bool(&privtmpl, CKA_DECRYPT, TRUE);
  	pkcs11_addattr_bool(&privtmpl, CKA_SIGN, TRUE);
 -	pkcs11_addattr_bool(&privtmpl, CKA_UNWRAP, TRUE);
  
  	/* call the pkcs11 module to create the key pair */
  	rv = CRYPTOKI_call(ctx, C_GenerateKeyPair(
-@@ -310,6 +318,107 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
+@@ -310,6 +319,108 @@ int pkcs11_generate_key(PKCS11_SLOT_private *slot, int algorithm, unsigned int b
  	return 0;
  }
  
 +int pkcs11_ec_keygen(PKCS11_SLOT_private *slot, const char *curve,
-+		const char *label, unsigned char *id, size_t id_len)
++		const char *label, unsigned char *id, size_t id_len, const PKCS11_params* params)
 +{
 +	PKCS11_CTX_private *ctx = slot->ctx;
 +	CK_SESSION_HANDLE session;
@@ -477,7 +487,8 @@ index ec7f279..eaa31c8 100644
 +		pkcs11_addattr_s(&privtmpl, CKA_LABEL, label);
 +	pkcs11_addattr_bool(&privtmpl, CKA_PRIVATE, TRUE);
 +	pkcs11_addattr_bool(&privtmpl, CKA_TOKEN, TRUE);
-+	pkcs11_addattr_bool(&privtmpl, CKA_SENSITIVE, TRUE);
++	pkcs11_addattr_bool(&privtmpl, CKA_SENSITIVE, params->sensitive);
++    pkcs11_addattr_bool(&privtmpl, CKA_EXTRACTABLE, params->extractable);
 +	pkcs11_addattr_bool(&privtmpl, CKA_DERIVE, TRUE);
 +	pkcs11_addattr_bool(&privtmpl, CKA_SIGN, TRUE);
 +
@@ -641,10 +652,10 @@ index b1bc0fb..a71327d 100644
  	ec-cert.der ec-prvkey.der ec-pubkey.der
 diff --git a/tests/keygen.c b/tests/keygen.c
 new file mode 100644
-index 0000000..33afdef
+index 0000000..75d9b38
 --- /dev/null
 +++ b/tests/keygen.c
-@@ -0,0 +1,215 @@
+@@ -0,0 +1,221 @@
 + /*
 + * This program is free software: you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License as published by
@@ -812,6 +823,10 @@ index 0000000..33afdef
 +	PKCS11_EC_KGEN ec = {
 +		.curve = "P-256"
 +	};
++    PKCS11_params params = {
++            .sensitive = 1,
++            .extractable = 0,
++    };
 +	PKCS11_KGEN_ATTRS eckg =
 +	{
 +		.type = EVP_PKEY_EC,
@@ -819,6 +834,7 @@ index 0000000..33afdef
 +		.token_label = argv[1],
 +		.key_label = argv[2],
 +		.key_id = "1234",
++        .key_params = &params,
 +	};
 +
 +	if (!ENGINE_ctrl_cmd(engine, "KEYGEN", 0, &eckg, NULL, 1)) {
@@ -845,6 +861,7 @@ index 0000000..33afdef
 +		.token_label = argv[1],
 +		.key_label = argv[2],
 +		.key_id = "4321",
++        .key_params = &params,
 +	};
 +	if (!ENGINE_ctrl_cmd(engine, "KEYGEN", 0, &rsakg, NULL, 1)) {
 +		fprintf(stderr, "Could not generate RSA keys\n");
@@ -906,5 +923,5 @@ index 0000000..83f8175
 +
 +exit 0
 -- 
-2.40.0
+2.39.3 (Apple Git-145)
 

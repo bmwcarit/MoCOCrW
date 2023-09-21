@@ -448,6 +448,37 @@ int main(void)
         std::cout << "Decrypting the message...";
         decryptData(eciesData, eccPrivKey);
         std::cout << "Success\n" << std::endl;
+
+        /**
+         * Test adding CKA_SENSITIVE and CKA_EXTRACTABLE
+         */
+        std::cout << "4. Testing key generation with attributes" << std::endl;
+
+        PKCS11_params pkcs11Params;
+        pkcs11Params.sensitive = 0;
+        pkcs11Params.extractable = 1;
+
+        // ECC
+        std::vector<uint8_t> keyId_ecc_att{0x41};
+        std::string keyLabel_ecc_att{"key-ecc-att"};
+
+        std::cout << "Generating an ECC key with CKA_SENSITIVE=False and CKA_EXTRACTABLE=True" << std::endl;
+
+        auto keypairecc = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine, eccSpec, keyLabel_ecc_att, keyId_ecc_att, pkcs11Params);
+        std::cout << "Success" << std::endl;
+
+        // RSA
+
+        std::vector<uint8_t> keyId_rsa_att{0x42};
+        std::string keyLabel_rsa_att{"key-rsa-att"};
+
+        std::cout << "Generating a RSA key with CKA_SENSITIVE=False and CKA_EXTRACTABLE=True" << std::endl;
+
+        auto keypairrsa = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine, rsaSpec, keyLabel_rsa_att, keyId_rsa_att, pkcs11Params);
+        std::cout << "Success" << std::endl;
+
     } catch (const MoCOCrWException &e) {
         std::cout << "Integration test failed with MoCOCrWException: " << e.what() << std::endl;
         exit(1);

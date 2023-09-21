@@ -18,7 +18,13 @@ if(MOCOCRW_HSM_ENABLED)
     # libp11 writes to stderr on unsuccessful key loading. Pipe it to devnull
     add_test(
         NAME HsmIntegrationTest
-        COMMAND sh -c "${CMAKE_BINARY_DIR}/tests/integration/hsm-integration-test 2>/tmp/hsm-int-test.log"
+        COMMAND sh -c "${CMAKE_BINARY_DIR}/tests/integration/hsm-integration-test-wrapper.sh 2>/tmp/hsm-int-test.log"
     )
+
+    add_executable(attribute_reader attribute_reader.cpp)
+    target_include_directories(attribute_reader PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+    target_link_libraries(attribute_reader dl)
+    file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/hsm-integration-test-wrapper.sh
+            DESTINATION ${CMAKE_BINARY_DIR}/tests/integration)
 endif()
 
