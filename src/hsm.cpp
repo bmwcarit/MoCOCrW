@@ -22,7 +22,6 @@
 #include <sstream>
 #include <unordered_set>
 
-#include "libp11.h"
 
 #include "mococrw/error.h"
 #include "mococrw/key.h"
@@ -204,12 +203,51 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
     std::string keyIDHexString = utility::toHex(keyID);
     PKCS11_RSA_KGEN pkcs11RSASpec;
     pkcs11RSASpec.bits = spec.numberOfBits();
+
+    PKCS11_params pkcs11Params;
+    pkcs11Params.sensitive = 1;
+    pkcs11Params.extractable = 0;
+
     PKCS11_KGEN_ATTRS pkcs11RSAKeygen;
     pkcs11RSAKeygen.type = EVP_PKEY_RSA;
     pkcs11RSAKeygen.kgen.rsa = &pkcs11RSASpec;
     pkcs11RSAKeygen.key_id = keyIDHexString.c_str();
     pkcs11RSAKeygen.token_label = _tokenLabel.c_str();
     pkcs11RSAKeygen.key_label = keyLabel.c_str();
+    pkcs11RSAKeygen.key_params = &pkcs11Params;
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
+    return loadPrivateKey(keyID);
+}
+
+openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
+                                                 const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID,
+                                                 const PKCS11_params &params)
+{
+    try {
+        // We need to make sure that we don't have 2 keys with the same ID.
+        // For that we need to pass empty keyLabel. Otherwise libp11 tries to find
+        // a key with exact keyLabel/keyID combination. This means that libp11 might
+        // not recognize that the key with the same ID is already there.
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
+        loadPrivateKey(keyID);
+        throw MoCOCrWException("Key with that keyID already exists");
+    } catch (const MoCOCrWException &e) {
+        if (e.what() != std::string(privKeyNotFoundError)) {
+            throw;
+        }
+    }
+    std::string keyIDHexString = utility::toHex(keyID);
+    PKCS11_RSA_KGEN pkcs11RSASpec;
+    pkcs11RSASpec.bits = spec.numberOfBits();
+
+    PKCS11_KGEN_ATTRS pkcs11RSAKeygen;
+    pkcs11RSAKeygen.type = EVP_PKEY_RSA;
+    pkcs11RSAKeygen.kgen.rsa = &pkcs11RSASpec;
+    pkcs11RSAKeygen.key_id = keyIDHexString.c_str();
+    pkcs11RSAKeygen.token_label = _tokenLabel.c_str();
+    pkcs11RSAKeygen.key_label = keyLabel.c_str();
+    pkcs11RSAKeygen.key_params = &params;
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11RSAKeygen);
     return loadPrivateKey(keyID);
 }
@@ -235,13 +273,54 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
     std::string keyIDHexString = utility::toHex(keyID);
     PKCS11_EC_KGEN pkcs11ECCSpec;
     pkcs11ECCSpec.curve = curve.c_str();
+
+    PKCS11_params pkcs11Params;
+    pkcs11Params.sensitive = 1;
+    pkcs11Params.extractable = 0;
+
     PKCS11_KGEN_ATTRS pkcs11ECCKeygen;
     pkcs11ECCKeygen.type = EVP_PKEY_EC;
     pkcs11ECCKeygen.kgen.ec = &pkcs11ECCSpec;
     pkcs11ECCKeygen.key_id = keyIDHexString.c_str();
     pkcs11ECCKeygen.token_label = _tokenLabel.c_str();
     pkcs11ECCKeygen.key_label = keyLabel.c_str();
+    pkcs11ECCKeygen.key_params = &pkcs11Params;
     _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
     return loadPrivateKey(keyID);
 }
+
+openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
+                                                 const std::string &keyLabel,
+                                                 const std::vector<uint8_t> &keyID,
+                                                 const PKCS11_params &params)
+{
+    try {
+        // We need to make sure that we don't have 2 keys with the same ID.
+        // For that we need to pass empty keyLabel. Otherwise libp11 tries to find
+        // a key with exact keyLabel/keyID combination. This means that libp11 might
+        // not recognize that the key with the same ID is already there.
+        _ENGINE_ctrl_cmd_string(_engine.get(), "PIN", _pin);
+        loadPrivateKey(keyID);
+        throw MoCOCrWException("Key with that keyID already exists");
+    } catch (const MoCOCrWException &e) {
+        if (e.what() != std::string(privKeyNotFoundError)) {
+            throw;
+        }
+    }
+    std::string curve = spec.curveName();
+    std::string keyIDHexString = utility::toHex(keyID);
+    PKCS11_EC_KGEN pkcs11ECCSpec;
+    pkcs11ECCSpec.curve = curve.c_str();
+
+    PKCS11_KGEN_ATTRS pkcs11ECCKeygen;
+    pkcs11ECCKeygen.type = EVP_PKEY_EC;
+    pkcs11ECCKeygen.kgen.ec = &pkcs11ECCSpec;
+    pkcs11ECCKeygen.key_id = keyIDHexString.c_str();
+    pkcs11ECCKeygen.token_label = _tokenLabel.c_str();
+    pkcs11ECCKeygen.key_label = keyLabel.c_str();
+    pkcs11ECCKeygen.key_params = &params;
+    _ENGINE_ctrl_cmd(_engine.get(), "KEYGEN", &pkcs11ECCKeygen);
+    return loadPrivateKey(keyID);
+}
+
 }  // namespace mococrw
