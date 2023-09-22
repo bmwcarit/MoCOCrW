@@ -321,14 +321,35 @@ public:
                                               const std::vector<uint8_t> &keyID);
 
     /**
-     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @brief Generates RSA keypair on HSM token according to the spec given.
      * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
      * Therefore care should be taken when generating keys with other tools on the same token.
      * @param hsm HSM engine handle
-     * @param spec @ref ECCSpec
+     * @param spec @ref RSASpec
      * @param keyLabel String based description of an object on the token. It
      * can be used in combination with keyID to identify an object.
      * @param keyID raw bytes based key identifer
+     * @param Struct to set key generation attributes
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
+                                              const RSASpec &spec,
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID,
+                                              const HsmKeyParams &params);
+
+    /**
+     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys on the same token.
+     * @param hsm HSM engine handle
+     * @param spec @ref ECCSpec
+     * @param keyLabel string based key identifier. This can be used to identify and fetch the keys
+     * @param keyID raw bytes based key identifier. This may be used in combination with keyLabel
+     * to identify keys.
      * @return AsymmetricKeypair @ref AsymmetricKeypair
      * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
@@ -338,6 +359,27 @@ public:
                                               const ECCSpec &spec,
                                               const std::string &keyLabel,
                                               const std::vector<uint8_t> &keyID);
+
+    /**
+     * @brief Generates ECC keypair on HSM token according to the spec given.
+     * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
+     * Therefore care should be taken when generating keys with other tools on the same token.
+     * @param hsm HSM engine handle
+     * @param spec @ref ECCSpec
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID raw bytes based key identifer
+     * @param Struct to set key generation attributes
+     * @return AsymmetricKeypair @ref AsymmetricKeypair
+     * @throw MoCOCrWException Since most of the logic is happening outside of OpenSSL and inside
+     * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
+     * some things to stderr, check if there's more context there
+     */
+    static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
+                                              const ECCSpec &spec,
+                                              const std::string &keyLabel,
+                                              const std::vector<uint8_t> &keyID,
+                                              const HsmKeyParams &params);
 #endif
 
 private:
