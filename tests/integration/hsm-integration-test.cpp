@@ -1,7 +1,7 @@
 /*
  * #%L
  * %%
- * Copyright (C) 2022 BMW Car IT GmbH
+ * Copyright (C) 2023 BMW Car IT GmbH
  * %%
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -448,6 +448,40 @@ int main(void)
         std::cout << "Decrypting the message...";
         decryptData(eciesData, eccPrivKey);
         std::cout << "Success\n" << std::endl;
+
+        /**
+         * Generate extractable and non-extractable keys for ECC and RSA
+         */
+        HsmKeyParams hsmKeyParamsExtract = {/*.CKA_EXTRACTABLE =*/true,
+                                            /* .CKA_SENSITIVE = */ false};
+        HsmKeyParams hsmKeyParamsDefault;
+
+        /* We need a new token otherwise the keys generated before litter the slot */
+
+        std::string tokenLabel2("token-label2");
+        // Don't hardcode the pin in your application, this is just for demonstration purposes
+        std::string pin("1234");
+        HsmEngine hsmEngine2(id, modulePath, tokenLabel2, pin);
+        utility::stringCleanse(pin);
+
+        // ECC
+        std::vector<uint8_t> keyIdEcExtract{0x41};
+        std::vector<uint8_t> keyIdEcDefault{0x42};
+        std::string keyLabel_ecc_att{};
+        auto keypairecc = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine2, ECCSpec(), "key-ecc-extractable", keyIdEcExtract, hsmKeyParamsExtract);
+        keypairecc = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine2, ECCSpec(), "key-ecc-default", keyIdEcDefault, hsmKeyParamsDefault);
+
+        // RSA
+        std::vector<uint8_t> keyIdRsaExtract{0x43};
+        std::vector<uint8_t> keyIdRsaDefault{0x44};
+        std::string keyLabel_rsa_att{};
+        auto keypairrsa = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine2, RSASpec(), "key-rsa-extractable", keyIdRsaExtract, hsmKeyParamsExtract);
+        keypairrsa = AsymmetricPrivateKey::generateKeyOnHSM(
+                hsmEngine2, RSASpec(), "key-rsa-default", keyIdRsaDefault, hsmKeyParamsDefault);
+
     } catch (const MoCOCrWException &e) {
         std::cout << "Integration test failed with MoCOCrWException: " << e.what() << std::endl;
         exit(1);

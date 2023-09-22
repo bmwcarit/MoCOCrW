@@ -1,0 +1,34 @@
+[
+    {
+        "Private Key Object; RSA ": {
+            "label": "key-rsa-default",
+            "ID": "44",
+            "Usage": "decrypt, sign, unwrap",
+            "Access": "sensitive, always sensitive, never extractable, local"
+        }
+    },
+    {
+        "Private Key Object; EC": {
+            "label": "key-ecc-extractable",
+            "ID": "41",
+            "Usage": "decrypt, sign, unwrap, derive",
+            "Access": "extractable, local"
+        }
+    },
+    {
+        "Private Key Object; RSA ": {
+            "label": "key-rsa-extractable",
+            "ID": "43",
+            "Usage": "decrypt, sign, unwrap",
+            "Access": "extractable, local"
+        }
+    },
+    {
+        "Private Key Object; EC": {
+            "label": "key-ecc-default",
+            "ID": "42",
+            "Usage": "decrypt, sign, unwrap, derive",
+            "Access": "sensitive, always sensitive, never extractable, local"
+        }
+    }
+]
