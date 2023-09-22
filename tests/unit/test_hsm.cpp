@@ -144,6 +144,36 @@ TEST_F(HSMTest, testHSMKeygen)
     EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId));
 }
 
+TEST_F(HSMTest, testHSMKeygenWithParams)
+{
+    ECCSpec eccSpec;
+    int curve = int(mococrw::openssl::ellipticCurveNid::PRIME_256v1);
+    auto engine = ::testutils::someEnginePtr();
+    auto pkey = ::testutils::somePkeyPtr();
+    auto hsm = initialiseEngine();
+    std::string keyLabel{"key-label"};
+    std::vector<uint8_t> keyId{0x12};
+    HsmKeyParams params{true, false};
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd_string(
+                        engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
+            .WillOnce(Return(1))
+            .WillOnce(Return(1))
+            .WillOnce(Return(1));
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_load_private_key(
+                        engine, StrEq("pkcs11:token=token-label;id=%12"), nullptr, nullptr))
+            .WillOnce(Return(nullptr))
+            .WillOnce(Return(pkey));
+    ON_CALL(_mock(), SSL_ERR_lib_error_string(_)).WillByDefault(Return("pkcs11 engine"));
+    ON_CALL(_mock(), SSL_ERR_reason_error_string(_)).WillByDefault(Return("object not found"));
+    EXPECT_CALL(_mock(), SSL_EC_curve_nid2nist(curve)).WillOnce(Return("P-256"));
+    EXPECT_CALL(_mock(),
+                SSL_ENGINE_ctrl_cmd(engine, StrEq("KEYGEN"), 0 /*non-optional*/, _, nullptr, 1))
+            .WillOnce(Return(1));
+    EXPECT_NO_THROW(AsymmetricKeypair::generateKeyOnHSM(*hsm, eccSpec, keyLabel, keyId, params));
+}
+
 TEST_F(HSMTest, testHSMTryLoadKeyWithEmptyId)
 {
     auto hsm = initialiseEngine();
