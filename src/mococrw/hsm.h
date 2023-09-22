@@ -24,6 +24,21 @@ namespace mococrw
 {
 class ECCSpec;
 class RSASpec;
+
+/**
+ * This struct currently contains PKCS#11 attributes which are changeable on key creation.
+ * In the future also parameters for other keystorage interfaces can be added.
+ */
+struct HsmKeyParams
+{
+    /* Default is that the key cannot be extracted and is marked as sensitive.
+     * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
+     * for more details.
+     */
+    bool CKA_EXTRACTABLE = false;
+    bool CKA_SENSITIVE = true;
+};
+
 /**
  * The highest-level abstract class of a Hardware Security Module (HSM).
  *
@@ -91,6 +106,36 @@ protected:
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                                   const std::string &keyLabel,
                                                   const std::vector<uint8_t> &keyID) = 0;
+
+    /**
+     * @brief Generate a RSA key pair on the HSM
+     *
+     * @param spec The RSA specification @ref RSASpec
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     * @param params Struct to set key generation attributes
+     * @note keyID must not be empty
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                                  const std::string &keyLabel,
+                                                  const std::vector<uint8_t> &keyID,
+                                                  const HsmKeyParams &params) = 0;
+
+    /**
+     * @brief Generate a ECC key pair on the HSM
+     *
+     * @param spec The ECC specification @ref ECCSpec
+     * @param keyLabel String based description of an object on the token. It
+     * can be used in combination with keyID to identify an object.
+     * @param keyID Vector of raw bytes that identifies a key on the token
+     * @param params Struct to set key generation attributes
+     * @note keyID must not be empty
+     */
+    virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                                  const std::string &keyLabel,
+                                                  const std::vector<uint8_t> &keyID,
+                                                  const HsmKeyParams &params) = 0;
 };
 
 /**
@@ -146,6 +191,16 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID) override;
+
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
+                                          const std::string &keyLabel,
+                                          const std::vector<uint8_t> &keyID,
+                                          const HsmKeyParams &params) override;
+
+    openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
+                                          const std::string &keyLabel,
+                                          const std::vector<uint8_t> &keyID,
+                                          const HsmKeyParams &params) override;
 
 private:
     /**
