@@ -215,8 +215,8 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
     pkcs11RSASpec.bits = spec.numberOfBits();
 
     PKCS11_params _params;
-    _params.extractable = static_cast<unsigned char>(params.CKA_EXTRACTABLE);
-    _params.sensitive = static_cast<unsigned char>(params.CKA_SENSITIVE);
+    _params.extractable = static_cast<unsigned char>(params.cka_extractable);
+    _params.sensitive = static_cast<unsigned char>(params.cka_sensitive);
 
     PKCS11_KGEN_ATTRS pkcs11RSAKeygen;
     pkcs11RSAKeygen.type = EVP_PKEY_RSA;
@@ -261,8 +261,8 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
     pkcs11ECCSpec.curve = curve.c_str();
 
     PKCS11_params _params;
-    _params.extractable = static_cast<unsigned char>(params.CKA_EXTRACTABLE);
-    _params.sensitive = static_cast<unsigned char>(params.CKA_SENSITIVE);
+    _params.extractable = static_cast<unsigned char>(params.cka_extractable);
+    _params.sensitive = static_cast<unsigned char>(params.cka_sensitive);
 
     PKCS11_KGEN_ATTRS pkcs11ECCKeygen;
     pkcs11ECCKeygen.type = EVP_PKEY_EC;

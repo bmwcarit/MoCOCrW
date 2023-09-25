@@ -35,8 +35,8 @@ struct HsmKeyParams
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    bool CKA_EXTRACTABLE = false;
-    bool CKA_SENSITIVE = true;
+    bool cka_extractable = false;
+    bool cka_sensitive = true;
 };
 
 /**
