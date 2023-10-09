@@ -1354,7 +1354,7 @@ void _RAND_bytes(unsigned char *buf, int num)
 
 void _CRYPTO_malloc_init() { return lib::OpenSSLLib::SSL_CRYPTO_malloc_init(); }
 
-EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
+const EC_KEY *_EVP_PKEY_get0_EC_KEY(EVP_PKEY *pkey)
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY, pkey);
 }
@@ -1525,7 +1525,8 @@ std::vector<uint8_t> _EC_KEY_key2buf(const EVP_PKEY *evp, point_conversion_form_
      */
     EVP_PKEY *evp_ = const_cast<EVP_PKEY *>(evp);
     unsigned char *pbuf;
-    EC_KEY *key = OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY, evp_);
+    const EC_KEY *key =
+            OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_EVP_PKEY_get0_EC_KEY, evp_);
     size_t length = OpensslCallIsPositive::callChecked(
             lib::OpenSSLLib::SSL_EC_KEY_key2buf, key, form, &pbuf, nullptr);
     std::vector<uint8_t> result(pbuf, pbuf + length);
