@@ -34,13 +34,9 @@ class HsmKeyParams
 public:
     class Builder;
 
-    bool isExtractable() const {
-        return cka_extractable;
-    }
+    bool isExtractable() const { return cka_extractable; }
 
-    bool isSensitive() const {
-        return cka_sensitive;
-    }
+    bool isSensitive() const { return cka_sensitive; }
 
 private:
     bool cka_extractable;
@@ -69,9 +65,7 @@ public:
         return *this;
     }
 
-    HsmKeyParams build() {
-        return params_;
-    }
+    HsmKeyParams build() { return params_; }
 
 private:
     HsmKeyParams params_;

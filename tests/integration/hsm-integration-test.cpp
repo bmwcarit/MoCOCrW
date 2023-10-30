@@ -455,8 +455,7 @@ int main(void)
         HsmKeyParams hsmKeyParamsExtract =
                 HsmKeyParams::Builder().setCkaExtractable(true).setCkaSensitive(false).build();
 
-        HsmKeyParams hsmKeyParamsDefault =
-                HsmKeyParams::Builder().build();
+        HsmKeyParams hsmKeyParamsDefault = HsmKeyParams::Builder().build();
 
         /* We need a new token otherwise the keys generated before litter the slot */
 
