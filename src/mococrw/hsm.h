@@ -34,11 +34,11 @@ class HsmKeyParams
 public:
     class Builder;
 
-    bool isExtractable() {
+    bool isExtractable() const {
         return cka_extractable;
     }
 
-    bool isSensitive() {
+    bool isSensitive() const {
         return cka_sensitive;
     }
 
