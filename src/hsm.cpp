@@ -188,7 +188,8 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
-    HsmKeyParams hsmKeyParams;
+    HsmKeyParams hsmKeyParams =
+            HsmKeyParams::Builder().setCkaExtractable(false).setCkaSensitive(true).build();
     return generateKey(spec, keyLabel, keyID, hsmKeyParams);
 }
 
@@ -233,7 +234,8 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
-    HsmKeyParams hsmKeyParams;
+    HsmKeyParams hsmKeyParams =
+            HsmKeyParams::Builder().setCkaExtractable(false).setCkaSensitive(true).build();
     return generateKey(spec, keyLabel, keyID, hsmKeyParams);
 }
 

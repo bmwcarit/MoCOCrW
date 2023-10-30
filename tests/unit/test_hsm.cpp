@@ -153,7 +153,8 @@ TEST_F(HSMTest, testHSMKeygenWithParams)
     auto hsm = initialiseEngine();
     std::string keyLabel{"key-label"};
     std::vector<uint8_t> keyId{0x12};
-    HsmKeyParams params{true, false};
+    HsmKeyParams params =
+            HsmKeyParams::Builder().setCkaExtractable(true).setCkaSensitive(false).build();
     EXPECT_CALL(_mock(),
                 SSL_ENGINE_ctrl_cmd_string(
                         engine, StrEq("PIN"), StrEq(pin.c_str()), 0 /*non-optional*/))
