@@ -43,7 +43,7 @@ private:
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    HsmKeyParams() : cka_extractable(false) {}
+    HsmKeyParams() : extractable(false) {}
 };
 
 class HsmKeyParams::Builder
