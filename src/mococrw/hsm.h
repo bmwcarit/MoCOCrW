@@ -36,32 +36,23 @@ public:
 
     bool isExtractable() const { return cka_extractable; }
 
-    bool isSensitive() const { return cka_sensitive; }
-
 private:
-    bool cka_extractable;
-    bool cka_sensitive;
+    bool extractable;
 
     /* Default is that the key cannot be extracted and is marked as sensitive.
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    HsmKeyParams() : cka_extractable(false), cka_sensitive(true) {}
+    HsmKeyParams() : cka_extractable(false) {}
 };
 
 class HsmKeyParams::Builder
 {
 public:
     Builder() {}
-    Builder &setCkaExtractable(bool extractable)
+    Builder &setExtractable(bool extractable)
     {
-        params_.cka_extractable = extractable;
-        return *this;
-    }
-
-    Builder &setCkaSensitive(bool sensitive)
-    {
-        params_.cka_sensitive = sensitive;
+        params_.extractable = extractable;
         return *this;
     }
 
