@@ -34,7 +34,7 @@ class HsmKeyParams
 public:
     class Builder;
 
-    bool isExtractable() const { return cka_extractable; }
+    bool isExtractable() const { return extractable; }
 
 private:
     bool extractable;
