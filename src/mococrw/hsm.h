@@ -34,16 +34,16 @@ class HsmKeyParams
 public:
     class Builder;
 
-    bool isExtractable() const { return extractable; }
+    bool isExtractable() const { return _extractable; }
 
 private:
-    bool extractable;
+    bool _extractable;
 
     /* Default is that the key cannot be extracted and is marked as sensitive.
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    HsmKeyParams() : extractable(false) {}
+    HsmKeyParams() : _extractable(false) {}
 };
 
 class HsmKeyParams::Builder
@@ -52,7 +52,7 @@ public:
     Builder() {}
     Builder &setExtractable(bool extractable)
     {
-        params_.extractable = extractable;
+        params_._extractable = extractable;
         return *this;
     }
 

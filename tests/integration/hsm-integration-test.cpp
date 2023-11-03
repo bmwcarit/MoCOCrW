@@ -452,8 +452,7 @@ int main(void)
         /**
          * Generate extractable and non-extractable keys for ECC and RSA
          */
-        HsmKeyParams hsmKeyParamsExtract =
-                HsmKeyParams::Builder{}.setExtractable(true).build();
+        HsmKeyParams hsmKeyParamsExtract = HsmKeyParams::Builder{}.setExtractable(true).build();
 
         HsmKeyParams hsmKeyParamsDefault = HsmKeyParams::Builder{}.build();
 
