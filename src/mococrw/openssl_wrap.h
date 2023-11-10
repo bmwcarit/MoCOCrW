@@ -171,6 +171,10 @@ using SSL_HMAC_CTX_Ptr =
         std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
 using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
 
+using EVP_MAC_CTX_Ptr =
+        std::unique_ptr<EVP_MAC_CTX, SSLDeleter<EVP_MAC_CTX, lib::OpenSSLLib::EVP_MAC_CTX_free>>;
+using EVP_MAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<EVP_MAC_CTX_Ptr>;
+
 using SSL_CMAC_CTX_Ptr =
         std::unique_ptr<CMAC_CTX, SSLDeleter<CMAC_CTX, lib::OpenSSLLib::SSL_CMAC_CTX_free>>;
 using SSL_CMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_CMAC_CTX_Ptr>;
@@ -1486,6 +1490,11 @@ void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD 
 std::vector<uint8_t> _HMAC_Final(HMAC_CTX *ctx);
 void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data);
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
+
+void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[]);
+std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx);
+void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data);
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(void);
 
 /* CMAC */
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void);

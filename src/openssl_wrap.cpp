@@ -1466,6 +1466,31 @@ void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data)
 
 SSL_HMAC_CTX_Ptr _HMAC_CTX_new() { return createManagedOpenSSLObject<SSL_HMAC_CTX_Ptr>(); }
 
+void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[])
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_init,
+                                  ctx,
+                                  reinterpret_cast<const unsigned char *>(key.data()),
+                                  key.size(),
+                                  params);
+}
+
+std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx)
+{
+    size_t outlen = 0;
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_final, ctx, nullptr, &outlen, 0);
+    std::vector<uint8_t> out(outlen);
+    OpensslCallIsOne::callChecked(
+            lib::OpenSSLLib::EVP_MAC_final, ctx, out.data(), &outlen) return out;
+}
+
+void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data)
+{
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_update, ctx, data.data(), data.size());
+}
+
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new() { return createManagedOpenSSLObject<EVP_MAC_CTX_Ptr>(); }
+
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void) { return createManagedOpenSSLObject<SSL_CMAC_CTX_Ptr>(); }
 
 void _CMAC_Init(CMAC_CTX *ctx,

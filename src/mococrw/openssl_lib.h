@@ -444,6 +444,15 @@ public:
     static int SSL_HMAC_Init_ex(
             HMAC_CTX *ctx, const void *key, int key_len, const EVP_MD *md, ENGINE *impl) noexcept;
 
+    static void EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept;
+    static EVP_MAC_CTX *EVP_MAC_CTX_new() noexcept;
+    static int EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, int *outl, int outsize) noexcept;
+    static int EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, int datalen) noexcept;
+    static int EVP_MAC_init(EVP_MAC_CTX *ctx,
+                            const unsigned char *key,
+                            int keylen,
+                            const OSSL_PARAM params[]) noexcept;
+
     /* CMAC */
     static CMAC_CTX *SSL_CMAC_CTX_new() noexcept;
     static void SSL_CMAC_CTX_cleanup(CMAC_CTX *ctx) noexcept;

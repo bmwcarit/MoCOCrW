@@ -936,6 +936,33 @@ HMAC_CTX *OpenSSLLib::SSL_HMAC_CTX_new() noexcept { return HMAC_CTX_new(); }
 
 void OpenSSLLib::SSL_HMAC_CTX_free(HMAC_CTX *ctx) noexcept { HMAC_CTX_free(ctx); }
 
+
+int OpenSSLLib::EVP_MAC_init(EVP_MAC_CTX *ctx, const unsigned char *key, int keylen, const OSSL_PARAM *params) noexcept
+{
+    return EVP_MAC_init(ctx, key, keylen, params);
+}
+
+int OpenSSLLib::EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, int datalen) noexcept
+{
+    return EVP_MAC_update(ctx, data, datalen);
+}
+
+int OpenSSLLib::EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, int *outl, int outsize) noexcept
+{
+    return EVP_MAC_final(ctx, out, outl, outsize);
+}
+
+EVP_MAC_CTX *OpenSSLLib::EVP_MAC_CTX_new() noexcept
+{
+    return EVP_MAC_CTX_new();
+}
+
+void OpenSSLLib::EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept
+{
+    EVP_MAC_CTX_free(ctx);
+}
+
+
 int OpenSSLLib::SSL_EC_KEY_oct2key(EC_KEY *eckey, const unsigned char *buf, size_t len) noexcept
 {
     return EC_KEY_oct2key(eckey, buf, len, NULL);
