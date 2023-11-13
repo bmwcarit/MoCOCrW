@@ -167,13 +167,16 @@ using SSL_PKCS8_PRIV_KEY_INFO_Ptr = std::unique_ptr<
 using SSL_PKCS8_PRIV_KEY_INFO_SharedPtr =
         utility::SharedPtrTypeFromUniquePtr<SSL_PKCS8_PRIV_KEY_INFO_Ptr>;
 
-using SSL_HMAC_CTX_Ptr =
-        std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
-using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
-
 using EVP_MAC_CTX_Ptr =
         std::unique_ptr<EVP_MAC_CTX, SSLDeleter<EVP_MAC_CTX, lib::OpenSSLLib::EVP_MAC_CTX_free>>;
 using EVP_MAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<EVP_MAC_CTX_Ptr>;
+
+using EVP_MAC_Ptr = std::unique_ptr<EVP_MAC, SSLDeleter<EVP_MAC, lib::OpenSSLLib::EVP_MAC_free>>;
+using EVP_MAC_SharedPtr = utility::SharedPtrTypeFromUniquePtr<EVP_MAC_Ptr>;
+
+using OSSL_LIB_CTX_Ptr =
+        std::unique_ptr<OSSL_LIB_CTX, SSLDeleter<OSSL_LIB_CTX, lib::OpenSSLLib::OSSL_LIB_CTX_free>>;
+using OSSL_LIB_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<OSSL_LIB_CTX_Ptr>;
 
 using SSL_CMAC_CTX_Ptr =
         std::unique_ptr<CMAC_CTX, SSLDeleter<CMAC_CTX, lib::OpenSSLLib::SSL_CMAC_CTX_free>>;
@@ -1485,16 +1488,15 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
                      const std::vector<uint8_t> &sinfo,
                      const EVP_MD *md);
 
-/* HMAC */
-void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl);
-std::vector<uint8_t> _HMAC_Final(HMAC_CTX *ctx);
-void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data);
-SSL_HMAC_CTX_Ptr _HMAC_CTX_new(void);
+OSSL_LIB_CTX_Ptr _OSSL_LIB_CTX_new(void);
 
+/* HMAC */
 void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[]);
 std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx);
 void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data);
-EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(void);
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac);
+
+EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm);
 
 /* CMAC */
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void);

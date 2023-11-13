@@ -36,14 +36,22 @@ class HMAC::Impl
 public:
     Impl(openssl::DigestTypes hashFunction, const std::vector<uint8_t> &key)
     {
-        const EVP_MD *digestFn = openssl::_getMDPtrFromDigestType(hashFunction);
 
         if (key.empty()) {
             throw MoCOCrWException("Key for HMAC is empty.");
         }
 
-        _ctx = openssl::_HMAC_CTX_new();
-        openssl::_HMAC_Init_ex(_ctx.get(), key, digestFn, NULL);
+        openssl::OSSL_LIB_CTX_Ptr library_context = openssl::_OSSL_LIB_CTX_new();
+        openssl::EVP_MAC_Ptr mac = openssl::EVP_MAC_fetch(library_context, "HMAC", nullptr);
+
+        _ctx = openssl::_EVP_MAC_CTX_new(mac);
+
+        std::array<OSSL_PARAM, 4> ossl_params = openssl::_getOSSLParamFromDigestType(hashFunction);
+        OSSL_PARAM params[4];
+        std::copy(std::begin(ossl_params), std::end(ossl_params), std::begin(params));
+
+        openssl::__EVP_MAC_init(_ctx.get(), key, params);
+
     }
 
     ~Impl() = default;
@@ -55,7 +63,7 @@ public:
         if (_isFinished) {
             throw MoCOCrWException("update() can't be called after finish()");
         }
-        openssl::_HMAC_Update(_ctx.get(), message);
+        openssl::_EVP_MAC_update(_ctx.get(), message);
     }
 
     std::vector<uint8_t> finish()
@@ -64,7 +72,7 @@ public:
             throw MoCOCrWException("finish() can't be called twice.");
         }
 
-        _result = openssl::_HMAC_Final(_ctx.get());
+        _result = openssl::_EVP_MAC_final(_ctx.get());
 
         _isFinished = true;
 
@@ -89,7 +97,7 @@ public:
     }
 
 private:
-    openssl::SSL_HMAC_CTX_Ptr _ctx = nullptr;
+    openssl::EVP_MAC_CTX_Ptr _ctx = nullptr;
     bool _isFinished = false;
     std::vector<uint8_t> _result;
 };
