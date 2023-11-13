@@ -167,6 +167,10 @@ using SSL_PKCS8_PRIV_KEY_INFO_Ptr = std::unique_ptr<
 using SSL_PKCS8_PRIV_KEY_INFO_SharedPtr =
         utility::SharedPtrTypeFromUniquePtr<SSL_PKCS8_PRIV_KEY_INFO_Ptr>;
 
+using SSL_HMAC_CTX_Ptr =
+        std::unique_ptr<HMAC_CTX, SSLDeleter<HMAC_CTX, lib::OpenSSLLib::SSL_HMAC_CTX_free>>;
+using SSL_HMAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<SSL_HMAC_CTX_Ptr>;
+
 using EVP_MAC_CTX_Ptr =
         std::unique_ptr<EVP_MAC_CTX, SSLDeleter<EVP_MAC_CTX, lib::OpenSSLLib::EVP_MAC_CTX_free>>;
 using EVP_MAC_CTX_SharedPtr = utility::SharedPtrTypeFromUniquePtr<EVP_MAC_CTX_Ptr>;
