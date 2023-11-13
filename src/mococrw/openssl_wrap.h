@@ -678,7 +678,7 @@ const EVP_MD *_getMDPtrFromDigestType(DigestTypes type);
  * @param type
  * @throws std::runtime_error if the requested digest function was not found.
  */
-const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
+const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type);
 
 /**
  * Create an MD_CTX object.
