@@ -673,6 +673,13 @@ void _X509_REQ_sign_ctx(X509_REQ *req, EVP_MD_CTX *ctx);
 const EVP_MD *_getMDPtrFromDigestType(DigestTypes type);
 
 /**
+ * Get OSSL Params array for a given digest type.
+ * @param type
+ * @throws std::runtime_error if the requested digest function was not found.
+ */
+const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
+
+/**
  * Create an MD_CTX object.
  *
  * @throw OpenSSLException if an error occurs in the underlying OpenSSL function.
