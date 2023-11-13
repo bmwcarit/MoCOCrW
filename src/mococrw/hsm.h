@@ -26,17 +26,40 @@ class ECCSpec;
 class RSASpec;
 
 /**
- * This struct currently contains PKCS#11 attributes which are changeable on key creation.
+ * This class currently contains PKCS#11 attributes which are changeable on key creation.
  * In the future also parameters for other keystorage interfaces can be added.
  */
-struct HsmKeyParams
+class HsmKeyParams
 {
+public:
+    class Builder;
+
+    bool isExtractable() const { return _extractable; }
+
+private:
+    bool _extractable;
+
     /* Default is that the key cannot be extracted and is marked as sensitive.
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    bool cka_extractable = false;
-    bool cka_sensitive = true;
+    HsmKeyParams() : _extractable(false) {}
+};
+
+class HsmKeyParams::Builder
+{
+public:
+    Builder() {}
+    Builder &setExtractable(bool extractable)
+    {
+        params_._extractable = extractable;
+        return *this;
+    }
+
+    HsmKeyParams build() { return params_; }
+
+private:
+    HsmKeyParams params_;
 };
 
 /**
