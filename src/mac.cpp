@@ -42,7 +42,7 @@ public:
         }
 
         openssl::OSSL_LIB_CTX_Ptr library_context = openssl::_OSSL_LIB_CTX_new();
-        openssl::EVP_MAC_Ptr mac = openssl::EVP_MAC_fetch(library_context, "HMAC", nullptr);
+        openssl::EVP_MAC_Ptr mac = openssl::_EVP_MAC_fetch(library_context, "HMAC", nullptr);
 
         _ctx = openssl::_EVP_MAC_CTX_new(mac);
 
@@ -50,7 +50,7 @@ public:
         OSSL_PARAM params[4];
         std::copy(std::begin(ossl_params), std::end(ossl_params), std::begin(params));
 
-        openssl::__EVP_MAC_init(_ctx.get(), key, params);
+        openssl::_EVP_MAC_init(_ctx.get(), key, params);
 
     }
 
