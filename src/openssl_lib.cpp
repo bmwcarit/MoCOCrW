@@ -929,7 +929,7 @@ void OpenSSLLib::OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) noexcept
     OSSL_LIB_CTX_free(ctx);
 }
 
-OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, int bsize) noexcept
+OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) noexcept
 {
     return OSSL_PARAM_construct_utf8_string(key, buf, bsize);
 }
