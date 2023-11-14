@@ -59,6 +59,8 @@ namespace lib
 class OpenSSLLib
 {
 public:
+    static OSSL_PARAM SSL_OSSL_PARAM_construct_utf8_string(const char *key char *buf) noexcept;
+    static OSSL_PARAM SSL_OSSL_PARAM_construct_end() noexcept;
     static void SSL_OPENSSL_cleanse(void *ptr, size_t len) noexcept;
     static int SSL_EVP_PKEY_bits(EVP_PKEY *pkey) noexcept;
     static const char *SSL_EC_curve_nid2nist(int nid) noexcept;
@@ -439,8 +441,6 @@ public:
     static OSSL_LIB_CTX *OSSL_LIB_CTX_new(void) noexcept;
     static void OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) noexcept;
 
-    static OSSL_PARAM OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) noexcept;
-    static OSSL_PARAM OSSL_PARAM_construct_end(void) noexcept;
 
     /* HMAC */
     static void EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept;
