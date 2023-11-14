@@ -693,11 +693,11 @@ X509_CRL *createOpenSSLObject<X509_CRL>()
 }
 
 
-template <>
+/*template <>
 EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new);
-}
+}*/
 
 template <>
 CMAC_CTX *createOpenSSLObject<CMAC_CTX>()
