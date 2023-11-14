@@ -30,8 +30,8 @@ extern "C" {
 #include <openssl/engine.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/hmac.h>
 #include <openssl/objects.h>
-#include <openssl/params.h>
 #include <openssl/pem.h>
 #include <openssl/rand.h>
 #include <openssl/rsa.h>
