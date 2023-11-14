@@ -1480,7 +1480,7 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
 
 
 OSSL_LIB_CTX_Ptr _OSSL_LIB_CTX_new(void) {
-    return createManagedOpenSSLObject<OSSL_LIB_CTX_PTR>();
+    return createManagedOpenSSLObject<OSSL_LIB_CTX_Ptr>();
 }
 
 void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[])
