@@ -964,7 +964,7 @@ void OpenSSLLib::EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept
     EVP_MAC_CTX_free(ctx);
 }
 
-EVP_MAC OpenSSLLib::EVP_MAC_fetch(OSSL_LIB_CTX *libctx, const char *algorithm, const char *properties) noexcept
+EVP_MAC *OpenSSLLib::EVP_MAC_fetch(OSSL_LIB_CTX *libctx, const char *algorithm, const char *properties) noexcept
 {
     return EVP_MAC_fetch(libctx, algorithm, properties);
 }
