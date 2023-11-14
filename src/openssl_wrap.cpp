@@ -692,11 +692,6 @@ X509_CRL *createOpenSSLObject<X509_CRL>()
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_X509_CRL_new);
 }
 
-template <>
-HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
-{
-    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_HMAC_CTX_new);
-}
 
 template <>
 EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>()
