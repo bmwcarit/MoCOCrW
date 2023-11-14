@@ -1504,7 +1504,7 @@ void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data)
 
 EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac)
 {
-    EVP_MAC_CTX *ctx = OpensslCallPtr::callChecked(lib::OpenSSL::EVP_MAC_CTX_new, mac);
+    EVP_MAC_CTX *ctx = OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, mac);
     return std::unique_ptr<EVP_MAC_CTX_Ptr>(ctx);
 }
 
