@@ -1507,7 +1507,7 @@ void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data)
     OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_update, ctx, data.data(), data.size());
 }
 
-EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC_Ptr mac) { return createManagedOpenSSLObject<EVP_MAC_CTX_Ptr>(mac); }
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac) { return createManagedOpenSSLObject<EVP_MAC_CTX_Ptr>(mac); }
 
 EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm) {
     EVP_MAC_Ptr mac = OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_fetch, libctx, algorithm.c_str(), nullptr);
