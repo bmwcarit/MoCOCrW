@@ -520,7 +520,7 @@ const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
     }
 
     OSSL_PARAM params[4], *p = params;
-    *p++ = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, digest_name.c_str(), sizeof(digest_name.c_str()));
+    *p++ = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, const_cast<char*>(digest_name.c_str()), sizeof(digest_name.c_str()));
     *p = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_end();
 
     std::array<int, 4> ossl_params;
