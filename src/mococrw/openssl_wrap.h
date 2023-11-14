@@ -1502,7 +1502,7 @@ OSSL_LIB_CTX_Ptr _OSSL_LIB_CTX_new(void);
 void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[]);
 std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx);
 void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data);
-EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC_Ptr mac);
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac);
 
 EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm);
 

@@ -44,7 +44,7 @@ public:
         openssl::OSSL_LIB_CTX_Ptr library_context = openssl::_OSSL_LIB_CTX_new();
         openssl::EVP_MAC_Ptr mac = openssl::_EVP_MAC_fetch(library_context.get(), "HMAC");
 
-        _ctx = openssl::_EVP_MAC_CTX_new(mac);
+        _ctx = openssl::_EVP_MAC_CTX_new(mac.get());
 
         std::array<OSSL_PARAM, 4> ossl_params = openssl::_getOSSLParamFromDigestType(hashFunction);
         OSSL_PARAM params[4];
