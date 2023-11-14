@@ -523,7 +523,7 @@ const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
     *p++ = lib::OpenSSLLib::OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, digest_name.c_str(), sizeof(digest_name.c_str()));
     *p = OSSL_PARAM_construct_end();
 
-    std::array<int, n> ossl_params;
+    std::array<int, 4> ossl_params;
     std::copy(std::begin(params), std::end(params), ossl_params.begin());
 
     return ossl_params;
@@ -696,6 +696,12 @@ template <>
 HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_HMAC_CTX_new);
+}
+
+template <>
+EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>()
+{
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new);
 }
 
 template <>
