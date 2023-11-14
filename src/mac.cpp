@@ -42,7 +42,7 @@ public:
         }
 
         openssl::OSSL_LIB_CTX_Ptr library_context = openssl::_OSSL_LIB_CTX_new();
-        openssl::EVP_MAC_Ptr mac = openssl::_EVP_MAC_fetch(library_context, "HMAC");
+        openssl::EVP_MAC_Ptr mac = openssl::_EVP_MAC_fetch(library_context.get(), "HMAC");
 
         _ctx = openssl::_EVP_MAC_CTX_new(mac);
 
@@ -72,7 +72,7 @@ public:
             throw MoCOCrWException("finish() can't be called twice.");
         }
 
-        _result = openssl::_EVP_MAC_final(_ctx.get());
+        _sult = openssl::_EVP_MAC_final(_ctx.get());
 
         _isFinished = true;
 
