@@ -1504,7 +1504,7 @@ std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx);
 void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data);
 EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac);
 
-EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm);
+EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX_Ptr libctx, std::string algorithm);
 
 /* CMAC */
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void);
