@@ -72,7 +72,7 @@ public:
             throw MoCOCrWException("finish() can't be called twice.");
         }
 
-        _sult = openssl::_EVP_MAC_final(_ctx.get());
+        _result = openssl::_EVP_MAC_final(_ctx.get());
 
         _isFinished = true;
 
