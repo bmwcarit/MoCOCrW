@@ -693,11 +693,11 @@ X509_CRL *createOpenSSLObject<X509_CRL>()
 }
 
 
-/*template <>
-EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>()
+template <typename... Types>
+EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>(Types... args)
 {
-    return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new);
-}*/
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, args...);
+}
 
 template <>
 CMAC_CTX *createOpenSSLObject<CMAC_CTX>()
@@ -1504,8 +1504,7 @@ void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data)
 
 EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac)
 {
-    EVP_MAC_CTX *ctx = OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, mac);
-    return std::unique_ptr<EVP_MAC_CTX_Ptr>(ctx);
+    return createManagedOpenSSLObject<EVP_MAC_CTX_Ptr, EVP_MAC*>(mac);
 }
 
 EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm) {

@@ -846,10 +846,10 @@ void _X509_verify_cert(X509_STORE_CTX *ctx);
 template <class SslType>
 SslType *createOpenSSLObject();
 
-template <class SSLSmartPtrType>
-SSLSmartPtrType createManagedOpenSSLObject()
+template <class SSLSmartPtrType, typename... Types>
+SSLSmartPtrType createManagedOpenSSLObject(Types... args)
 {
-    return SSLSmartPtrType{createOpenSSLObject<typename SSLSmartPtrType::element_type>()};
+    return SSLSmartPtrType{createOpenSSLObject<typename SSLSmartPtrType::element_type>(args)};
 }
 
 template <class StackType, class ObjType>
