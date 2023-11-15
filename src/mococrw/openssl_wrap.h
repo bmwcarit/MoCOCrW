@@ -849,7 +849,7 @@ SslType *createOpenSSLObject();
 template <class SSLSmartPtrType, typename... Types>
 SSLSmartPtrType createManagedOpenSSLObject(Types... args)
 {
-    return SSLSmartPtrType{createOpenSSLObject<typename SSLSmartPtrType::element_type>(args)};
+    return SSLSmartPtrType{createOpenSSLObject<typename SSLSmartPtrType::element_type>(args...)};
 }
 
 template <class StackType, class ObjType>
