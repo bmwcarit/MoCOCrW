@@ -339,7 +339,7 @@ public:
                                               const RSASpec &spec,
                                               const std::string &keyLabel,
                                               const std::vector<uint8_t> &keyID,
-                                              const HsmKeyParams &params);
+                                              const HsmKeyParameters &params);
 
     /**
      * @brief Generates ECC keypair on HSM token according to the spec given.
@@ -379,7 +379,7 @@ public:
                                               const ECCSpec &spec,
                                               const std::string &keyLabel,
                                               const std::vector<uint8_t> &keyID,
-                                              const HsmKeyParams &params);
+                                              const HsmKeyParameters &params);
 #endif
 
 private:

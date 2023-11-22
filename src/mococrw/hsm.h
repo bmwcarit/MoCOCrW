@@ -25,6 +25,9 @@ namespace mococrw
 class ECCSpec;
 class RSASpec;
 
+
+
+
 /**
  * This class currently contains PKCS#11 attributes which are changeable on key creation.
  * In the future also parameters for other keystorage interfaces can be added.
@@ -218,12 +221,14 @@ protected:
     openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID,
-                                          const HsmKeyParams &params) override;
+                                          const HsmKeyParameters &params) override;
 
     openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                           const std::string &keyLabel,
                                           const std::vector<uint8_t> &keyID,
-                                          const HsmKeyParams &params) override;
+                                          const HsmKeyParameters &params) override;
+
+
 
 private:
     /**

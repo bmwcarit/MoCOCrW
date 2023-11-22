@@ -229,7 +229,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const RSASpec &spec,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID,
-                                                      const HsmKeyParams &params)
+                                                      const HsmKeyParameters &params)
 {
     // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
@@ -268,7 +268,7 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const ECCSpec &spec,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID,
-                                                      const HsmKeyParams &params)
+                                                      const HsmKeyParameters &params)
 {
     // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
