@@ -26,7 +26,12 @@ class ECCSpec;
 class RSASpec;
 
 
-
+// Needed for old deprecated API
+struct HsmKeyParams
+{
+    bool cka_extractable = false;
+    bool cka_sensitive = true;
+};
 
 /**
  * This class currently contains PKCS#11 attributes which are changeable on key creation.

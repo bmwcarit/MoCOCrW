@@ -246,6 +246,27 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
 }
 
 AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
+                                                      const RSASpec &spec,
+                                                      const std::string &keyLabel,
+                                                      const std::vector<uint8_t> &keyID,
+                                                      const HsmKeyParams &params)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.size() >= 64) {
+        throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
+    }
+    try {
+        HsmKeyParameters parameters = HsmKeyParameters::Builder{}.setExtractable(params.cka_extractable).build();
+        return AsymmetricKeypair{hsm.generateKey(spec, keyLabel, keyID, parameters)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
+}
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const ECCSpec &spec,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID)
@@ -283,6 +304,28 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                 e.what());
     }
 }
+
+AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
+                                                      const ECCSpec &spec,
+                                                      const std::string &keyLabel,
+                                                      const std::vector<uint8_t> &keyID,
+                                                      const HsmKeyParams &params)
+{
+    // libp11 uses 128 byte buffer
+    if (keyID.size() >= 64) {
+        throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
+    }
+    try {
+        HsmKeyParameters parameters = HsmKeyParameters::Builder{}.setExtractable(params.cka_extractable).build();
+        return AsymmetricKeypair{hsm.generateKey(spec, keyLabel, keyID, parameters)};
+    } catch (const openssl::OpenSSLException &e) {
+        throw MoCOCrWException(
+                // wrong token-label? using unsupported ECC curve? HSM module implementation?
+                std::string("Key generation failed for unknown reason. OpenSSL error: ") +
+                e.what());
+    }
+}
+
 #endif
 
 AsymmetricKey RSASpec::generate() const
