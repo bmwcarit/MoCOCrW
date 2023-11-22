@@ -29,7 +29,7 @@ class RSASpec;
  * This class currently contains PKCS#11 attributes which are changeable on key creation.
  * In the future also parameters for other keystorage interfaces can be added.
  */
-class HsmKeyParams
+class HsmKeyParameters
 {
 public:
     class Builder;
@@ -43,10 +43,10 @@ private:
      * Check https://docs.oasis-open.org/pkcs11/pkcs11-base/v2.40/os/pkcs11-base-v2.40-os.html
      * for more details.
      */
-    HsmKeyParams() : _extractable(false) {}
+    HsmKeyParameters() : _extractable(false) {}
 };
 
-class HsmKeyParams::Builder
+class HsmKeyParameters::Builder
 {
 public:
     Builder() {}
@@ -56,10 +56,10 @@ public:
         return *this;
     }
 
-    HsmKeyParams build() { return params_; }
+    HsmKeyParameters build() { return params_; }
 
 private:
-    HsmKeyParams params_;
+    HsmKeyParameters params_;
 };
 
 /**
@@ -143,7 +143,7 @@ protected:
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const RSASpec &spec,
                                                   const std::string &keyLabel,
                                                   const std::vector<uint8_t> &keyID,
-                                                  const HsmKeyParams &params) = 0;
+                                                  const HsmKeyParameters &params) = 0;
 
     /**
      * @brief Generate a ECC key pair on the HSM
@@ -158,7 +158,7 @@ protected:
     virtual openssl::SSL_EVP_PKEY_Ptr generateKey(const ECCSpec &spec,
                                                   const std::string &keyLabel,
                                                   const std::vector<uint8_t> &keyID,
-                                                  const HsmKeyParams &params) = 0;
+                                                  const HsmKeyParameters &params) = 0;
 };
 
 /**

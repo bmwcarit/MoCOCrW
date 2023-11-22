@@ -452,9 +452,9 @@ int main(void)
         /**
          * Generate extractable and non-extractable keys for ECC and RSA
          */
-        HsmKeyParams hsmKeyParamsExtract = HsmKeyParams::Builder{}.setExtractable(true).build();
+        HsmKeyParameters hsmKeyParamsExtract = HsmKeyParameters::Builder{}.setExtractable(true).build();
 
-        HsmKeyParams hsmKeyParamsDefault = HsmKeyParams::Builder{}.build();
+        HsmKeyParameters hsmKeyParamsDefault = HsmKeyParameters::Builder{}.build();
 
         /* We need a new token otherwise the keys generated before litter the slot */
 
