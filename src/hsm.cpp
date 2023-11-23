@@ -188,14 +188,14 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
-    HsmKeyParams hsmKeyParams = HsmKeyParams::Builder{}.setExtractable(false).build();
+    HsmKeyParameters hsmKeyParams = HsmKeyParameters::Builder{}.setExtractable(false).build();
     return generateKey(spec, keyLabel, keyID, hsmKeyParams);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const RSASpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID,
-                                                 const HsmKeyParams &params)
+                                                 const HsmKeyParameters &params)
 {
     try {
         // We need to make sure that we don't have 2 keys with the same ID.
@@ -233,14 +233,14 @@ openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID)
 {
-    HsmKeyParams hsmKeyParams = HsmKeyParams::Builder{}.setExtractable(false).build();
+    HsmKeyParameters hsmKeyParams = HsmKeyParameters::Builder{}.setExtractable(false).build();
     return generateKey(spec, keyLabel, keyID, hsmKeyParams);
 }
 
 openssl::SSL_EVP_PKEY_Ptr HsmEngine::generateKey(const ECCSpec &spec,
                                                  const std::string &keyLabel,
                                                  const std::vector<uint8_t> &keyID,
-                                                 const HsmKeyParams &params)
+                                                 const HsmKeyParameters &params)
 {
     try {
         // We need to make sure that we don't have 2 keys with the same ID.
