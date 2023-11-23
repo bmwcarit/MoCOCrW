@@ -211,7 +211,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
@@ -231,7 +230,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::vector<uint8_t> &keyID,
                                                       const HsmKeyParameters &params)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
@@ -251,7 +249,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::vector<uint8_t> &keyID,
                                                       const HsmKeyParams &params)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
@@ -271,7 +268,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::string &keyLabel,
                                                       const std::vector<uint8_t> &keyID)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
@@ -291,7 +287,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::vector<uint8_t> &keyID,
                                                       const HsmKeyParameters &params)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }
@@ -311,7 +306,6 @@ AsymmetricKeypair AsymmetricKeypair::generateKeyOnHSM(HSM &hsm,
                                                       const std::vector<uint8_t> &keyID,
                                                       const HsmKeyParams &params)
 {
-    // libp11 uses 128 byte buffer
     if (keyID.size() >= 64) {
         throw MoCOCrWException("Invalid keyID - key longer than 63 bytes");
     }

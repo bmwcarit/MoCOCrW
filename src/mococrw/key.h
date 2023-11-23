@@ -341,7 +341,7 @@ public:
                                               const std::vector<uint8_t> &keyID,
                                               const HsmKeyParameters &params);
 
-    /** Deprecated func
+    /**
      * @brief Generates RSA keypair on HSM token according to the spec given.
      * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
      * Therefore care should be taken when generating keys with other tools on the same token.
@@ -356,6 +356,7 @@ public:
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
      * some things to stderr, check if there's more context there
      */
+    [[deprecated]]
     static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
                                               const RSASpec &spec,
                                               const std::string &keyLabel,
@@ -402,7 +403,7 @@ public:
                                               const std::vector<uint8_t> &keyID,
                                               const HsmKeyParameters &params);
 
-    /** Deprecated func
+    /**
      * @brief Generates ECC keypair on HSM token according to the spec given.
      * @note PKCS#11 standard has no rule to avoid having keys with duplicate labels and/or ids.
      * Therefore care should be taken when generating keys with other tools on the same token.
@@ -417,6 +418,7 @@ public:
      * libp11 and HSM module implementation, we can't know exactly what went wrong. libp11 does log
      * some things to stderr, check if there's more context there
      */
+    [[deprecated]]
     static AsymmetricKeypair generateKeyOnHSM(HSM &hsm,
                                               const ECCSpec &spec,
                                               const std::string &keyLabel,
