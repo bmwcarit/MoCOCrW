@@ -503,18 +503,25 @@ const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
     switch (type) {
         case DigestTypes::SHA1:
             digest_name = "SHA1";
+            break;
         case DigestTypes::SHA256:
             digest_name = "SHA256";
+            break;
         case DigestTypes::SHA384:
             digest_name = "SHA384";
+            break;
         case DigestTypes::SHA512:
             digest_name = "SHA512";
+            break;
         case DigestTypes::SHA3_256:
             digest_name = "SHA3-256";
+            break;
         case DigestTypes::SHA3_384:
             digest_name = "SHA3-384";
+            break;
         case DigestTypes::SHA3_512:
             digest_name = "SHA3-512";
+            break;
         default:
             throw std::runtime_error("Unknown digest type");
     }
