@@ -843,8 +843,8 @@ void _X509_verify_cert(X509_STORE_CTX *ctx);
  *
  * @throw OpenSSLException when no object could be created
  */
-template <class SslType>
-SslType *createOpenSSLObject();
+template <class SslType, typename... Types>
+SslType *createOpenSSLObject(Types... args);
 
 template <class SSLSmartPtrType, typename... Types>
 SSLSmartPtrType createManagedOpenSSLObject(Types... args)
