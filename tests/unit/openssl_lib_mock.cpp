@@ -1048,22 +1048,22 @@ int OpenSSLLib::SSL_ECDH_KDF_X9_63(unsigned char *out,
 
 void OpenSSLLib::EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_CTX_free(ctx);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_CTX_free(ctx);
 }
 
 EVP_MAC_CTX *OpenSSLLib::EVP_MAC_CTX_new(EVP_MAC *mac) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_CTX_new(mac);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_CTX_new(mac);
 }
 
 int OpenSSLLib::EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, int *outl, int outsize) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_final(ctx, out, outl, outsize);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_final(ctx, out, outl, outsize);
 }
 
 int OpenSSLLib::EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, int datalen) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_update(ctx, data, datalen);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_update(ctx, data, datalen);
 }
 
 int OpenSSLLib::EVP_MAC_init(EVP_MAC_CTX *ctx,
@@ -1071,39 +1071,39 @@ int OpenSSLLib::EVP_MAC_init(EVP_MAC_CTX *ctx,
                              int keylen,
                              const OSSL_PARAM params[]) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_init(ctx, key, keylen, params);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_init(ctx, key, keylen, params);
 }
 
 EVP_MAC *OpenSSLLib::EVP_MAC_fetch(OSSL_LIB_CTX *libctx,
                                    const char *algorithm,
                                    const char *properties) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_fetch(libctx, algorithm, properties);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_fetch(libctx, algorithm, properties);
 }
 
 void OpenSSLLib::EVP_MAC_free(EVP_MAC *mac) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.EVP_MAC_free(mac);
+    return OpenSSLLibMockManager::getMockInterface().EVP_MAC_free(mac);
 }
 
 OSSL_LIB_CTX *OpenSSLLib::OSSL_LIB_CTX_new(void) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.OSSL_LIB_CTX_new();
+    return OpenSSLLibMockManager::getMockInterface().OSSL_LIB_CTX_new();
 }
 
 void OpenSSLLib::OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.OSSL_LIB_CTX_free(ctx);
+    return OpenSSLLibMockManager::getMockInterface().OSSL_LIB_CTX_free(ctx);
 }
 
 OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.SSL_OSSL_PARAM_construct_utf8_string(key, bug, bsize);
+    return OpenSSLLibMockManager::getMockInterface().SSL_OSSL_PARAM_construct_utf8_string(key, bug, bsize);
 }
 
 OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_end() noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface.SSL_OSSL_PARAM_construct_end();
+    return OpenSSLLibMockManager::getMockInterface().SSL_OSSL_PARAM_construct_end();
 }
 
 /*
