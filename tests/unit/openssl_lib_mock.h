@@ -449,7 +449,7 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
-    MOCK_METHOD3(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char, char *, size_t));
+    MOCK_METHOD3(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char *, char *, size_t));
     MOCK_METHOD0(SSL_OSSL_PARAM_construct_end, OSSL_PARAM());
     MOCK_METHOD2(SSL_OPENSSL_cleanse, void(void *, size_t));
     MOCK_METHOD1(SSL_EVP_PKEY_bits, int(EVP_PKEY *));
