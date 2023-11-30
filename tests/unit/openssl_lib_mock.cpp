@@ -1098,7 +1098,7 @@ void OpenSSLLib::OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) noexcept
 
 OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) noexcept
 {
-    return OpenSSLLibMockManager::getMockInterface().SSL_OSSL_PARAM_construct_utf8_string(key, bug, bsize);
+    return OpenSSLLibMockManager::getMockInterface().SSL_OSSL_PARAM_construct_utf8_string(key, buf, bsize);
 }
 
 OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_end() noexcept
