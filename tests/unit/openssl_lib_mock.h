@@ -35,7 +35,7 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
-    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf) = 0;
+    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) = 0;
     virtual OSSL_PARAM SSL_OSSL_PARAM_construct_end() = 0;
     virtual void SSL_OPENSSL_cleanse(void *ptr, size_t len) = 0;
     virtual int SSL_EVP_PKEY_bits(EVP_PKEY *pkey) = 0;
@@ -449,7 +449,7 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
-    MOCK_METHOD1(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char *key));
+    MOCK_METHOD1(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char, char *, size_t));
     MOCK_METHOD0(SSL_OSSL_PARAM_construct_end, OSSL_PARAM());
     MOCK_METHOD2(SSL_OPENSSL_cleanse, void(void *, size_t));
     MOCK_METHOD1(SSL_EVP_PKEY_bits, int(EVP_PKEY *));
