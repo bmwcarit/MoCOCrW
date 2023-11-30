@@ -496,8 +496,6 @@ public:
     MOCK_METHOD1(EVP_MAC_free, void(EVP_MAC *));
     MOCK_METHOD0(OSSL_LIB_CTX_new, OSSL_LIB_CTX *());
     MOCK_METHOD1(OSSL_LIB_CTX_free, void(OSSL_LIB_CTX *));
-    MOCK_METHOD3(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char *, char *, size_t));
-    MOCK_METHOD0(SSL_OSSL_PARAM_construct_end, OSSL_PARAM());
 
 
     /*MOCK_METHOD1(SSL_HMAC_CTX_free, void(HMAC_CTX *));
