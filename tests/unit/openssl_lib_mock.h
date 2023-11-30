@@ -101,8 +101,6 @@ public:
     virtual void EVP_MAC_free(EVP_MAC *mac) = 0;
     virtual OSSL_LIB_CTX *OSSL_LIB_CTX_new(void) = 0;
     virtual void OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) = 0;
-    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) = 0;
-    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_end() = 0;
 
     /*virtual void SSL_HMAC_CTX_free(HMAC_CTX *ctx) = 0;
     virtual HMAC_CTX *SSL_HMAC_CTX_new() = 0;
