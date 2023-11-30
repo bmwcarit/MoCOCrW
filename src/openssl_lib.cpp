@@ -1043,6 +1043,7 @@ int OpenSSLLib::SSL_BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen) 
 }
 
 /* CMAC */
+/*
 CMAC_CTX *OpenSSLLib::SSL_CMAC_CTX_new() noexcept { return CMAC_CTX_new(); }
 void OpenSSLLib::SSL_CMAC_CTX_cleanup(CMAC_CTX *ctx) noexcept { CMAC_CTX_cleanup(ctx); }
 void OpenSSLLib::SSL_CMAC_CTX_free(CMAC_CTX *ctx) noexcept { CMAC_CTX_free(ctx); }
@@ -1071,6 +1072,7 @@ int OpenSSLLib::SSL_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutle
     return CMAC_Final(ctx, out, poutlen);
 }
 int OpenSSLLib::SSL_CMAC_resume(CMAC_CTX *ctx) noexcept { return CMAC_resume(ctx); }
+ */
 EVP_PKEY *OpenSSLLib::SSL_ENGINE_load_private_key(ENGINE *e,
                                                   const char *key_id,
                                                   UI_METHOD *ui_method,

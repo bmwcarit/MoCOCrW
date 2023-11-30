@@ -1209,6 +1209,7 @@ int OpenSSLLib::SSL_BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen) 
 }
 
 /* CMAC */
+/*
 CMAC_CTX *OpenSSLLib::SSL_CMAC_CTX_new() noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_CMAC_CTX_new();
@@ -1248,7 +1249,7 @@ int OpenSSLLib::SSL_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutle
 int OpenSSLLib::SSL_CMAC_resume(CMAC_CTX *ctx) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_CMAC_resume(ctx);
-}
+}*/
 
 int OpenSSLLib::SSL_EVP_CIPHER_key_length(const EVP_CIPHER *cipher) noexcept
 {

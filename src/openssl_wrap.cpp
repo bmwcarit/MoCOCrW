@@ -1516,7 +1516,7 @@ EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm) {
     return EVP_MAC_Ptr{OpensslCallPtr::callChecked(
             lib::OpenSSLLib::EVP_MAC_fetch, libctx, algorithm.c_str(), nullptr)};
 }
-
+/*
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void) { return createManagedOpenSSLObject<SSL_CMAC_CTX_Ptr>(); }
 
 void _CMAC_Init(CMAC_CTX *ctx,
@@ -1541,7 +1541,7 @@ std::vector<uint8_t> _CMAC_Final(CMAC_CTX *ctx)
     assert(length <= cmac.size());
     cmac.resize(length);
     return cmac;
-}
+}*/
 
 const EVP_CIPHER *_getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType)
 {
@@ -1553,6 +1553,30 @@ const EVP_CIPHER *_getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType)
         default:
             throw std::runtime_error("Unknown cipher type");
     }
+}
+
+const std::array<OSSL_PARAM, 3> _getOSSLParamFromCmacCipherType(CmacCipherTypes cipherType)
+{
+    std::string cipher_name;
+    switch (cipherType) {
+        case CmacCipherTypes::AES_CBC_128:
+            cipher_name = "aes-128-cbc";
+            break;
+        case CmacCipherTypes::AES_CBC_256:
+            cipher_name = "aes-256-cbc";
+            break;
+        default:
+            throw std::runtime_error("Unknown cipher type");
+    }
+
+    OSSL_PARAM params[3], *p = params;
+    *p++ = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_CIPHER, const_cast<char*>(cipher_name.c_str()), 0);
+    *p = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_end();
+
+    std::array<OSSL_PARAM, 3> ossl_params;
+    std::copy(std::begin(params), std::end(params), ossl_params.begin());
+
+    return ossl_params;
 }
 
 SSL_EC_KEY_Ptr _EC_KEY_oct2key(int nid, const std::vector<uint8_t> &buf)
