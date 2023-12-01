@@ -101,14 +101,7 @@ public:
     virtual void EVP_MAC_free(EVP_MAC *mac) = 0;
     virtual OSSL_LIB_CTX *OSSL_LIB_CTX_new(void) = 0;
     virtual void OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) = 0;
-
-    /*virtual void SSL_HMAC_CTX_free(HMAC_CTX *ctx) = 0;
-    virtual HMAC_CTX *SSL_HMAC_CTX_new() = 0;
-    virtual int SSL_HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len) = 0;
-    virtual int SSL_HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, int len) = 0;
-    virtual int SSL_HMAC_Init_ex(
-            HMAC_CTX *ctx, const void *key, int key_len, const EVP_MD *md, ENGINE *impl) = 0;
-*/
+    
     virtual int SSL_i2d_X509_REQ_bio(BIO *bp, X509_REQ *req) = 0;
     virtual X509_REQ *SSL_d2i_X509_REQ_bio(BIO *bp, X509_REQ **req) = 0;
     virtual void SSL_X509_PUBKEY_free(X509_PUBKEY *a) = 0;
@@ -498,11 +491,6 @@ public:
     MOCK_METHOD1(OSSL_LIB_CTX_free, void(OSSL_LIB_CTX *));
 
 
-    /*MOCK_METHOD1(SSL_HMAC_CTX_free, void(HMAC_CTX *));
-    MOCK_METHOD0(SSL_HMAC_CTX_new, HMAC_CTX *());
-    MOCK_METHOD3(SSL_HMAC_Final, int(HMAC_CTX *, unsigned char *, unsigned int *));
-    MOCK_METHOD3(SSL_HMAC_Update, int(HMAC_CTX *, const unsigned char *, int));
-    MOCK_METHOD5(SSL_HMAC_Init_ex, int(HMAC_CTX *, const void *, int, const EVP_MD *, ENGINE *));*/
     MOCK_METHOD2(SSL_i2d_X509_REQ_bio, int(BIO *, X509_REQ *));
     MOCK_METHOD2(SSL_d2i_X509_REQ_bio, X509_REQ *(BIO *, X509_REQ **));
     MOCK_METHOD3(SSL_d2i_X509_PUBKEY, X509_PUBKEY *(X509_PUBKEY **, const unsigned char **, long));

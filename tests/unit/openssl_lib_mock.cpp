@@ -1106,30 +1106,6 @@ OSSL_PARAM OpenSSLLib::SSL_OSSL_PARAM_construct_end() noexcept
     return OpenSSLLibMockManager::getMockInterface().SSL_OSSL_PARAM_construct_end();
 }
 
-/*
-int OpenSSLLib::SSL_HMAC_Init_ex(
-        HMAC_CTX *ctx, const void *key, int key_len, const EVP_MD *md, ENGINE *impl) noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_HMAC_Init_ex(ctx, key, key_len, md, impl);
-}
-int OpenSSLLib::SSL_HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, int len) noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_HMAC_Update(ctx, data, len);
-}
-int OpenSSLLib::SSL_HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len) noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_HMAC_Final(ctx, md, len);
-}
-HMAC_CTX *OpenSSLLib::SSL_HMAC_CTX_new() noexcept
-{
-    return OpenSSLLibMockManager::getMockInterface().SSL_HMAC_CTX_new();
-}
-
-void OpenSSLLib::SSL_HMAC_CTX_free(HMAC_CTX *ctx) noexcept
-{
-    OpenSSLLibMockManager::getMockInterface().SSL_HMAC_CTX_free(ctx);
-}
-*/
 int OpenSSLLib::SSL_EC_KEY_oct2key(EC_KEY *eckey, const unsigned char *buf, size_t len) noexcept
 {
     return OpenSSLLibMockManager::getMockInterface().SSL_EC_KEY_oct2key(eckey, buf, len);
