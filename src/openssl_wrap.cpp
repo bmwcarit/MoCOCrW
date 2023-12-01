@@ -705,11 +705,11 @@ EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>(EVP_MAC *mac)
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, mac);
 }
 
-template <>
+/*template <>
 CMAC_CTX *createOpenSSLObject<CMAC_CTX>()
 {
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_CMAC_CTX_new);
-}
+}*/
 
 template <>
 ECDSA_SIG *createOpenSSLObject<ECDSA_SIG>()
