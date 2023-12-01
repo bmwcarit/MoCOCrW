@@ -137,8 +137,17 @@ public:
             throw MoCOCrWException(formatter.str());
         }
 
-        _ctx = openssl::_CMAC_CTX_new();
-        openssl::_CMAC_Init(_ctx.get(), key, cipher, nullptr);
+        openssl::OSSL_LIB_CTX_Ptr library_context = openssl::_OSSL_LIB_CTX_new();
+        openssl::EVP_MAC_Ptr mac = openssl::_EVP_MAC_fetch(library_context.get(), "CMAC");
+
+        _ctx = openssl::_EVP_MAC_CTX_new(mac.get());
+
+        std::array<OSSL_PARAM, 3> ossl_params = openssl::_getOSSLParamFromCmacCipherType(cipherType);
+        OSSL_PARAM params[3];
+        std::copy(std::begin(ossl_params), std::end(ossl_params), std::begin(params));
+
+        openssl::_EVP_MAC_init(_ctx.get(), key, params);
+
     }
 
     ~Impl() = default;
@@ -150,7 +159,7 @@ public:
         if (_isFinished) {
             throw MoCOCrWException("update() can't be called after finish()");
         }
-        openssl::_CMAC_Update(_ctx.get(), message);
+        openssl::_EVP_MAC_update(_ctx.get(), message);
     }
 
     std::vector<uint8_t> finish()
@@ -159,7 +168,7 @@ public:
             throw MoCOCrWException("finish() can't be called twice.");
         }
 
-        _result = openssl::_CMAC_Final(_ctx.get());
+        _result = openssl::_EVP_MAC_final(_ctx.get());
 
         _isFinished = true;
 
@@ -184,7 +193,7 @@ public:
     }
 
 private:
-    openssl::SSL_CMAC_CTX_Ptr _ctx = nullptr;
+    openssl::EVP_MAC_CTX_Ptr _ctx = nullptr;
     bool _isFinished = false;
     std::vector<uint8_t> _result;
 };

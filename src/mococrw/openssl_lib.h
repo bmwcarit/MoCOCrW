@@ -443,7 +443,7 @@ public:
     static void OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) noexcept;
 
 
-    /* HMAC */
+    /* MAC */
     static void EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) noexcept;
     static EVP_MAC_CTX *EVP_MAC_CTX_new(EVP_MAC *mac) noexcept;
     static int EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, int *outl, int outsize) noexcept;
@@ -458,20 +458,6 @@ public:
 
     static void EVP_MAC_free(EVP_MAC *mac) noexcept;
 
-    /* CMAC */
-    static CMAC_CTX *SSL_CMAC_CTX_new() noexcept;
-    static void SSL_CMAC_CTX_cleanup(CMAC_CTX *ctx) noexcept;
-    static void SSL_CMAC_CTX_free(CMAC_CTX *ctx) noexcept;
-    static EVP_CIPHER_CTX *SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX *ctx) noexcept;
-    static int SSL_CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in) noexcept;
-    static int SSL_CMAC_Init(CMAC_CTX *ctx,
-                             const void *key,
-                             size_t keylen,
-                             const EVP_CIPHER *cipher,
-                             ENGINE *impl) noexcept;
-    static int SSL_CMAC_Update(CMAC_CTX *ctx, const void *data, size_t dlen) noexcept;
-    static int SSL_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen) noexcept;
-    static int SSL_CMAC_resume(CMAC_CTX *ctx) noexcept;
 
     /* EC Point import and export */
     static size_t SSL_EC_KEY_key2buf(const EC_KEY *eckey,

@@ -419,20 +419,7 @@ public:
                                       int keylen,
                                       unsigned char *out) = 0;
 
-    /* CMAC */
-    virtual CMAC_CTX *SSL_CMAC_CTX_new() = 0;
-    virtual void SSL_CMAC_CTX_cleanup(CMAC_CTX *ctx) = 0;
-    virtual void SSL_CMAC_CTX_free(CMAC_CTX *ctx) = 0;
-    virtual EVP_CIPHER_CTX *SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX *ctx) = 0;
-    virtual int SSL_CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in) = 0;
-    virtual int SSL_CMAC_Init(CMAC_CTX *ctx,
-                              const void *key,
-                              size_t keylen,
-                              const EVP_CIPHER *cipher,
-                              ENGINE *impl) = 0;
-    virtual int SSL_CMAC_Update(CMAC_CTX *ctx, const void *data, size_t dlen) = 0;
-    virtual int SSL_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen) = 0;
-    virtual int SSL_CMAC_resume(CMAC_CTX *ctx) = 0;
+
 };
 
 /**
