@@ -705,12 +705,6 @@ EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>(EVP_MAC *mac)
     return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, mac);
 }
 
-/*template <>
-CMAC_CTX *createOpenSSLObject<CMAC_CTX>()
-{
-    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_CMAC_CTX_new);
-}*/
-
 template <>
 ECDSA_SIG *createOpenSSLObject<ECDSA_SIG>()
 {
@@ -1516,32 +1510,7 @@ EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm) {
     return EVP_MAC_Ptr{OpensslCallPtr::callChecked(
             lib::OpenSSLLib::EVP_MAC_fetch, libctx, algorithm.c_str(), nullptr)};
 }
-/*
-SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void) { return createManagedOpenSSLObject<SSL_CMAC_CTX_Ptr>(); }
 
-void _CMAC_Init(CMAC_CTX *ctx,
-                const std::vector<uint8_t> &key,
-                const EVP_CIPHER *cipher,
-                ENGINE *impl)
-{
-    OpensslCallIsOne::callChecked(
-            lib::OpenSSLLib::SSL_CMAC_Init, ctx, key.data(), key.size(), cipher, impl);
-}
-
-void _CMAC_Update(CMAC_CTX *ctx, const std::vector<uint8_t> &data)
-{
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_CMAC_Update, ctx, data.data(), data.size());
-}
-
-std::vector<uint8_t> _CMAC_Final(CMAC_CTX *ctx)
-{
-    std::vector<uint8_t> cmac(EVP_MAX_BLOCK_LENGTH);
-    size_t length = 0;
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_CMAC_Final, ctx, cmac.data(), &length);
-    assert(length <= cmac.size());
-    cmac.resize(length);
-    return cmac;
-}*/
 
 const EVP_CIPHER *_getCipherPtrFromCmacCipherType(CmacCipherTypes cipherType)
 {

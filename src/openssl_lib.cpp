@@ -1042,37 +1042,6 @@ int OpenSSLLib::SSL_BN_bn2binpad(const BIGNUM *a, unsigned char *to, int tolen) 
     return BN_bn2binpad(a, to, tolen);
 }
 
-/* CMAC */
-/*
-CMAC_CTX *OpenSSLLib::SSL_CMAC_CTX_new() noexcept { return CMAC_CTX_new(); }
-void OpenSSLLib::SSL_CMAC_CTX_cleanup(CMAC_CTX *ctx) noexcept { CMAC_CTX_cleanup(ctx); }
-void OpenSSLLib::SSL_CMAC_CTX_free(CMAC_CTX *ctx) noexcept { CMAC_CTX_free(ctx); }
-EVP_CIPHER_CTX *OpenSSLLib::SSL_CMAC_CTX_get0_cipher_ctx(CMAC_CTX *ctx) noexcept
-{
-    return CMAC_CTX_get0_cipher_ctx(ctx);
-}
-int OpenSSLLib::SSL_CMAC_CTX_copy(CMAC_CTX *out, const CMAC_CTX *in) noexcept
-{
-    return CMAC_CTX_copy(out, in);
-}
-int OpenSSLLib::SSL_CMAC_Init(CMAC_CTX *ctx,
-                              const void *key,
-                              size_t keylen,
-                              const EVP_CIPHER *cipher,
-                              ENGINE *impl) noexcept
-{
-    return CMAC_Init(ctx, key, keylen, cipher, impl);
-}
-int OpenSSLLib::SSL_CMAC_Update(CMAC_CTX *ctx, const void *data, size_t dlen) noexcept
-{
-    return CMAC_Update(ctx, data, dlen);
-}
-int OpenSSLLib::SSL_CMAC_Final(CMAC_CTX *ctx, unsigned char *out, size_t *poutlen) noexcept
-{
-    return CMAC_Final(ctx, out, poutlen);
-}
-int OpenSSLLib::SSL_CMAC_resume(CMAC_CTX *ctx) noexcept { return CMAC_resume(ctx); }
- */
 EVP_PKEY *OpenSSLLib::SSL_ENGINE_load_private_key(ENGINE *e,
                                                   const char *key_id,
                                                   UI_METHOD *ui_method,
