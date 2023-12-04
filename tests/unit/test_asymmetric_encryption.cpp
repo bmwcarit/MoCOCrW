@@ -342,7 +342,7 @@ TEST_P(AsymmetricEncryptionTest, testSuccessfulEncryption)
     EXPECT_EQ(decrypted, message);
 }
 
-INSTANTIATE_TEST_CASE_P(testSuccessfulEncryptionDecryption,
+INSTANTIATE_TEST_SUITE_P(testSuccessfulEncryptionDecryption,
                         AsymmetricEncryptionTest,
                         testing::ValuesIn(AsymmetricEncryptionTest::nominalDataSet));
 

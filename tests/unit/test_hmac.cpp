@@ -118,7 +118,7 @@ static std::vector<inputData> prepareTestDataForHmacTests()
 class HmacTests : public testing::TestWithParam<inputData>
 {
 };
-INSTANTIATE_TEST_CASE_P(hmac, HmacTests, testing::ValuesIn(prepareTestDataForHmacTests()));
+INSTANTIATE_TEST_SUITE_P(hmac, HmacTests, testing::ValuesIn(prepareTestDataForHmacTests()));
 
 TEST_P(HmacTests, tests) { testHmac(GetParam()); }
 

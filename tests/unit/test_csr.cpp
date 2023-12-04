@@ -279,4 +279,4 @@ TEST_P(CSRTest, testCsrSignatureDigest)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(CSRTest, CSRTest, testing::ValuesIn(CSRTest::_asymmetricKeys));
+INSTANTIATE_TEST_SUITE_P(CSRTest, CSRTest, testing::ValuesIn(CSRTest::_asymmetricKeys));

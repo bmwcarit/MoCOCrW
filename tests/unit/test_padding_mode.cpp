@@ -248,6 +248,6 @@ TEST_P(PaddingModeTest, testMessageSize)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(testMessageSize,
+INSTANTIATE_TEST_SUITE_P(testMessageSize,
                         PaddingModeTest,
                         testing::ValuesIn(PaddingModeTest::messageSizeDataSet));

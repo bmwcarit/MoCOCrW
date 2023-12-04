@@ -89,7 +89,7 @@ static std::vector<inputData> prepareTestDataForPbkdf2Tests()
 class Pbkdf2Tests : public testing::TestWithParam<inputData>
 {
 };
-INSTANTIATE_TEST_CASE_P(pbkdf2, Pbkdf2Tests, testing::ValuesIn(prepareTestDataForPbkdf2Tests()));
+INSTANTIATE_TEST_SUITE_P(pbkdf2, Pbkdf2Tests, testing::ValuesIn(prepareTestDataForPbkdf2Tests()));
 
 TEST_P(Pbkdf2Tests, tests) { testPbkfd2(GetParam()); }
 
@@ -168,6 +168,6 @@ static std::vector<inputData> prepareTestDataForX963Tests()
 class X963Tests : public testing::TestWithParam<inputData>
 {
 };
-INSTANTIATE_TEST_CASE_P(x9_63, X963Tests, testing::ValuesIn(prepareTestDataForX963Tests()));
+INSTANTIATE_TEST_SUITE_P(x9_63, X963Tests, testing::ValuesIn(prepareTestDataForX963Tests()));
 
 TEST_P(X963Tests, tests) { testX963kdf(GetParam()); }

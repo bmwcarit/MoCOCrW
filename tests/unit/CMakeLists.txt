@@ -2,19 +2,8 @@ project(mococrw)
 
 if(BUILD_TESTING) #set by Ctest. Also set in the integration build environment.
     if(NOT GMOCK_BOTH_LIBRARIES)
-        find_path(GMOCK_SRC_DIR
-            NAMES src/gmock-all.cc
-            PATHS /usr/src/gmock /usr/src/googletest/googlemock
-            NO_DEFAULT_PATH
-            ONLY_CMAKE_FIND_ROOT_PATH)
-        if(GMOCK_SRC_DIR)
-            message(STATUS "Found GMock sources in ${GMOCK_SRC_DIR}")
-            set(INSTALL_GTEST OFF CACHE BOOL "Enable installation of googletest." FORCE)
-            add_subdirectory("${GMOCK_SRC_DIR}" gmock)
-            set(GMOCK_BOTH_LIBRARIES "gmock_main")
-        else()
-            message(FATAL_ERROR "GMock sources not found build -DBUILD_TESTING=On requested!")
-        endif()
+        find_package(GTest REQUIRED) 
+        set(GMOCK_BOTH_LIBRARIES GTest::gmock_main)
     endif()
 
     add_compile_options(
