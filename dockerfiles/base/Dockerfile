@@ -9,6 +9,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get -y --no-install-rec
         g++ \
         git \
         googletest \
+        libgtest-dev \
+        libgmock-dev \
         libboost-all-dev \
         libssl-dev \
         # For llvm-symbolizer (used by A/LSAN).
