@@ -275,7 +275,7 @@ void testECIES(struct testData data)
 class ECIESTest : public testing::TestWithParam<testData>
 {
 };
-INSTANTIATE_TEST_CASE_P(ecies, ECIESTest, testing::ValuesIn(prepareTestDataForECIESTests()));
+INSTANTIATE_TEST_SUITE_P(ecies, ECIESTest, testing::ValuesIn(prepareTestDataForECIESTests()));
 
 TEST_P(ECIESTest, testWithTestVectors) { testECIES(GetParam()); }
 

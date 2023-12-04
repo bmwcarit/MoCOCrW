@@ -338,7 +338,7 @@ TEST_P(CATest, testSignedNoCACertificatesCantSignOtherCertificates)
     ASSERT_THROW(newCA.signCSR(csr), MoCOCrWException);
 }
 
-INSTANTIATE_TEST_CASE_P(CATest, CATest, testing::ValuesIn(CATest::_certKeyList));
+INSTANTIATE_TEST_SUITE_P(CATest, CATest, testing::ValuesIn(CATest::_certKeyList));
 
 TEST_F(CATest, testInitializeCAWithNonMatchingKey)
 {

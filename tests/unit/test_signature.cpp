@@ -711,15 +711,15 @@ TEST_P(SignatureTest, testSuccessfullVerificationOfKnownValidSignature)
     EXPECT_NO_THROW(param.verifyCtx->verifyMessage(param.validSignature, signVerifyTestMessage));
 }
 
-INSTANTIATE_TEST_CASE_P(testSuccessfulSigningAndVerification,
+INSTANTIATE_TEST_SUITE_P(testSuccessfulSigningAndVerification,
                         SignatureTest,
                         testing::ValuesIn(SignatureTest::SignatureTestData));
 
-INSTANTIATE_TEST_CASE_P(testUnsuccessfulSignatureAndVerificationWithModifiedSignature,
+INSTANTIATE_TEST_SUITE_P(testUnsuccessfulSignatureAndVerificationWithModifiedSignature,
                         SignatureTest,
                         testing::ValuesIn(SignatureTest::SignatureTestData));
 
-INSTANTIATE_TEST_CASE_P(testSuccessfullVerificationOfKnownValidSignature,
+INSTANTIATE_TEST_SUITE_P(testSuccessfullVerificationOfKnownValidSignature,
                         SignatureTest,
                         testing::ValuesIn(SignatureTest::SignatureTestData));
 

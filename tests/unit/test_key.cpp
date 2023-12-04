@@ -539,7 +539,7 @@ void testKeyTransformation(openssl::ellipticCurveNid nid)
 class KeyGenerationFromPointTests : public testing::TestWithParam<openssl::ellipticCurveNid>
 {
 };
-INSTANTIATE_TEST_CASE_P(keyGenFromPointTest,
+INSTANTIATE_TEST_SUITE_P(keyGenFromPointTest,
                         KeyGenerationFromPointTests,
                         testing::ValuesIn(getEllipticCurveNids()));
 

@@ -126,7 +126,7 @@ static std::vector<SymmetricCipherReferenceTestData> prepareTestDataForReference
     return testData;
 }
 
-INSTANTIATE_TEST_CASE_P(ReferenceDecryption,
+INSTANTIATE_TEST_SUITE_P(ReferenceDecryption,
                         SymmetricCipherReferenceTest,
                         testing::ValuesIn(prepareTestDataForReferenceDecryption()));
 
@@ -257,15 +257,15 @@ static std::vector<EncrytDecryptTestData> prepareTestDataForMode(SymmetricCipher
     return testData;
 }
 
-INSTANTIATE_TEST_CASE_P(GCM,
+INSTANTIATE_TEST_SUITE_P(GCM,
                         SymmetricCipherTest,
                         testing::ValuesIn(prepareTestDataForMode(SymmetricCipherMode::GCM)));
 
-INSTANTIATE_TEST_CASE_P(CBC,
+INSTANTIATE_TEST_SUITE_P(CBC,
                         SymmetricCipherTest,
                         testing::ValuesIn(prepareTestDataForMode(SymmetricCipherMode::CBC)));
 
-INSTANTIATE_TEST_CASE_P(CTR,
+INSTANTIATE_TEST_SUITE_P(CTR,
                         SymmetricCipherTest,
                         testing::ValuesIn(prepareTestDataForMode(SymmetricCipherMode::CTR)));
 
@@ -321,7 +321,7 @@ TEST_P(SymmetricCipherWrongParametersTest, throwsIfBuilderDoesNotMatchMode)
     }
 }
 
-INSTANTIATE_TEST_CASE_P(AllModes,
+INSTANTIATE_TEST_SUITE_P(AllModes,
                         SymmetricCipherWrongParametersTest,
                         testing::ValuesIn(AllSupportedCipherModesToTest));
 
@@ -436,7 +436,7 @@ TEST_P(SymmetricCipherAdvancedTest, readDecryptedTextInChunks)
     ASSERT_THAT(decryptedText, ::testing::ElementsAreArray(_plaintext));
 }
 
-INSTANTIATE_TEST_CASE_P(Chunks,
+INSTANTIATE_TEST_SUITE_P(Chunks,
                         SymmetricCipherAdvancedTest,
                         testing::ValuesIn(AllSupportedCipherModesToTest));
 
