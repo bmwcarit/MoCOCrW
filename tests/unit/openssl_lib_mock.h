@@ -35,6 +35,8 @@ namespace openssl
 class OpenSSLLibMockInterface
 {
 public:
+    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_utf8_string(const char *key, char *buf, size_t bsize) = 0;
+    virtual OSSL_PARAM SSL_OSSL_PARAM_construct_end() = 0;
     virtual void SSL_OPENSSL_cleanse(void *ptr, size_t len) = 0;
     virtual int SSL_EVP_PKEY_bits(EVP_PKEY *pkey) = 0;
     virtual const char *SSL_EC_curve_nid2nist(int nid) = 0;
@@ -83,12 +85,23 @@ public:
     virtual void SSL_ECDSA_SIG_free(ECDSA_SIG *sig) = 0;
     virtual ECDSA_SIG *SSL_ECDSA_SIG_new() = 0;
     virtual BIGNUM *SSL_BN_bin2bn(const unsigned char *s, int len, BIGNUM *ret) = 0;
-    virtual void SSL_HMAC_CTX_free(HMAC_CTX *ctx) = 0;
-    virtual HMAC_CTX *SSL_HMAC_CTX_new() = 0;
-    virtual int SSL_HMAC_Final(HMAC_CTX *ctx, unsigned char *md, unsigned int *len) = 0;
-    virtual int SSL_HMAC_Update(HMAC_CTX *ctx, const unsigned char *data, int len) = 0;
-    virtual int SSL_HMAC_Init_ex(
-            HMAC_CTX *ctx, const void *key, int key_len, const EVP_MD *md, ENGINE *impl) = 0;
+
+    virtual void EVP_MAC_CTX_free(EVP_MAC_CTX *ctx) = 0;
+    virtual EVP_MAC_CTX *EVP_MAC_CTX_new(EVP_MAC *mac) = 0;
+    virtual int EVP_MAC_final(EVP_MAC_CTX *ctx, unsigned char *out, int *outl, int outsize) = 0;
+    virtual int EVP_MAC_update(EVP_MAC_CTX *ctx, const unsigned char *data, int datalen) = 0;
+    virtual int EVP_MAC_init(EVP_MAC_CTX *ctx,
+                             const unsigned char *key,
+                             int keylen,
+                             const OSSL_PARAM params[]) = 0;
+    virtual EVP_MAC *EVP_MAC_fetch(OSSL_LIB_CTX *libctx,
+                                   const char *algorithm,
+                                   const char *properties) = 0;
+
+    virtual void EVP_MAC_free(EVP_MAC *mac) = 0;
+    virtual OSSL_LIB_CTX *OSSL_LIB_CTX_new(void) = 0;
+    virtual void OSSL_LIB_CTX_free(OSSL_LIB_CTX *ctx) = 0;
+    
     virtual int SSL_i2d_X509_REQ_bio(BIO *bp, X509_REQ *req) = 0;
     virtual X509_REQ *SSL_d2i_X509_REQ_bio(BIO *bp, X509_REQ **req) = 0;
     virtual void SSL_X509_PUBKEY_free(X509_PUBKEY *a) = 0;
@@ -429,6 +442,8 @@ public:
 class OpenSSLLibMock : public OpenSSLLibMockInterface
 {
 public:
+    MOCK_METHOD3(SSL_OSSL_PARAM_construct_utf8_string, OSSL_PARAM(const char *, char *, size_t));
+    MOCK_METHOD0(SSL_OSSL_PARAM_construct_end, OSSL_PARAM());
     MOCK_METHOD2(SSL_OPENSSL_cleanse, void(void *, size_t));
     MOCK_METHOD1(SSL_EVP_PKEY_bits, int(EVP_PKEY *));
     MOCK_METHOD1(SSL_EC_curve_nid2nist, const char *(int));
@@ -464,11 +479,18 @@ public:
     MOCK_METHOD1(SSL_ECDSA_SIG_free, void(ECDSA_SIG *));
     MOCK_METHOD0(SSL_ECDSA_SIG_new, ECDSA_SIG *());
     MOCK_METHOD3(SSL_BN_bin2bn, BIGNUM *(const unsigned char *, int, BIGNUM *));
-    MOCK_METHOD1(SSL_HMAC_CTX_free, void(HMAC_CTX *));
-    MOCK_METHOD0(SSL_HMAC_CTX_new, HMAC_CTX *());
-    MOCK_METHOD3(SSL_HMAC_Final, int(HMAC_CTX *, unsigned char *, unsigned int *));
-    MOCK_METHOD3(SSL_HMAC_Update, int(HMAC_CTX *, const unsigned char *, int));
-    MOCK_METHOD5(SSL_HMAC_Init_ex, int(HMAC_CTX *, const void *, int, const EVP_MD *, ENGINE *));
+
+    MOCK_METHOD1(EVP_MAC_CTX_free, void(EVP_MAC_CTX *));
+    MOCK_METHOD1(EVP_MAC_CTX_new, EVP_MAC_CTX *(EVP_MAC *));
+    MOCK_METHOD4(EVP_MAC_final, int(EVP_MAC_CTX *, unsigned char *, int *, int));
+    MOCK_METHOD3(EVP_MAC_update, int(EVP_MAC_CTX *, const unsigned char *, int));
+    MOCK_METHOD4(EVP_MAC_init, int(EVP_MAC_CTX *, const unsigned char *, int, const OSSL_PARAM[]));
+    MOCK_METHOD3(EVP_MAC_fetch, EVP_MAC *(OSSL_LIB_CTX *, const char *, const char *));
+    MOCK_METHOD1(EVP_MAC_free, void(EVP_MAC *));
+    MOCK_METHOD0(OSSL_LIB_CTX_new, OSSL_LIB_CTX *());
+    MOCK_METHOD1(OSSL_LIB_CTX_free, void(OSSL_LIB_CTX *));
+
+
     MOCK_METHOD2(SSL_i2d_X509_REQ_bio, int(BIO *, X509_REQ *));
     MOCK_METHOD2(SSL_d2i_X509_REQ_bio, X509_REQ *(BIO *, X509_REQ **));
     MOCK_METHOD3(SSL_d2i_X509_PUBKEY, X509_PUBKEY *(X509_PUBKEY **, const unsigned char **, long));

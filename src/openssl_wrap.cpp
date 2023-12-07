@@ -497,6 +497,45 @@ const EVP_MD *_getMDPtrFromDigestType(DigestTypes type)
     }
 }
 
+const std::array<OSSL_PARAM, 4> _getOSSLParamFromDigestType(DigestTypes type)
+{
+   std::string digest_name;
+    switch (type) {
+        case DigestTypes::SHA1:
+            digest_name = "SHA1";
+            break;
+        case DigestTypes::SHA256:
+            digest_name = "SHA256";
+            break;
+        case DigestTypes::SHA384:
+            digest_name = "SHA384";
+            break;
+        case DigestTypes::SHA512:
+            digest_name = "SHA512";
+            break;
+        case DigestTypes::SHA3_256:
+            digest_name = "SHA3-256";
+            break;
+        case DigestTypes::SHA3_384:
+            digest_name = "SHA3-384";
+            break;
+        case DigestTypes::SHA3_512:
+            digest_name = "SHA3-512";
+            break;
+        default:
+            throw std::runtime_error("Unknown digest type");
+    }
+
+    OSSL_PARAM params[4], *p = params;
+    *p++ = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_utf8_string(OSSL_MAC_PARAM_DIGEST, const_cast<char*>(digest_name.c_str()), sizeof(digest_name.c_str()));
+    *p = lib::OpenSSLLib::SSL_OSSL_PARAM_construct_end();
+
+    std::array<OSSL_PARAM, 4> ossl_params;
+    std::copy(std::begin(params), std::end(params), ossl_params.begin());
+
+    return ossl_params;
+}
+
 void _EVP_DigestSignInit(EVP_MD_CTX *ctx, DigestTypes type, EVP_PKEY *pkey)
 {
     const EVP_MD *md;
@@ -661,9 +700,9 @@ X509_CRL *createOpenSSLObject<X509_CRL>()
 }
 
 template <>
-HMAC_CTX *createOpenSSLObject<HMAC_CTX>()
+EVP_MAC_CTX *createOpenSSLObject<EVP_MAC_CTX>(EVP_MAC *mac)
 {
-    return OpensslCallPtr::callChecked(lib::OpenSSLLib::SSL_HMAC_CTX_new);
+    return OpensslCallPtr::callChecked(lib::OpenSSLLib::EVP_MAC_CTX_new, mac);
 }
 
 template <>
@@ -1440,31 +1479,43 @@ void _ECDH_KDF_X9_63(std::vector<uint8_t> &out,
                                   md);
 }
 
-void _HMAC_Init_ex(HMAC_CTX *ctx, const std::vector<uint8_t> &key, const EVP_MD *md, ENGINE *impl)
+
+OSSL_LIB_CTX_Ptr _OSSL_LIB_CTX_new(void) {
+    return createManagedOpenSSLObject<OSSL_LIB_CTX_Ptr>();
+}
+
+void _EVP_MAC_init(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &key, const OSSL_PARAM params[])
 {
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Init_ex,
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_init,
                                   ctx,
-                                  reinterpret_cast<const void *>(key.data()),
+                                  reinterpret_cast<const unsigned char *>(key.data()),
                                   key.size(),
-                                  md,
-                                  impl);
+                                  params);
 }
 
-std::vector<uint8_t> _HMAC_Final(HMAC_CTX *ctx)
+std::vector<uint8_t> _EVP_MAC_final(EVP_MAC_CTX *ctx)
 {
-    unsigned int length = EVP_MAX_MD_SIZE;
-    std::vector<uint8_t> md(length);
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Final, ctx, md.data(), &length);
-    md.resize(length);
-    return md;
+    int outlen = 0;
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_final, ctx, nullptr, &outlen, 0);
+    std::vector<uint8_t> out(outlen);
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_final, ctx, out.data(), &outlen, outlen);
+    return out;
 }
 
-void _HMAC_Update(HMAC_CTX *ctx, const std::vector<uint8_t> &data)
+void _EVP_MAC_update(EVP_MAC_CTX *ctx, const std::vector<uint8_t> &data)
 {
-    OpensslCallIsOne::callChecked(lib::OpenSSLLib::SSL_HMAC_Update, ctx, data.data(), data.size());
+    OpensslCallIsOne::callChecked(lib::OpenSSLLib::EVP_MAC_update, ctx, data.data(), data.size());
 }
 
-SSL_HMAC_CTX_Ptr _HMAC_CTX_new() { return createManagedOpenSSLObject<SSL_HMAC_CTX_Ptr>(); }
+EVP_MAC_CTX_Ptr _EVP_MAC_CTX_new(EVP_MAC *mac)
+{
+    return createManagedOpenSSLObject<EVP_MAC_CTX_Ptr, EVP_MAC*>(mac);
+}
+
+EVP_MAC_Ptr _EVP_MAC_fetch(OSSL_LIB_CTX *libctx, std::string algorithm) {
+    return EVP_MAC_Ptr{OpensslCallPtr::callChecked(
+            lib::OpenSSLLib::EVP_MAC_fetch, libctx, algorithm.c_str(), nullptr)};
+}
 
 SSL_CMAC_CTX_Ptr _CMAC_CTX_new(void) { return createManagedOpenSSLObject<SSL_CMAC_CTX_Ptr>(); }
 
